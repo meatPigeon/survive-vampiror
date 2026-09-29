@@ -2,7 +2,24 @@
 
 ## Active Work
 
-None. The requested balance experiments and selected tuning are complete.
+None. The gameplay-only jam encounter is implemented and verified on
+`gpt-full-game-test`.
+
+## Task: Finish The Jam Gameplay Loop
+
+Status: complete; headless mechanics, full runs, character and movement checks
+pass; rendered full run and gameplay captures inspected
+Priority: high
+
+Scope: One knight fight with three health phases, warned sweep/charge/spin
+attacks, purposeful knight movement, horde sprint, and finite reinforcement
+sites. Complete start, win/loss, pause, restart and functional feedback. Keep
+existing models, simple arena, scene composition, and direct references.
+
+Acceptance: A complete active run can win; passive play loses; all attack shapes
+and phase transitions work; sprint and reserves are bounded and reset on replay;
+no combat continues after the outcome or while paused. Test actual viewport
+input and inspect rendered fights. No presentation polish or unrelated systems.
 
 ## Task: Tune Health, Knight Movement, And Sword Attacks
 

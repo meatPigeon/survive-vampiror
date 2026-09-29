@@ -3,8 +3,8 @@
 ## Project Goal
 
 Survive Vampiror is an early Godot 3D prototype in which the player commands a
-horde toward ground positions to fight a stationary knight. Prefer the smallest
-working implementation for the requested slice.
+horde against one knight in a complete short jam-style encounter. Keep gameplay
+logic complete and presentation minimal on the experimental branch.
 
 ## Required Context Before Work
 
@@ -31,10 +31,11 @@ only for the missing scope. Do not invent a next milestone or expand the backlog
 ## Hard Rules
 
 - Preserve user changes; do not rewrite unrelated files.
-- Keep this slice limited to the arena, visible survivor, crowd, commands,
-  movement, separation, camera, and the requested basic health/melee fight.
-- Do not add progression, roaming survivor AI, larger UI systems, persistence,
-  networking, or visual/audio systems in preparation for later work.
+- Current authorized scope: a complete jam-style gameplay loop with knight
+  phases/attacks, horde movement and sprint, finite reinforcements, outcomes,
+  pause and restart. This supersedes the earlier basic-combat-only scope.
+- Keep presentation functional: no UI polish, audio, custom shaders, decorative
+  assets, persistence, networking, or unrelated systems.
 - Do not introduce dependencies, plugins, global services, event buses, ECS,
   pooling, or navigation infrastructure without a concrete current need.
 - Reuse applicable sibling conventions, not sibling-specific game systems.
@@ -62,6 +63,7 @@ Commands, from the project root:
 godot --headless --path . --editor --quit
 godot --headless --path . --script res://tests/prototype_smoke.gd --fixed-fps 60
 godot --headless --path . --script res://tests/combat_smoke.gd --fixed-fps 60
+godot --headless --path . --script res://tests/combat_balance.gd --fixed-fps 60
 godot --path .
 ```
 

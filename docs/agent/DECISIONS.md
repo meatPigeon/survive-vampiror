@@ -96,7 +96,7 @@ restart expose the fight's result; they are not a menu/UI framework.
 
 ## Make The Existing Warned Swing Matter Before Adding More AI
 
-Status: accepted after the requested health/movement/sector experiments
+Status: superseded on the jam branch; retained in baseline commit dc63168
 
 Decision: Use 1000 knight HP, 30 zombie HP, and a 15-damage, 160-degree,
 2.2-radius sword swing. Windup is 1.3 seconds; recovery is 1.2 seconds. Keep
@@ -111,3 +111,30 @@ Consequences: Health and damage preserve two hits per zombie. A wider arc raises
 crowd losses while a longer windup allows deliberate commands. Regression tests
 compare actual mouse-driven passive and active play from four starts. This is
 an initial tested balance, not a global optimum. See [TESTING.md](TESTING.md).
+
+
+## Ship One Complete Encounter For The Gameplay-Only Jam Request
+
+Status: accepted for `gpt-full-game-test`
+
+Decision: One roughly three-minute knight encounter with three health phases,
+warned sweep/charge/spin attacks, deliberate pursuit, a horde sprint and three
+finite reinforcement sites. Start waits for a command; pause/restart and both
+outcomes are complete. Technical HUD and geometry communicate the rules.
+
+Reason: This supplies a beginning, changing tactical decisions, recoverable
+losses, limited resources, and a final win/loss without adding a campaign,
+upgrade tree, new character assets or unrelated systems. The user authorized
+finishing the gameplay and explicitly excluded presentation polish.
+
+Consequences: Knight movement now pursues/charges rather than retreats, avoiding
+the earlier fleeing-last-zombie stall. Warning origin/direction stays fixed.
+Animation and warning drawing were separated from knight combat to keep it
+readable. All state remains scene-owned; a small enum is sufficient for the
+three attacks. Reserve sites request recruitment through HordeController and
+preserve unused stock at the cap. Presentation can change independently later.
+
+Validation: Actual viewport-driven full runs lose with passive/reckless play
+and win with delayed reactions, sprint and reserves. Unit/scenario checks cover
+pause/replay, death, attack geometry and finite resource rules. See
+[TESTING.md](TESTING.md) for evidence and limits.

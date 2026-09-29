@@ -1,14 +1,14 @@
 # Glossary
 
-- **Horde**: the entire player-commanded crowd; initially 40 agents.
-- **Agent**: one zombie, represented by a HordeAgent scene with animated visuals.
-- **Survivor**: the single knight target; stationary, turning and swinging at nearby zombies.
-- **Command position**: the shared world-space ground point selected by a click.
-- **Target marker**: the yellow ring displaying that command position.
-- **Separation**: local repulsion between nearby agents so bodies remain readable.
-- **Arena bounds**: the floor's X/Z rectangle used to constrain movement.
-- **GroundCommand / HordeController / HordeAgent**: the canonical input,
-  shared-intent, and individual-movement classes, respectively.
-
-- **Health**: per-entity hit points; zero emits death once.
-- **Attack arc**: the orange ground warning for the knight's locked sword swing.
+- **Horde**: the player-commanded crowd; starts at 40, capped at 60 zombies.
+- **Agent**: one zombie with its own movement, health, bite cooldown and visuals.
+- **Survivor / knight**: the single enemy, with pursuit and three health phases.
+- **Command position**: the shared ground destination chosen by left click.
+- **Target marker**: yellow ring showing the latest command.
+- **Separation**: local repulsion keeping the crowd's individual bodies readable.
+- **Sprint**: Space-triggered temporary movement boost with a cooldown.
+- **Warning / attack area**: locked orange sector, yellow lane, or purple circle.
+- **Recovery**: the knight's stationary interval after an attack; safe bite window.
+- **Reserve site**: green circle containing finite recruits, claimed by occupation.
+- **Health**: entity HP; zero emits death once.
+- **Run**: one scene instance, from first command to victory/defeat or restart.

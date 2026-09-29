@@ -34,13 +34,13 @@ func _ready() -> void:
 
 func move_toward_command(
 	target: Vector3, neighbours: Array[HordeAgent], bounds: Rect2, delta: float,
-	survivor: Survivor = null
+	survivor: Survivor = null, speed_multiplier: float = 1.0
 ) -> void:
 	if not health.is_alive():
 		return
 	var offset: Vector3 = target - global_position
 	offset.y = 0.0
-	var attraction: Vector3 = (offset / slowdown_radius).limit_length() * move_speed
+	var attraction: Vector3 = (offset / slowdown_radius).limit_length() * move_speed * speed_multiplier
 	var separation := Vector3.ZERO
 	for neighbour: HordeAgent in neighbours:
 		if neighbour == self:
@@ -56,7 +56,7 @@ func move_toward_command(
 			distance = 0.001
 		separation += away.normalized() * (separation_radius - distance) / maxf(distance * distance, 0.01)
 
-	var velocity: Vector3 = (attraction + separation * separation_strength).limit_length(move_speed)
+	var velocity: Vector3 = (attraction + separation * separation_strength).limit_length(move_speed * speed_multiplier)
 	var next_position: Vector3 = global_position + velocity * delta
 	if survivor != null and survivor.health.is_alive():
 		var away_from_survivor: Vector3 = next_position - survivor.global_position
@@ -116,7 +116,7 @@ func _update_visuals(actual_velocity: Vector3, delta: float) -> void:
 			visual.rotation.y, atan2(-actual_velocity.x, -actual_velocity.z),
 			minf(turn_speed * delta, 1.0)
 		)
-		animation_player.speed_scale = run_animation_speed * clampf(speed / move_speed, 0.5, 1.0)
+		animation_player.speed_scale = run_animation_speed * clampf(speed / move_speed, 0.5, 2.0)
 		_play_animation(&"run")
 	else:
 		animation_player.speed_scale = 1.0

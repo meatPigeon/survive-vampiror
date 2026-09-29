@@ -1,139 +1,206 @@
 class_name Survivor
 extends Node3D
 
-const HIT_FLASH: Material = preload("res://art/hit_flash.tres")
-const SWORD: PackedScene = preload("res://scenes/components/sword.tscn")
+signal phase_changed(phase: int)
+
+enum Attack { SWEEP, CHARGE, SPIN }
+enum State { HUNT, WINDUP, STRIKE, RECOVERY, STOPPED }
 
 @export var body_radius: float = 0.55
+@export var move_speed: float = 1.5
 @export var attack_range: float = 2.2
 @export var attack_angle: float = 160.0
 @export var attack_damage: int = 15
 @export var windup_time: float = 1.3
 @export var swing_time: float = 0.18
-@export var recovery_time: float = 1.2
+@export var recovery_time: float = 1.4
+@export var charge_range: float = 8.0
+@export var charge_width: float = 2.0
+@export var charge_damage: int = 20
+@export var charge_windup: float = 1.5
+@export var charge_duration: float = 0.7
+@export var charge_recovery: float = 2.0
+@export var spin_radius: float = 3.2
+@export var spin_damage: int = 20
+@export var spin_windup: float = 1.8
+@export var spin_recovery: float = 2.4
 
-var _attack_elapsed: float = -1.0
-var _dealt_damage: bool = false
+var phase: int = 1
+var state: State = State.HUNT
+var attack_kind: Attack = Attack.SWEEP
+var movement_bounds := Rect2(-22, -16, 44, 32)
+var _time: float = 0.0
+var _attack_number: int = 0
 var _attack_direction := Vector3.FORWARD
-var _combat_enabled: bool = true
-var _flash_tween: Tween
+var _origin: Vector3
+var _charge_end: Vector3
+var _hit_ids: Dictionary = {}
 
-@onready var visual: Node3D = $Visual
+@onready var visual: KnightVisual = $Visual
 @onready var animation_player: AnimationPlayer = $Visual/AnimationPlayer
-@onready var skeleton: Skeleton3D = $Visual/CharacterRig/Skeleton3D
-@onready var body: MeshInstance3D = $Visual/CharacterRig/Skeleton3D/MedievalKnight
 @onready var health: Health = $Health
-@onready var attack_area: MeshInstance3D = $AttackArea
+@onready var attack_area: AttackPreview = $AttackArea
 
 
 func _ready() -> void:
-	_add_sword_and_swing()
-	_build_attack_area()
-	animation_player.play(&"idle")
 	health.changed.connect(_on_health_changed)
 	health.died.connect(_on_died)
 
 
 func update_combat(agents: Array[HordeAgent], delta: float) -> void:
-	if not _combat_enabled or not health.is_alive():
+	if state == State.STOPPED or not health.is_alive():
 		return
-	if _attack_elapsed < 0.0:
-		var nearest: HordeAgent
-		var nearest_distance: float = attack_range
-		for agent: HordeAgent in agents:
-			var distance: float = global_position.distance_to(agent.global_position)
-			if agent.health.is_alive() and distance <= nearest_distance:
-				nearest = agent
-				nearest_distance = distance
-		if nearest == null:
-			return
-		_attack_direction = (nearest.global_position - global_position).normalized()
-		visual.rotation.y = atan2(-_attack_direction.x, -_attack_direction.z)
-		attack_area.rotation.y = visual.rotation.y
-		attack_area.show()
-		_attack_elapsed = 0.0
-		_dealt_damage = false
-		animation_player.play(&"combat/swing", 0.08)
-		return
+	match state:
+		State.HUNT:
+			_hunt(agents, delta)
+		State.WINDUP:
+			_time += delta
+			if _time >= current_windup():
+				state = State.STRIKE
+				_time = 0.0
+				if attack_kind != Attack.CHARGE:
+					_hit_area(agents)
+		State.STRIKE:
+			_time += delta
+			if attack_kind == Attack.CHARGE:
+				var previous: Vector3 = global_position
+				global_position = _origin.lerp(_charge_end, minf(_time / charge_duration, 1.0))
+				visual.run(_attack_direction)
+				_hit_charge(agents, previous, global_position)
+			elif attack_kind == Attack.SPIN:
+				visual.rotation.y += TAU * delta / current_strike()
+			if state != State.STOPPED and _time >= current_strike():
+				state = State.RECOVERY
+				_time = 0.0
+				attack_area.hide()
+				visual.idle()
+		State.RECOVERY:
+			_time += delta
+			if _time >= current_recovery():
+				state = State.HUNT
+				_time = 0.0
 
-	_attack_elapsed += delta
-	if not _dealt_damage and _attack_elapsed >= windup_time:
-		_dealt_damage = true
-		# Death signals remove agents from the live list during this loop.
-		for agent: HordeAgent in agents.duplicate():
-			var offset: Vector3 = agent.global_position - global_position
-			if offset.length() <= attack_range and offset.normalized().dot(_attack_direction) >= cos(deg_to_rad(attack_angle * 0.5)):
-				agent.health.take_damage(attack_damage)
-	if _attack_elapsed >= windup_time + swing_time:
-		attack_area.hide()
-	if _attack_elapsed >= windup_time + swing_time + recovery_time:
-		_attack_elapsed = -1.0
-		animation_player.play(&"idle", 0.12)
+
+func _hunt(agents: Array[HordeAgent], delta: float) -> void:
+	var nearest: HordeAgent
+	var nearest_distance: float = INF
+	for agent: HordeAgent in agents:
+		var distance: float = global_position.distance_to(agent.global_position)
+		if agent.health.is_alive() and distance < nearest_distance:
+			nearest = agent
+			nearest_distance = distance
+	if nearest == null:
+		visual.idle()
+		return
+	var pattern: Array[Attack] = [Attack.SWEEP, Attack.SWEEP, Attack.CHARGE]
+	if phase == 2:
+		pattern = [Attack.SWEEP, Attack.CHARGE, Attack.SPIN]
+	elif phase == 3:
+		pattern = [Attack.CHARGE, Attack.SPIN, Attack.SWEEP, Attack.SPIN]
+	var next: Attack = pattern[_attack_number % pattern.size()]
+	# A distant horde is pursued with a warned charge, rather than allowed to wait forever.
+	if nearest_distance > attack_range and nearest_distance <= charge_range:
+		next = Attack.CHARGE
+	var reach: float = charge_range if next == Attack.CHARGE else (spin_radius if next == Attack.SPIN else attack_range)
+	if nearest_distance <= reach:
+		_begin_attack(next, nearest.global_position)
+		return
+	var direction: Vector3 = (nearest.global_position - global_position).normalized()
+	global_position = _clamp_to_floor(global_position + direction * move_speed * delta)
+	visual.run(direction)
+
+
+func _begin_attack(kind: Attack, target: Vector3) -> void:
+	attack_kind = kind
+	_attack_number += 1
+	_attack_direction = (target - global_position).normalized()
+	if _attack_direction.is_zero_approx():
+		_attack_direction = Vector3.FORWARD
+	_origin = global_position
+	_charge_end = _clamp_to_floor(_origin + _attack_direction * minf(charge_range, _origin.distance_to(target) + 1.5))
+	if kind == Attack.CHARGE and _origin.distance_to(_charge_end) < 0.1:
+		kind = Attack.SWEEP
+		attack_kind = kind
+	_hit_ids.clear()
+	state = State.WINDUP
+	_time = 0.0
+	visual.face(_attack_direction)
+	match kind:
+		Attack.SWEEP:
+			attack_area.show_arc(_origin, _attack_direction, attack_range, attack_angle, Color(1, 0.3, 0.08, 0.5))
+		Attack.CHARGE:
+			_attack_direction = (_charge_end - _origin).normalized()
+			attack_area.show_lane(_origin, _attack_direction, _origin.distance_to(_charge_end), charge_width, Color(1, 0.8, 0.1, 0.5))
+		Attack.SPIN:
+			attack_area.show_arc(_origin, _attack_direction, spin_radius, 360.0, Color(0.8, 0.2, 1, 0.45))
+	visual.attack(StringName(Attack.keys()[kind].to_lower()), current_windup(), current_strike(), current_recovery())
+
+
+func _hit_area(agents: Array[HordeAgent]) -> void:
+	for agent: HordeAgent in agents.duplicate():
+		var offset: Vector3 = agent.global_position - _origin
+		var inside: bool = offset.length() <= spin_radius if attack_kind == Attack.SPIN else (
+			offset.length() <= attack_range and offset.normalized().dot(_attack_direction) >= cos(deg_to_rad(attack_angle * 0.5)))
+		if inside:
+			agent.health.take_damage(spin_damage if attack_kind == Attack.SPIN else attack_damage)
+
+
+func _hit_charge(agents: Array[HordeAgent], from: Vector3, to: Vector3) -> void:
+	for agent: HordeAgent in agents.duplicate():
+		if _hit_ids.has(agent.get_instance_id()):
+			continue
+		var along_lane: float = (agent.global_position - _origin).dot(_attack_direction)
+		if along_lane < 0.0 or along_lane > _origin.distance_to(_charge_end):
+			continue
+		var closest: Vector3 = Geometry3D.get_closest_point_to_segment(agent.global_position, from, to)
+		if agent.global_position.distance_to(closest) <= charge_width * 0.5:
+			_hit_ids[agent.get_instance_id()] = true
+			agent.health.take_damage(charge_damage)
+
+
+func current_windup() -> float:
+	return charge_windup if attack_kind == Attack.CHARGE else (spin_windup if attack_kind == Attack.SPIN else windup_time)
+
+
+func current_strike() -> float:
+	return charge_duration if attack_kind == Attack.CHARGE else (0.5 if attack_kind == Attack.SPIN else swing_time)
+
+
+func current_recovery() -> float:
+	return charge_recovery if attack_kind == Attack.CHARGE else (spin_recovery if attack_kind == Attack.SPIN else recovery_time)
+
+
+func status_text() -> String:
+	if state == State.STOPPED:
+		return ""
+	if state == State.RECOVERY:
+		return "EXPOSED — bite now!"
+	if state == State.HUNT:
+		return "Hunting the horde"
+	return ["SWEEP — move sideways", "CHARGE — leave the yellow lane", "SPIN — leave the purple circle"][attack_kind]
 
 
 func stop_combat() -> void:
-	_combat_enabled = false
+	state = State.STOPPED
 	attack_area.hide()
 	if health.is_alive():
-		animation_player.play(&"idle", 0.12)
+		visual.idle()
 
 
-func _on_health_changed(_current: int, _maximum: int) -> void:
-	if _flash_tween != null:
-		_flash_tween.kill()
-	body.material_overlay = HIT_FLASH
-	_flash_tween = create_tween()
-	_flash_tween.tween_interval(0.12)
-	_flash_tween.tween_callback(func() -> void: body.material_overlay = null)
+func _clamp_to_floor(point: Vector3) -> Vector3:
+	point.x = clampf(point.x, movement_bounds.position.x + body_radius, movement_bounds.end.x - body_radius)
+	point.z = clampf(point.z, movement_bounds.position.y + body_radius, movement_bounds.end.y - body_radius)
+	return point
+
+
+func _on_health_changed(current: int, maximum: int) -> void:
+	visual.flash()
+	var next_phase: int = 3 if current * 3 <= maximum else (2 if current * 3 <= maximum * 2 else 1)
+	if next_phase > phase:
+		phase = next_phase
+		phase_changed.emit(phase)
 
 
 func _on_died() -> void:
 	stop_combat()
-	animation_player.pause()
-	create_tween().tween_property(visual, "rotation:z", PI * 0.5, 0.4)
-
-
-func _build_attack_area() -> void:
-	var vertices := PackedVector3Array()
-	var half_angle: float = deg_to_rad(attack_angle * 0.5)
-	for index: int in range(16):
-		var start: float = lerpf(-half_angle, half_angle, float(index) / 16.0)
-		var end: float = lerpf(-half_angle, half_angle, float(index + 1) / 16.0)
-		vertices.append(Vector3.ZERO)
-		vertices.append(Vector3(sin(start), 0.0, -cos(start)) * attack_range)
-		vertices.append(Vector3(sin(end), 0.0, -cos(end)) * attack_range)
-	var arrays: Array = []
-	arrays.resize(Mesh.ARRAY_MAX)
-	arrays[Mesh.ARRAY_VERTEX] = vertices
-	var mesh := ArrayMesh.new()
-	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arrays)
-	attack_area.mesh = mesh
-
-
-func _add_sword_and_swing() -> void:
-	var hand := BoneAttachment3D.new()
-	hand.bone_name = "Hand.R"
-	skeleton.add_child(hand)
-	var sword: Node3D = SWORD.instantiate()
-	hand.add_child(sword)
-	sword.position.y = 0.08
-	var hand_rest: Quaternion = skeleton.get_bone_global_rest(skeleton.find_bone("Hand.R")).basis.get_rotation_quaternion()
-	sword.quaternion = Quaternion(Vector3.UP, hand_rest.inverse() * Vector3.FORWARD)
-
-	# A small runtime arm swing; the source idle/run clips remain reusable.
-	var swing := Animation.new()
-	swing.length = windup_time + swing_time + recovery_time
-	var times: Array[float] = [0.0, windup_time * 0.75, windup_time, windup_time + swing_time, swing.length]
-	var poses: Array[Vector3] = [Vector3.ZERO, Vector3(1.7, 0.8, 0.0), Vector3(1.7, 0.8, 0.0), Vector3(0.7, -0.9, 0.0), Vector3.ZERO]
-	for bone_name: String in ["UpperArm.R", "LowerArm.R"]:
-		var track: int = swing.add_track(Animation.TYPE_ROTATION_3D)
-		swing.track_set_path(track, NodePath("CharacterRig/Skeleton3D:" + bone_name))
-		var bone_index: int = skeleton.find_bone(bone_name)
-		var rest: Quaternion = skeleton.get_bone_global_rest(bone_index).basis.get_rotation_quaternion()
-		var local_rest: Quaternion = skeleton.get_bone_rest(bone_index).basis.get_rotation_quaternion()
-		for index: int in range(times.size()):
-			var angles: Vector3 = poses[index] if bone_name == "UpperArm.R" else Vector3(poses[index].x * 0.3, 0.0, 0.0)
-			swing.rotation_track_insert_key(track, times[index], local_rest * rest.inverse() * Quaternion.from_euler(angles) * rest)
-	var library := AnimationLibrary.new()
-	library.add_animation(&"swing", swing)
-	animation_player.add_animation_library(&"combat", library)
+	visual.die()

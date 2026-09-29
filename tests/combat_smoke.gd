@@ -1,8 +1,8 @@
 extends SceneTree
 
-var _failures: int = 0
-var _death_count: int = 0
 const MAIN: PackedScene = preload("res://scenes/main.tscn")
+var _failures: int = 0
+var _deaths: int = 0
 
 
 func _initialize() -> void:
@@ -10,156 +10,225 @@ func _initialize() -> void:
 
 
 func _run() -> void:
-	root.size = Vector2i(1280, 800)
-	var health := Health.new()
-	health.max_health = 20
-	root.add_child(health)
-	health.died.connect(func() -> void: _death_count += 1)
-	health.take_damage(-10)
-	_check(health.current_health == 20, "negative damage ignored")
-	health.take_damage(7)
-	_check(health.current_health == 13, "damage reduces health")
-	health.take_damage(100)
-	health.take_damage(100)
-	_check(health.current_health == 0 and _death_count == 1, "death occurs once and health clamps to zero")
-	health.free()
+	var hp := Health.new()
+	hp.max_health = 30
+	root.add_child(hp)
+	hp.died.connect(func() -> void: _deaths += 1)
+	hp.take_damage(-5)
+	_check(hp.current_health == 30, "negative damage is ignored")
+	hp.take_damage(15)
+	_check(hp.current_health == 15, "damage reduces health")
+	hp.take_damage(100)
+	hp.take_damage(100)
+	_check(hp.current_health == 0 and _deaths == 1, "death is emitted once")
+	hp.free()
 
-	var scene: Node3D = MAIN.instantiate()
-	root.add_child(scene)
-	scene.set_physics_process(false)
+	var scene: Node3D = _fixture()
 	var knight: Survivor = scene.get_node("Survivor")
 	var horde: HordeController = scene.get_node("Horde")
 	var front: HordeAgent = horde.agents[0]
 	var rear: HordeAgent = horde.agents[1]
-	var distant: HordeAgent = horde.agents[2]
+	var outside: HordeAgent = horde.agents[2]
 	front.global_position = knight.global_position + Vector3.FORWARD
 	rear.global_position = knight.global_position + Vector3.BACK * 1.1
-	distant.global_position = knight.global_position + Vector3.FORWARD * 4.0
-
-	var starting_health: int = knight.health.max_health
-	var zombie_health_max: int = front.health.max_health
-	var cycle: float = knight.windup_time + knight.swing_time + knight.recovery_time
-	distant.update_combat(knight, 1.0)
-	_check(knight.health.current_health == starting_health, "out-of-range zombie cannot bite")
+	outside.global_position = knight.global_position + Vector3.FORWARD * 4
+	var initial_hp: int = knight.health.current_health
+	outside.update_combat(knight, 1.0)
+	_check(knight.health.current_health == initial_hp, "out-of-range bite misses")
+	front.update_combat(knight, 0.01)
 	front.update_combat(knight, 0.1)
-	front.update_combat(knight, 0.1)
-	_check(knight.health.current_health == starting_health - front.bite_damage, "bite damages once during cooldown")
-	front.update_combat(knight, 0.8)
-	_check(knight.health.current_health == starting_health - front.bite_damage * 2, "bite repeats after cooldown")
+	_check(knight.health.current_health == initial_hp - front.bite_damage, "bite respects cooldown")
+	front.update_combat(knight, 1.0)
+	_check(knight.health.current_health == initial_hp - front.bite_damage * 2, "bite repeats after cooldown")
 
 	knight.update_combat(horde.agents, 0.01)
-	_check(knight.attack_area.visible and front.health.current_health == zombie_health_max, "swing warns before dealing damage")
-	_check(knight.animation_player.current_animation == &"combat/swing", "knight plays the swing animation")
+	_check(knight.state == Survivor.State.WINDUP and knight.attack_kind == Survivor.Attack.SWEEP, "first close attack is a warned sweep")
+	_check(knight.attack_area.visible and front.health.current_health == 30, "warning precedes damage")
 	knight.update_combat(horde.agents, knight.windup_time)
-	_check(front.health.current_health == zombie_health_max - knight.attack_damage, "swing hits the zombie in front")
-	_check(rear.health.current_health == zombie_health_max and distant.health.current_health == zombie_health_max, "swing respects direction and range")
+	_check(front.health.current_health == 15, "sweep hits front")
+	_check(rear.health.current_health == 30 and outside.health.current_health == 30, "sweep respects arc and range")
+	knight.update_combat(horde.agents, 0.1)
+	_check(front.health.current_health == 15, "sweep damages once")
+	knight.update_combat(horde.agents, knight.swing_time)
+	_check(knight.state == Survivor.State.RECOVERY and not knight.attack_area.visible, "attack creates a safe recovery window")
+	knight.update_combat(horde.agents, knight.recovery_time)
 	knight.update_combat(horde.agents, 0.01)
-	_check(front.health.current_health == zombie_health_max - knight.attack_damage, "one swing deals damage only once")
-	knight.update_combat(horde.agents, cycle)
-	knight.update_combat(horde.agents, 0.01)
-	# Retreat after the tell: the locked swing must miss.
-	front.global_position += Vector3.FORWARD * 3.0
+	front.global_position += Vector3.FORWARD * 4
 	knight.update_combat(horde.agents, knight.windup_time)
-	_check(front.health.current_health == zombie_health_max - knight.attack_damage, "retreat during windup avoids damage")
-	knight.update_combat(horde.agents, cycle)
-	front.global_position = knight.global_position + Vector3.FORWARD
-	knight.update_combat(horde.agents, 0.01)
-	knight.update_combat(horde.agents, knight.windup_time)
-	_check(not front.health.is_alive() and horde.agents.size() == 39, "fatal swing removes zombie from active horde immediately")
-	var knight_health: int = knight.health.current_health
-	front.update_combat(knight, 10.0)
-	_check(knight.health.current_health == knight_health, "dead zombie cannot bite")
-	await _frames(30)
-	_check(not is_instance_valid(front), "dead zombie is freed after its death pose")
+	_check(front.health.current_health == 15, "retreat after the tell avoids a locked sweep")
 	scene.free()
 
-	# Exercise an actual battle through the same mouse input as the player.
+	scene = _fixture()
+	knight = scene.get_node("Survivor")
+	horde = scene.get_node("Horde")
+	front = horde.agents[0]
+	rear = horde.agents[1]
+	outside = horde.agents[2]
+	var origin: Vector3 = knight.global_position
+	front.global_position = origin + Vector3.FORWARD * 4
+	rear.global_position = origin + Vector3.BACK * 0.5
+	outside.global_position = origin + Vector3(1.2, 0, -4)
+	knight._begin_attack(Survivor.Attack.CHARGE, front.global_position)
+	var lane_origin: Vector3 = knight.attack_area.global_position
+	knight.update_combat(horde.agents, knight.charge_windup)
+	knight.update_combat(horde.agents, knight.charge_duration * 0.75)
+	_check(knight.global_position.distance_to(origin) > 3, "charge moves knight along warned lane")
+	_check(knight.attack_area.global_position == lane_origin, "charge warning remains fixed in world space")
+	_check(front.health.current_health == 10, "charge hits a zombie it passes")
+	_check(outside.health.current_health == 30 and rear.health.current_health == 30, "charge cannot hit outside its warned rectangle")
+	knight.update_combat(horde.agents, knight.charge_duration * 0.25)
+	_check(front.health.current_health == 10, "charge cannot repeatedly damage the same zombie")
+	_check(horde.movement_bounds.has_point(Vector2(knight.position.x, knight.position.z)), "charging knight stays inside arena")
+	scene.free()
+
+	scene = _fixture()
+	knight = scene.get_node("Survivor")
+	horde = scene.get_node("Horde")
+	front = horde.agents[0]
+	rear = horde.agents[1]
+	outside = horde.agents[2]
+	knight.health.take_damage(ceili(knight.health.max_health / 3.0))
+	_check(knight.phase == 2, "second phase starts at two-thirds health")
+	knight.health.take_damage(ceili(knight.health.max_health / 3.0))
+	_check(knight.phase == 3, "third phase starts at one-third health")
+	front.global_position = knight.global_position + Vector3.FORWARD * 2
+	rear.global_position = knight.global_position + Vector3.BACK * 2
+	outside.global_position = knight.global_position + Vector3.RIGHT * 3.5
+	knight._begin_attack(Survivor.Attack.SPIN, front.global_position)
+	knight.update_combat(horde.agents, knight.spin_windup)
+	_check(front.health.current_health == 10 and rear.health.current_health == 10, "spin hits every direction")
+	_check(outside.health.current_health == 30, "spin respects displayed radius")
+	front.health.take_damage(100)
+	_check(horde.agents.size() == 39, "dead zombie leaves active crowd immediately")
+	initial_hp = knight.health.current_health
+	front.update_combat(knight, 10)
+	_check(knight.health.current_health == initial_hp, "dead zombie cannot bite")
+	await _frames(25)
+	_check(not is_instance_valid(front), "dead zombie is freed after death feedback")
+	scene.free()
+
+	scene = _fixture()
+	horde = scene.get_node("Horde")
+	var site: ReinforcementSite = scene.get_node("Reinforcements/West")
+	horde.command_move(site.global_position)
+	site.update_recruitment(horde, 3.0)
+	_check(site.remaining == 12 and site.progress == 0, "a command alone cannot recruit without a zombie reaching the site")
+	horde.agents[0].global_position = site.global_position
+	site.update_recruitment(horde, 1.0)
+	_check(site.progress == 1.0, "occupying a reserve site charges recruitment")
+	horde.agents[0].global_position += Vector3.RIGHT * 5
+	site.update_recruitment(horde, 0.1)
+	_check(site.progress == 0.0, "leaving interrupts recruitment")
+	horde.agents[0].global_position = site.global_position
+	site.update_recruitment(horde, 2.1)
+	_check(horde.agents.size() == 52 and site.remaining == 0, "site adds its finite reserve to the horde")
+	site.update_recruitment(horde, 100)
+	_check(horde.agents.size() == 52, "spent reserves cannot be farmed")
+	site = scene.get_node("Reinforcements/South")
+	horde.command_move(site.global_position)
+	horde.agents[0].global_position = site.global_position
+	site.update_recruitment(horde, 2.1)
+	_check(horde.agents.size() == 60 and site.remaining == 4, "horde cap preserves unused reserves")
+	site.update_recruitment(horde, 100)
+	_check(site.remaining == 4, "full horde cannot waste the remaining reserves")
+	for index: int in range(3):
+		horde.agents.back().health.take_damage(100)
+	site.update_recruitment(horde, 2.1)
+	_check(horde.agents.size() == 60 and site.remaining == 1, "casualties free capacity for later recruitment")
+	_check(horde.recruited == 23 and horde.casualties == 3, "run statistics count recruits and losses")
+	front = horde.agents[0]
+	front.global_position = Vector3.ZERO
+	front.move_toward_command(Vector3(10, 0, 0), [], horde.movement_bounds, 0.1, null, 1.0)
+	var walking_distance: float = front.global_position.length()
+	front.global_position = Vector3.ZERO
+	front.move_toward_command(Vector3(10, 0, 0), [], horde.movement_bounds, 0.1, null, horde.sprint_multiplier)
+	_check(front.global_position.length() > walking_distance * 1.8, "sprint changes actual movement speed")
+	horde.command_sprint()
+	horde._physics_process(horde.sprint_cooldown + 0.1)
+	horde.command_sprint()
+	_check(horde.sprint_remaining == horde.sprint_duration, "sprint becomes available again after cooldown")
+	scene.free()
+
+	# Real input/lifecycle checks with the normal main scene.
 	scene = MAIN.instantiate()
 	root.add_child(scene)
 	current_scene = scene
-	knight = scene.get_node("Survivor")
 	horde = scene.get_node("Horde")
+	knight = scene.get_node("Survivor")
+	origin = knight.position
+	await _frames(30)
+	_check(not scene.battle_started and knight.position == origin, "game waits for first command")
+	_key(KEY_SPACE)
+	_check(horde.sprint_remaining == 0, "sprint cannot start before a movement command")
+	horde.command_move(Vector3(-12, 0, 10))
+	_key(KEY_SPACE)
+	_check(scene.battle_started and horde.sprint_remaining > 0, "first command starts run and space activates sprint")
 	await _frames(10)
-	await _capture("start")
-	var camera: Camera3D = scene.get_node("Camera")
-	var click := InputEventMouseButton.new()
-	click.position = camera.unproject_position(knight.global_position)
-	click.button_index = MOUSE_BUTTON_LEFT
-	click.pressed = true
-	root.push_input(click, true)
-	click = click.duplicate() as InputEventMouseButton
-	click.pressed = false
-	root.push_input(click, true)
-	_check(horde.command_position.distance_to(knight.global_position) < 0.01, "click commands the horde into combat")
-	var captured_attack: bool = false
-	var battle_frames: int = 0
-	while not scene.battle_over and battle_frames < 7200:
-		await physics_frame
-		battle_frames += 1
-		if knight.attack_area.visible and not captured_attack:
-			await _frames(12)
-			await _capture("swing")
-			captured_attack = true
-		if battle_frames == 900:
-			await _capture("fight")
-	_check(scene.battle_over, "full battle reaches an outcome within two minutes")
-	_check(knight.health.is_alive() and horde.agents.is_empty(), "single-click passive attack loses")
-	_check(knight.health.current_health < knight.health.max_health, "zombies damage the knight in actual movement")
-	_check(horde.agents.size() < 40, "knight kills zombies in the actual battle")
-	print("Battle: %.1f seconds, knight HP %d, zombies %d" % [battle_frames / 60.0, knight.health.current_health, horde.agents.size()])
-	_check(not horde.commands_enabled and not knight.attack_area.visible, "battle outcome stops commands and attacks")
-	_check(scene.get_node("HUD/Result").visible, "outcome is visible")
-	_check(scene.get_node("HUD/Status/KnightHealth").value == knight.health.current_health, "health bar follows combat")
-	var final_health: int = knight.health.current_health
-	var final_count: int = horde.agents.size()
-	var final_target: Vector3 = horde.command_position
-	horde.command_move(Vector3.ZERO)
+	var cooldown: float = horde.sprint_cooldown_remaining
+	_key(KEY_SPACE)
+	_check(horde.sprint_cooldown_remaining == cooldown, "sprint cannot be reset during cooldown")
+	_key(KEY_ESCAPE)
+	_check(paused, "escape pauses the scene tree")
+	var elapsed: float = scene.elapsed
+	var position_before: Vector3 = horde.agents[0].global_position
+	await _frames(20)
+	_check(scene.elapsed == elapsed and horde.agents[0].global_position == position_before, "pause freezes time and movement")
+	_check(horde.sprint_cooldown_remaining == cooldown, "pause freezes ability cooldown")
+	_key(KEY_ESCAPE)
+	_check(not paused, "escape resumes")
 	await _frames(90)
-	_check(horde.command_position == final_target, "commands ignored after battle")
-	_check(knight.health.current_health == final_health and horde.agents.size() == final_count, "combat stays stopped after outcome")
-	await _capture("result")
-
-	var restart := InputEventKey.new()
-	restart.keycode = KEY_R
-	restart.pressed = true
-	root.push_input(restart, true)
+	_check(horde.sprint_remaining == 0 and horde.sprint_cooldown_remaining > 0, "sprint expires before it can be reused")
+	knight.health.take_damage(10000)
+	_check(scene.battle_over and scene.get_node("HUD/Result").text.begins_with("Victory"), "knight death ends the run in victory")
+	var count: int = horde.agents.size()
+	await _frames(30)
+	_check(horde.agents.size() == count and not horde.commands_enabled, "outcome stops damage and movement commands")
+	_key(KEY_R)
 	await _frames(5)
 	scene = current_scene
-	knight = scene.get_node("Survivor")
 	horde = scene.get_node("Horde")
-	_check(not scene.battle_over and horde.agents.size() == 40 and knight.health.current_health == starting_health, "R reloads a fresh battle")
-	_check(horde.commands_enabled and not scene.get_node("HUD/Result").visible, "restart resets controls and outcome")
-	# Force each terminal condition independently of balance tuning.
+	knight = scene.get_node("Survivor")
+	_check(not scene.battle_started and not scene.battle_over and knight.phase == 1, "restart resets the run and phases")
+	_check(horde.agents.size() == 40 and horde.recruited == 0 and horde.sprint_cooldown_remaining == 0, "restart resets horde, statistics and sprint")
+	_check(scene.get_node("Reinforcements/West").remaining == 12, "restart replenishes finite sites")
 	for agent: HordeAgent in horde.agents.duplicate():
 		agent.health.take_damage(100)
-	_check(scene.battle_over and scene.get_node("HUD/Result").text.begins_with("Defeat"), "losing the entire horde shows defeat")
-	await _frames(30)
-	root.push_input(restart, true)
+	_check(scene.battle_over and scene.get_node("HUD/Result").text.begins_with("Defeat"), "zero zombies is defeat even with unused reserves")
+	_key(KEY_R)
 	await _frames(5)
-	scene = current_scene
-	knight = scene.get_node("Survivor")
-	horde = scene.get_node("Horde")
-	knight.health.take_damage(10000)
-	_check(scene.battle_over and scene.get_node("HUD/Result").text.begins_with("Victory"), "knight death shows victory")
-	var zombie_health: int = horde.agents[0].health.current_health
-	knight.update_combat(horde.agents, 10.0)
-	_check(horde.agents[0].health.current_health == zombie_health, "dead knight cannot attack")
-	await _frames(30)
+	_key(KEY_ESCAPE)
+	_key(KEY_Y, KEY_R)
+	await _frames(5)
+	_check(not paused and not current_scene.battle_started, "restart works from pause")
 	print("Combat smoke: %s" % ("PASS" if _failures == 0 else "FAIL (%d)" % _failures))
 	quit(0 if _failures == 0 else 1)
+
+
+func _fixture() -> Node3D:
+	var scene: Node3D = MAIN.instantiate()
+	root.add_child(scene)
+	scene.set_physics_process(false)
+	var horde: HordeController = scene.get_node("Horde")
+	horde.set_physics_process(false)
+	for agent: HordeAgent in horde.agents:
+		agent.global_position = Vector3(-18, 0, 12)
+	return scene
+
+
+func _key(code: Key, physical_code: Key = KEY_NONE) -> void:
+	var event := InputEventKey.new()
+	event.keycode = code
+	event.physical_keycode = physical_code
+	event.pressed = true
+	root.push_input(event, true)
+	event = event.duplicate() as InputEventKey
+	event.pressed = false
+	root.push_input(event, true)
 
 
 func _frames(count: int) -> void:
 	for frame: int in range(count):
 		await physics_frame
-
-
-func _capture(label: String) -> void:
-	if "--capture" not in OS.get_cmdline_user_args():
-		return
-	await process_frame
-	await RenderingServer.frame_post_draw
-	root.get_texture().get_image().save_png("/tmp/survive_combat_%s.png" % label)
 
 
 func _check(condition: bool, description: String) -> void:

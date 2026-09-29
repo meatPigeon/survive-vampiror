@@ -1,35 +1,47 @@
 # Survive Vampiror
 
-Small Godot 4.7 / GDScript 3D prototype: command 40 animated zombies around a flat
-arena and overwhelm a medieval knight who fights back.
+A short Godot 4.7 / GDScript game: command a zombie horde and overwhelm one
+knight. A run takes roughly three minutes. The gameplay is complete on
+`gpt-full-game-test`; the interface, arena and attack markers are functional
+placeholders. Sound and visual polish are intentionally absent.
 
-Open `project.godot` in Godot and press **F6** on `scenes/main.tscn`, or **F5** to
-run the project. From this directory, `godot --path .` also launches it.
-**Left-click the floor** to move the whole horde. Click again to redirect it.
-The yellow ring marks the command; agents gather around it with local separation.
-Zombies face their movement direction, run while moving, and idle when settled.
-Zombies bite automatically in range. The knight turns and swings his sword;
-the orange arc warns where the next hit will land. Move the horde sideways out
-of the arc, then return during his recovery; staying on him loses the fight. Both sides have health and
-can die. Defeat the knight before the horde is wiped out. The HUD shows knight
-health and surviving zombies. Press **R** to restart at any time.
+Open `project.godot` in Godot and press **F5**, or run `godot --path .`.
+The fight waits until your first ground command.
 
-## Blender Characters
+| Control | Action |
+| --- | --- |
+| Left-click the floor | Move the entire horde; zombies bite automatically in range |
+| Space | Sprint toward the current command for 1.4 seconds; 7-second cooldown |
+| Esc | Pause / resume |
+| R | Restart, including from pause or the result screen |
+
+The knight hunts the horde and changes attack patterns at two-thirds and
+one-third health. **Orange sector:** dodge sideways. **Yellow lane:** leave the
+charge path. **Purple circle:** retreat outside it. Return to bite during his
+recovery; following him continuously without dodging loses the fight.
+
+Command a **green circle** and keep at least one zombie there for two seconds
+to recruit its reserve. Each of three sites holds 12 zombies; they do not
+regenerate. The horde starts with 40 and can hold 60. Unused reserves remain at
+a site when you reach the cap. Losing every zombie ends the run, even if
+reserves remain. Defeat the knight to win; the result shows time, casualties
+and recruited zombies.
+
+## Characters
 
 [Zombie and knight assets](art/characters/README.md) include editable Blender
-files, rigs, looping idle/run animations, GLB exports, and preview videos.
-The arena uses the zombie and knight GLBs as its character visuals.
+sources, rigs, idle/run animations and GLB exports. Gameplay uses these models
+and adds a small runtime sword animation; no Blender rebuild is needed to play.
 
-## Development Documentation
+## Development
 
-Start with [AGENTS.md](AGENTS.md) for agent instructions and required context.
-The `docs/agent/` structure follows the sibling `sumdyq-sozdik` project:
+Start with [AGENTS.md](AGENTS.md). The agent documentation follows the sibling
+`sumdyq-sozdik` project's separation of responsibilities:
 
-- [Project state](docs/agent/PROJECT_STATE.md): implementation, limits, verification.
-- [Tasks](docs/agent/TASKS.md): current authorized work.
-- [Decisions](docs/agent/DECISIONS.md): accepted choices and rationale.
-- [Architecture](docs/agent/SPEC_ARCHITECTURE.md): scene tree and ownership.
-- [Gameplay](docs/agent/SPEC_GAMEPLAY.md): the current slice's behaviour contract.
-- [Testing](docs/agent/TESTING.md): import, automated tests, and manual checks.
-- [Glossary](docs/agent/GLOSSARY.md): canonical terms.
-# survive-vampiror
+- [Project state](docs/agent/PROJECT_STATE.md): current implementation and evidence.
+- [Tasks](docs/agent/TASKS.md): authorized scope and completion status.
+- [Decisions](docs/agent/DECISIONS.md): choices and rationale.
+- [Architecture](docs/agent/SPEC_ARCHITECTURE.md): scene ownership and data flow.
+- [Gameplay](docs/agent/SPEC_GAMEPLAY.md): rules and tuning.
+- [Testing](docs/agent/TESTING.md): reproducible checks and limits.
+- [Glossary](docs/agent/GLOSSARY.md): terms.

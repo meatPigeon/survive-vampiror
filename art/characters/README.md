@@ -25,7 +25,7 @@ Action Editor, select `run`, and set the timeline end to 24.
 
 Motion is in place: the `Root` stays at the origin. Animation does not move the
 gameplay entity. These source assets contain no attack clip. The arena adds a
-small runtime arm-swing animation and a hand-attached sword in `survivor.gd`;
+small runtime arm-swing animation and a hand-attached sword in `KnightVisual`;
 health and melee rules belong to the gameplay scenes.
 
 ## Editing The Rig
@@ -51,8 +51,9 @@ looping `idle` and `run` clips and a `CharacterRig/Skeleton3D` skeleton.
 The `.glb.import` sidecars set loop modes; retain them when copying the assets.
 The arena instances these exports beneath each entity's `Visual` node. Zombies
 use a 0.5 visual scale and turn/run based on actual movement, returning to idle
-when settled. The knight uses a 0.75 visual scale, idles, and swings in place. Root entity
-positions and crowd steering remain independent of animation.
+when settled. The knight uses a 0.75 visual scale, idles, runs during pursuit
+and charge, and swings during attacks. Gameplay scripts move the entity roots;
+all imported and generated clips remain in place.
 
 The authoring script regenerates both source files and exports:
 

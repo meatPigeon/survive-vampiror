@@ -1,9 +1,11 @@
-[gd_scene load_steps=8 format=3]
+[gd_scene load_steps=9 format=3]
 
 [ext_resource type="PackedScene" path="res://scenes/components/horde.tscn" id="1_horde"]
 [ext_resource type="PackedScene" path="res://scenes/components/survivor.tscn" id="2_survivor"]
 [ext_resource type="Script" path="res://scripts/input/ground_command.gd" id="3_input"]
 [ext_resource type="Script" path="res://scripts/gameplay/arena.gd" id="4_arena"]
+
+[ext_resource type="PackedScene" path="res://scenes/components/reinforcement_site.tscn" id="5_site"]
 
 [sub_resource type="StandardMaterial3D" id="Material_floor"]
 albedo_color = Color(0.24, 0.28, 0.32, 1)
@@ -53,9 +55,21 @@ ground = NodePath("../Ground")
 survivor = NodePath("../Survivor")
 
 [node name="GroundCommand" type="Node" parent="." node_paths=PackedStringArray("camera", "ground")]
+process_mode = 3
 script = ExtResource("3_input")
 camera = NodePath("../Camera")
 ground = NodePath("../Ground")
+
+[node name="Reinforcements" type="Node3D" parent="."]
+
+[node name="West" parent="Reinforcements" instance=ExtResource("5_site")]
+position = Vector3(-14, 0, -8)
+
+[node name="South" parent="Reinforcements" instance=ExtResource("5_site")]
+position = Vector3(-10, 0, 10)
+
+[node name="East" parent="Reinforcements" instance=ExtResource("5_site")]
+position = Vector3(14, 0, 8)
 
 [node name="HUD" type="CanvasLayer" parent="."]
 
@@ -80,9 +94,24 @@ show_percentage = false
 layout_mode = 2
 theme_override_font_sizes/font_size = 22
 
-[node name="Help" type="Label" parent="HUD/Status"]
+[node name="FightLabel" type="Label" parent="HUD/Status"]
 layout_mode = 2
-text = "Left click: command horde\nBite, dodge the arc, then return.\nOrange arc: incoming sword swing\nR: restart"
+
+[node name="SprintLabel" type="Label" parent="HUD/Status"]
+layout_mode = 2
+
+[node name="ReservesLabel" type="Label" parent="HUD/Status"]
+layout_mode = 2
+
+[node name="Help" type="Label" parent="HUD"]
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 24.0
+offset_top = -112.0
+offset_right = 650.0
+offset_bottom = -14.0
+mouse_filter = 2
+text = "Left click: command horde\nSPACE: sprint   ESC: pause   R: restart\nDodge the warning; bite during recovery.\nGreen circles: rally for reinforcements."
 
 [node name="Result" type="Label" parent="HUD"]
 visible = false
@@ -106,3 +135,7 @@ horizontal_alignment = 1
 vertical_alignment = 1
 
 [connection signal="move_requested" from="GroundCommand" to="Horde" method="command_move"]
+
+[connection signal="sprint_requested" from="GroundCommand" to="Horde" method="command_sprint"]
+[connection signal="pause_requested" from="GroundCommand" to="." method="toggle_pause"]
+[connection signal="restart_requested" from="GroundCommand" to="." method="restart"]

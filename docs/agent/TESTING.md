@@ -1,143 +1,94 @@
 # Testing
 
-Run commands from the project root with Godot 4.7. There are no external
-dependencies, test addons, or configured standalone lint/build tools.
+Run from the project root with Godot 4.7. No external test addon is needed.
 
-## Import And Automated Smoke Test
+## Automated Checks
 
 ```sh
 godot --headless --path . --editor --quit
 godot --headless --path . --script res://tests/prototype_smoke.gd --fixed-fps 60
 godot --headless --path . --script res://tests/combat_smoke.gd --fixed-fps 60
 godot --headless --path . --script res://tests/combat_balance.gd --fixed-fps 60
-```
-
-Import first on a fresh checkout to register script classes. The smoke test
-must exit with code 0 and print `Prototype smoke: PASS` without script errors.
-It instantiates the main scene and injects mouse events through the viewport.
-Coverage includes 40 zombie instances, a knight survivor, waiting before commands,
-rejected off-floor/right clicks, ground projection, marker visibility, movement,
-redirection, gathering, separation, corner bounds, the stationary survivor, and
-targeting after window resizing. It also checks starting idle, run during
-movement, facing the movement direction, returning to idle after gathering,
-and uninterrupted knight idle playback. This fixture disables the arena combat
-coordinator to isolate movement from casualties.
-
-`combat_smoke.gd` must print `Combat smoke: PASS` and exit 0 without errors.
-It checks health clamping, one-time death, bite range/cooldown, warned sword
-swings, arc/range misses, retreat during windup, zombie removal/freeing, and a
-complete fight commanded by a viewport mouse event. It also checks the HUD,
-stopped combat/commands, R reload, and both victory and defeat independently
-of balance tuning. Its real single-click fight must now end in defeat.
-
-## Rendered Verification
-
-```sh
-godot --path . --script res://tests/prototype_smoke.gd --fixed-fps 60 -- --capture
-godot --path . --script res://tests/combat_smoke.gd --fixed-fps 60 -- --capture
-godot --path . --script res://tests/combat_balance.gd --fixed-fps 60 -- --capture
-```
-
-This requires a graphical display and runs the same assertions while saving
-`/tmp/survive_vampiror_initial.png`, `moving.png`, `gathered.png`, `corner.png`, and
-`survivor.png` with the same `survive_vampiror_` filename prefix. Inspect the
-captures for visible entities, usable camera framing, and a readable crowd.
-The combat test saves `/tmp/survive_combat_start.png`, `swing.png`, `fight.png`,
-and `result.png` with the same `survive_combat_` prefix. Inspect the health/count
-display, sword swing, warning arc, damage/death feedback and outcome.
-Screenshots are temporary verification artifacts, not project assets.
-
-## Manual Smoke Check
-
-Launch with `godot --path .` or open `project.godot` and press F5.
-
-1. Confirm a flat arena, an idle knight, and 40 idle zombies are visible.
-2. Left-click open floor; confirm a yellow marker and collective movement.
-3. Click elsewhere while moving; confirm agents redirect independently.
-   Zombies should turn toward travel, run, then return to idle after gathering.
-4. Command a corner; check agents stay on the floor and remain distinguishable.
-5. Click around the survivor and resize the window; confirm targeting remains
-   aligned with the pointer and the survivor remains stationary.
-6. Command the crowd onto the knight. Confirm bites reduce his health, his
-   warned sword swings hurt/kill nearby zombies, and the count decreases.
-7. Redirect away during a windup; confirm the attack can miss. Return to finish
-   the fight and confirm a result stops movement and damage.
-8. Press R; confirm 40 zombies, full knight health, and working commands return.
-
-Record actual results in [PROJECT_STATE.md](PROJECT_STATE.md). Distinguish
-automated input and screenshot inspection from a human playthrough.
-
-## Character Asset Checks
-
-Blender 5.2 is needed only for authoring or checking the editable sources.
-Godot can import the supplied GLB files without Blender.
-
-```sh
-blender --background --factory-startup --python tools/verify_characters.py
 godot --headless --path . --script res://tests/character_assets.gd
 ```
 
-Run the editor import command first after changing GLBs. The source check
-reopens both files, verifies weights and IK, and samples clips for deformation,
-loop closure and ground contact. The Godot check covers skin binding, the two
-clips, their durations and loop settings, root stability, and foot/head motion.
+Import first on a fresh checkout to register classes. Each test must print PASS,
+exit 0, and produce no script errors; exit status alone is insufficient because
+Godot may continue after a script error.
 
-For rendered exported-animation frames:
+- **Prototype smoke:** combat-disabled fixture for initial crowd, real mouse
+  projection, rejected input, movement, redirect, separation, corner clamps,
+  resize, model instances, facing and idle/run transitions.
+- **Combat smoke:** health/death contract, bite range/cooldown, sweep arc,
+  escaping a warning, charge movement and fixed warning, no repeated charge
+  hits or hits beyond the rectangle, spin radius, HP phase thresholds, immediate
+  death removal, reserve occupation/interruption/finite capacity, actual sprint
+  speed and cooldown, first-command start, pause/resume, restart from pause
+  including physical-key handling, both results and stopped combat.
+- **Combat balance:** actual viewport mouse/keyboard input. Passive and reckless
+  chasing must lose; active pilots with 0.37 and 0.50 s reaction delays must win
+  within five minutes with at least five survivors, visit all phases/attacks and
+  use finite reserves. The pilot reacts to visible warning geometry and named
+  attack type, recruits when fewer than 26 zombies remain, and uses sprint when
+  dodging charges/spins. It never teleports agents or changes HP in full runs.
+- **Character assets:** unchanged GLB skin binding, idle/run names/durations,
+  looping, root stability and foot/head motion.
+
+Current headless results: passive defeat 71.0 s, reckless chase defeat 46.2 s;
+active wins 174.5/178.6 s with 29/30 survivors and 24/36 recruits. Exact results
+can differ with input projection or tick phase; the tests assert meaningful
+outcomes rather than exact frame counts. This is a practical starting balance,
+not an exhaustive optimization or a human playtest. The rendered run also
+passed: passive loss at 71.0 s, active win at 178.4 s with 26 zombies and 24
+recruits. All attack types, reserves and outcomes were visually inspected.
+
+## Rendered Gameplay
 
 ```sh
+godot --path . --script res://tests/combat_balance.gd --fixed-fps 60 -- --capture
+```
+
+Runs the passive case and one complete active run in the actual renderer.
+Captures go to `/tmp/survive_jam_*.png`, including start, each attack type,
+reinforcements and results. Inspect warning geometry, the charge's fixed lane
+and moving knight, spin, readable recruitment state, crowded combat and outcomes.
+These are temporary test artifacts, not shipped assets. Rendering with fixed
+simulation FPS can take longer than the reported in-game time.
+
+For the isolated crowd regression captures:
+
+```sh
+godot --path . --script res://tests/prototype_smoke.gd --fixed-fps 60 -- --capture
+```
+
+## Manual Check
+
+Launch `godot --path .` or F5 in the editor.
+
+1. Confirm the arena waits while you read controls; first click starts the fight.
+2. Command/redirect the whole horde. Space accelerates toward its current target,
+   and repeated presses do not bypass the cooldown.
+3. Dodge the orange sector sideways, leave the yellow charge lane, and retreat
+   outside the purple circle. Return during recovery to bite the knight.
+4. Rally at a green site and hold for two seconds. Confirm recruits, depletion,
+   cap 60, and preserved leftovers when full. Leave mid-summon to interrupt it.
+5. Play through the HP phase thresholds; confirm the later attack patterns.
+6. Pause during a warning and recruitment; verify gameplay/animations/timers
+   freeze. Resume or restart. Test with a non-English keyboard layout too.
+7. Finish or lose a run. Confirm statistics and no continued damage/recruitment.
+8. Restart; verify full HP, 40 zombies, phase 1, all reserves and ready sprint.
+
+Record actual results in [PROJECT_STATE.md](PROJECT_STATE.md). Distinguish
+scripted input and screenshot inspection from human playtesting.
+
+## Blender Sources
+
+Only needed when changing the editable character sources:
+
+```sh
+blender --background --factory-startup --python tools/verify_characters.py
 godot --path . --script res://tools/preview_characters.gd --fixed-fps 30
 ```
 
-Frames go to `/tmp/survive_character_frames/`; supplied stills and MP4 previews
-are in `art/characters/previews/`. See [the asset guide](../../art/characters/README.md)
-for rebuild instructions and limitations.
-
-
-## Balance Comparisons (2026-09-29)
-
-Ran 23 parameter sets / 69 initial Godot battles. Health comparisons used knight
-500/650/800/900/1000 HP and zombie 10/20/30 HP; sword damage 10/15/20, radius
-1.65/2.2/2.6, angle 110/120/140/160/170 degrees. Warning/recovery combinations
-were compared too. These were selected trials, not an exhaustive Cartesian search.
-The experimental walking knight retreated from the closest nearby zombie during
-recovery/idle, clamped to the floor, and stayed planted during the warned hit.
-Movement speed was 0, 0.8, 1.2, or 1.5. The discarded walking implementation was
-removed; the game retains only the selected settings.
-
-Representative normal-start results (headless, 60 fixed physics steps/s):
-
-| Change from original unless noted | Passive result | Active result |
-| --- | --- | --- |
-| Original 500 HP knight, 20 HP zombie, damage 10, radius 1.65, angle 110 | Win, 25 left | Win, 31 left |
-| Knight HP 800 | Win, 14 left | Win, 22 left |
-| Zombie HP 10 | Win, 3 left | Win, 13 left |
-| Sword damage 20 | Win, 3 left | Win, 13 left |
-| Radius 2.2 | Win, 13 left | Win, 16 left |
-| Angle 160 | Win, 16 left | Win, 20 left |
-| Walking at 0.8 | Win, 25 left | Win, 31 left |
-| Walking at 1.5 | No end at 90 s; retargeting wins with 27 | Win, 28 left |
-| 500 HP, damage 20, radius 2.2, angle 170, tell 0.9, recovery 1.2 | Loss | Loss |
-| Selected 1000/30 HP, damage 15, radius 2.2, angle 160, tell 1.3, recovery 1.2 | Loss, knight 144 HP | Win, 12 left |
-
-Initial active trials reacted after ~0.22 seconds to the visible arc, clicked
-4.5 units to its side, and clicked back onto the knight after the arc vanished.
-Selected settings were additionally tested from four starts, with static target
-X offsets -0.8/0/+0.8 and response delays 0.22/0.37/0.5 s: 12 passive losses,
-12 active wins, 5–18 survivors. The wider tell was retained to permit slower
-reactions; a one-hit kill variant was less forgiving.
-
-Permanent `combat_balance.gd` uses viewport mouse clicks, four starting
-positions, and a ~0.37 s response delay. Passive cases must lose; active cases
-must win with at least five zombies. The normal-start check produced 38.8 s /
-knight 220 HP for passive, and 42.0 s / 14 surviving zombies for active. Small
-changes in input projection/tick phase can alter exact casualties; assertions
-check the tactical distinction, not exact frame counts or a fixed survivor count.
-
-With `--capture`, only the normal start is played twice in the rendered game.
-Captures use `/tmp/survive_balance_{passive,active}_{warning,fight,result}.png`.
-Inspect the wider ground arc, raised sword during the tell, retreat/re-entry,
-HUD and both outcomes. Automation does not establish human-perceived difficulty.
-
-The rendered normal-start pair passed: passive defeat at 38.8 s (220 knight HP),
-active victory at 42.7 s (16 zombies). Warning, fight, and outcome screenshots
-were inspected. Editor import, `combat_smoke.gd`, and `prototype_smoke.gd` passed.
+See [the asset guide](../../art/characters/README.md) for rebuild and preview
+instructions. No Blender changes were needed for this gameplay iteration.

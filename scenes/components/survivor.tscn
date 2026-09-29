@@ -1,0 +1,28 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scripts/gameplay/survivor.gd" id="1_survivor"]
+[ext_resource type="PackedScene" path="res://assets/characters/medieval_knight.glb" id="2_knight"]
+[ext_resource type="Script" path="res://scripts/gameplay/health.gd" id="3_health"]
+
+[sub_resource type="StandardMaterial3D" id="Attack_material"]
+transparency = 1
+shading_mode = 0
+cull_mode = 2
+albedo_color = Color(1, 0.3, 0.08, 0.45)
+
+[node name="Survivor" type="Node3D"]
+script = ExtResource("1_survivor")
+
+[node name="Visual" parent="." instance=ExtResource("2_knight")]
+rotation_degrees = Vector3(0, 180, 0)
+scale = Vector3(0.75, 0.75, 0.75)
+
+[node name="Health" type="Node" parent="."]
+script = ExtResource("3_health")
+max_health = 1000
+
+[node name="AttackArea" type="MeshInstance3D" parent="."]
+visible = false
+position = Vector3(0, 0.05, 0)
+cast_shadow = 0
+material_override = SubResource("Attack_material")

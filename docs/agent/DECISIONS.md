@@ -1,0 +1,113 @@
+# Architecture Decisions
+
+## Use Godot 4.7, Typed GDScript, And Reusable 3D Scenes
+
+Status: accepted
+
+Decision: Use reusable Node3D entity scenes and simple materials with the
+Compatibility renderer. Arena geometry remains primitive; entity visuals use
+the requested rigged zombie and knight assets.
+
+Reason: This meets the requested 3D prototype with the installed engine and no
+external runtime dependencies.
+
+Consequences: Keep the survivor as a standalone scene. Its script owns the requested nearby-target melee response and visual playback;
+it has no roaming or general AI framework.
+
+## Separate Input, Horde Intent, And Agent Movement
+
+Status: accepted
+
+Decision: GroundCommand emits movement intent; HordeController owns the shared
+target and calls HordeAgent movement through direct references.
+
+Reason: This adapts the sibling project's signal-up/call-down and reusable-scene
+conventions to a small 3D prototype.
+
+Consequences: Keep scene-bound logic in `scripts/gameplay/` and input in
+`scripts/input/`. No autoload, event bus, service layer, or pure-core abstraction
+is needed for this slice.
+
+## Use Planar Steering And Local Separation
+
+Status: accepted
+
+Decision: Combine attraction to the shared target with short-range repulsion,
+limit movement speed, and clamp agent bodies inside the floor.
+
+Reason: An empty flat arena needs neither a navigation system nor formations.
+
+Consequences: Agents have no assigned destination slots. Neighbour checks are
+quadratic in crowd size. Ground transforms and obstacle handling remain limited
+as documented in [SPEC_ARCHITECTURE.md](SPEC_ARCHITECTURE.md).
+
+## Keep Agent Documentation Split By Responsibility
+
+Status: accepted
+
+Decision: Follow `../sumdyq-sozdik` with a root `AGENTS.md`, canonical
+`docs/agent/` state/tasks/decisions, and focused architecture/gameplay specs.
+Keep testing instructions and terminology in dedicated small references.
+
+Reason: Agents can find current facts without turning permanent instructions
+into a development diary.
+
+Consequences: Adapt content to this game; do not copy the sibling's word-game
+rules, services, backlog, or approval workflow. README remains the player-facing
+launch guide and documentation entry point.
+
+## Keep Editable Blender Sources Separate From Engine Exports
+
+Status: accepted
+
+Decision: Store the requested zombie/knight sources and previews in
+`art/characters/`, ignored by Godot, and GLB exports in `assets/characters/`.
+Use simple custom armatures with source foot IK and baked in-place idle/run clips.
+
+Reason: The assets can be edited and animated in Blender and imported by Godot
+without making Blender a runtime or import dependency for the game.
+
+Consequences: Preserve loop settings in the GLB import sidecars. The authoring
+script overwrites generated sources when explicitly run; protect manual edits
+before regeneration. The separately requested scene integration instances GLBs
+under entity visuals, with animation driven by movement rather than root motion.
+The later combat request adds a runtime sword swing without rebuilding these
+source clips. See [the asset guide](../../art/characters/README.md).
+
+## Resolve The Requested Melee Fight Through Explicit Scene References
+
+Status: accepted
+
+Decision: Compose a small Health node into both entity scenes. Zombies own bite
+range/cooldown; the knight owns nearest-target selection and a locked, warned
+sword arc. The arena ticks combat after movement, updates the HUD, stops the
+fight on death of either side, and reloads the scene on R.
+
+Reason: Health, damage and a knight that kills zombies are now explicitly
+requested. A stationary melee response supplies that loop without navigation,
+a state-machine framework, or global combat services.
+
+Consequences: Damage uses distance/angle checks, not sword mesh collisions.
+Dead zombies leave the active crowd immediately and are freed after a short
+fall/shrink. The knight has a simple runtime arm animation and hand-held sword;
+the Blender files retain their original idle/run Actions. The small HUD and
+restart expose the fight's result; they are not a menu/UI framework.
+
+
+## Make The Existing Warned Swing Matter Before Adding More AI
+
+Status: accepted after the requested health/movement/sector experiments
+
+Decision: Use 1000 knight HP, 30 zombie HP, and a 15-damage, 160-degree,
+2.2-radius sword swing. Windup is 1.3 seconds; recovery is 1.2 seconds. Keep
+his position fixed. No new combat system or movement framework is retained.
+
+Reason: Larger HP alone and slower retreat still allowed passive wins. Faster
+retreat defeated a stale click but lost easily to simple retargeting; some
+stronger moving variants stalled against the last zombie. The selected stationary
+fight distinguishes staying in the arc from reacting to the existing tell.
+
+Consequences: Health and damage preserve two hits per zombie. A wider arc raises
+crowd losses while a longer windup allows deliberate commands. Regression tests
+compare actual mouse-driven passive and active play from four starts. This is
+an initial tested balance, not a global optimum. See [TESTING.md](TESTING.md).

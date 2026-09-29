@@ -1,0 +1,11 @@
+{
+  "vertices": 4005,
+  "triangles": 7804,
+  "source_bones": 20,
+  "deform_bones": 18,
+  "clips": {
+    "idle": 2.0,
+    "run": 0.8
+  },
+  "fps": 30
+}

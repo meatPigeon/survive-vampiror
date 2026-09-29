@@ -1,0 +1,23 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/gameplay/horde_controller.gd" id="1_horde"]
+
+[sub_resource type="StandardMaterial3D" id="Material_target"]
+albedo_color = Color(0.98, 0.89, 0.3, 1)
+shading_mode = 0
+
+[sub_resource type="TorusMesh" id="Mesh_target"]
+material = SubResource("Material_target")
+inner_radius = 0.55
+outer_radius = 0.7
+rings = 24
+ring_segments = 8
+
+[node name="Horde" type="Node3D"]
+script = ExtResource("1_horde")
+
+[node name="TargetMarker" type="MeshInstance3D" parent="."]
+visible = false
+scale = Vector3(1, 0.3, 1)
+cast_shadow = 0
+mesh = SubResource("Mesh_target")

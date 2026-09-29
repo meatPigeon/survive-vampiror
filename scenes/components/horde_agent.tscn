@@ -1,0 +1,16 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/gameplay/horde_agent.gd" id="1_agent"]
+[ext_resource type="PackedScene" path="res://assets/characters/zombie.glb" id="2_zombie"]
+[ext_resource type="Script" path="res://scripts/gameplay/health.gd" id="3_health"]
+
+[node name="HordeAgent" type="Node3D"]
+script = ExtResource("1_agent")
+
+[node name="Health" type="Node" parent="."]
+script = ExtResource("3_health")
+max_health = 30
+
+[node name="Visual" parent="." instance=ExtResource("2_zombie")]
+rotation_degrees = Vector3(0, 180, 0)
+scale = Vector3(0.5, 0.5, 0.5)

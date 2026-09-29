@@ -1,0 +1,108 @@
+[gd_scene load_steps=8 format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/components/horde.tscn" id="1_horde"]
+[ext_resource type="PackedScene" path="res://scenes/components/survivor.tscn" id="2_survivor"]
+[ext_resource type="Script" path="res://scripts/input/ground_command.gd" id="3_input"]
+[ext_resource type="Script" path="res://scripts/gameplay/arena.gd" id="4_arena"]
+
+[sub_resource type="StandardMaterial3D" id="Material_floor"]
+albedo_color = Color(0.24, 0.28, 0.32, 1)
+roughness = 1.0
+
+[sub_resource type="PlaneMesh" id="Mesh_floor"]
+material = SubResource("Material_floor")
+size = Vector2(44, 32)
+
+[sub_resource type="Environment" id="Environment_arena"]
+background_mode = 1
+background_color = Color(0.055, 0.065, 0.08, 1)
+ambient_light_source = 3
+ambient_light_color = Color(0.8, 0.87, 1, 1)
+ambient_light_energy = 0.65
+reflected_light_source = 2
+tonemap_mode = 0
+
+[node name="Main" type="Node3D"]
+script = ExtResource("4_arena")
+
+[node name="Ground" type="MeshInstance3D" parent="."]
+mesh = SubResource("Mesh_floor")
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_arena")
+
+[node name="Sun" type="DirectionalLight3D" parent="."]
+rotation_degrees = Vector3(-55, -25, 0)
+light_energy = 1.2
+shadow_enabled = true
+directional_shadow_max_distance = 80.0
+
+[node name="Camera" type="Camera3D" parent="."]
+position = Vector3(0, 32, 24)
+rotation_degrees = Vector3(-53.1301, 0, 0)
+projection = 1
+current = true
+size = 36.0
+far = 100.0
+
+[node name="Survivor" parent="." instance=ExtResource("2_survivor")]
+position = Vector3(6, 0, -3)
+
+[node name="Horde" parent="." node_paths=PackedStringArray("ground", "survivor") instance=ExtResource("1_horde")]
+ground = NodePath("../Ground")
+survivor = NodePath("../Survivor")
+
+[node name="GroundCommand" type="Node" parent="." node_paths=PackedStringArray("camera", "ground")]
+script = ExtResource("3_input")
+camera = NodePath("../Camera")
+ground = NodePath("../Ground")
+
+[node name="HUD" type="CanvasLayer" parent="."]
+
+[node name="Status" type="VBoxContainer" parent="HUD"]
+offset_left = 24.0
+offset_top = 20.0
+offset_right = 294.0
+mouse_filter = 2
+theme_override_constants/separation = 8
+
+[node name="KnightLabel" type="Label" parent="HUD/Status"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 22
+
+[node name="KnightHealth" type="ProgressBar" parent="HUD/Status"]
+custom_minimum_size = Vector2(0, 18)
+layout_mode = 2
+mouse_filter = 2
+show_percentage = false
+
+[node name="HordeLabel" type="Label" parent="HUD/Status"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 22
+
+[node name="Help" type="Label" parent="HUD/Status"]
+layout_mode = 2
+text = "Left click: command horde\nBite, dodge the arc, then return.\nOrange arc: incoming sword swing\nR: restart"
+
+[node name="Result" type="Label" parent="HUD"]
+visible = false
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -300.0
+offset_top = -50.0
+offset_right = 300.0
+offset_bottom = 50.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
+theme_override_constants/shadow_offset_x = 2
+theme_override_constants/shadow_offset_y = 2
+theme_override_font_sizes/font_size = 30
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[connection signal="move_requested" from="GroundCommand" to="Horde" method="command_move"]

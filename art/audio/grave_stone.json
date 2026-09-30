@@ -1,0 +1,12 @@
+{
+  "provider": "ElevenLabs",
+  "model_id": "eleven_text_to_sound_v2",
+  "prompt": "One short heavy gravestone grinding up through dry soil, chunky stone scrape with a low earthy rumble and a few crumbling pebbles. Playful spooky low-poly game Foley. Single compact event, starts immediately, clean dry close recording, no voices, no music, no ambience, no reverb.",
+  "duration_seconds": 1.0,
+  "prompt_influence": 0.6,
+  "loop": false,
+  "status": "complete",
+  "date": "2026-09-30",
+  "reported_credit_cost": "10",
+  "content_type": "audio/mpeg"
+}

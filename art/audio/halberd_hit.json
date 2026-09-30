@@ -1,0 +1,12 @@
+{
+  "provider": "ElevenLabs",
+  "model_id": "eleven_text_to_sound_v2",
+  "prompt": "One single punchy medieval polearm impact: a heavy blunt thud layered with a short dull metal clank and a little wooden shaft rattle. Stylized cartoon combat, satisfying and weighty, not graphic. Immediate impact at the start, quick decay, dry isolated recording, no swing lead-in, no music, no voice, no ambience.",
+  "duration_seconds": 1.0,
+  "prompt_influence": 0.6,
+  "loop": false,
+  "status": "complete",
+  "date": "2026-09-30",
+  "reported_credit_cost": "10",
+  "content_type": "audio/mpeg"
+}

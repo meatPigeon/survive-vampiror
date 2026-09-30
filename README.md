@@ -5,10 +5,14 @@ knight. A run takes roughly three to four minutes. The gameplay is complete on
 `gpt-full-game-test`. The separate `ui-hud-prototype` branch adds a styled
 in-game HUD, pause/result screens, weightier character animation and a larger
 60 × 44 clearing with simple low-poly rocks, scrub and ground detail. Attack
-markers remain functional placeholders; there is no sound.
+markers remain functional placeholders. Short sound effects accompany attack
+warnings, weapon swings/hits, zombie combat and recruitment graves; no music.
 
 Open `project.godot` in Godot and press **F5**, or run `godot --path .`.
 The fight waits until your first ground command.
+
+Sound sources were generated with ElevenLabs; warning patterns and swing noise
+were synthesized locally. See [audio sources and rebuilding](art/audio/README.md).
 
 | Control | Action |
 | --- | --- |

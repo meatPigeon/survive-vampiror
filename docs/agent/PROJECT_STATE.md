@@ -38,6 +38,9 @@ preserved in the branch's initial commit `dc63168`.
   Clickable sprint/pause/resume/replay controls complement existing keyboard input.
   White/blue foot rings distinguish kinds. Results separate kills from expiry.
 - Scene-owned state with explicit references/signals; no new framework or plugin.
+- Essential sound effects: distinct sweep/charge/spin warning patterns, swing
+  noise, confirmed weapon contact, sparse zombie grunts and grave rise/sink.
+  Six bounded scene-owned voices pause with gameplay and stop at either outcome.
 
 Rules/tuning are in [SPEC_GAMEPLAY.md](SPEC_GAMEPLAY.md); code ownership is in
 [SPEC_ARCHITECTURE.md](SPEC_ARCHITECTURE.md).
@@ -66,8 +69,9 @@ Rules/tuning are in [SPEC_GAMEPLAY.md](SPEC_GAMEPLAY.md); code ownership is in
 The UI branch has a quiet bone/charcoal HUD, serif titles, generous spacing and
 modal pause/result screens. The earlier four-card dashboard has been replaced.
 Combat markers remain technical placeholders. The arena now has a simple
-low-poly environment pass with ordinary mesh materials; no sound or custom
-shaders. Large rocks are outside movement bounds and walkable pebbles are only
+low-poly environment pass with ordinary mesh materials and short gameplay sound
+effects; no music or custom shaders. Large rocks are outside movement bounds and
+walkable pebbles are only
 0.1134 units tall. There is no obstacle collision or procedural map generation.
 Blender assets remain
 unchanged: one skinned mesh each, 18 deform bones, source foot IK, idle/run
@@ -209,3 +213,24 @@ Editor import, headless/rendered visual and reinforcement checks, headless comba
 and rendered UI checks pass. Inactive, rising, available, sinking and closed close-ups
 and full-arena views were inspected. Full balance was not rerun for this
 visual-only change; no human playtest is claimed.
+
+## Essential Gameplay Audio (2026-09-30)
+
+Three one-second ElevenLabs sources cost 30 credits in total according to the
+API response headers. Raw sources/prompts/receipts live in `art/audio/`; eight
+processed or locally synthesized WAVs live in `assets/audio/`. The offline build
+script never calls the API. Credentials remain outside the repository.
+
+BattleAudio listens to explicit knight attack signals, existing health/count
+signals and grave availability. It gives one contact per attack and one shared
+zombie voice with cooldown; expiry does not emit a combat grunt. Warning patterns
+are fixed, while impact/voice pitches use a separate random generator. Game rules,
+damage timing and balance parameters are unchanged.
+
+Editor import, real-time headless/rendered `audio_smoke.gd`, combat, movement,
+recruitment, grave-visual and rendered UI checks pass. Audio checks cover missed
+attacks, multiple victims, distinct warnings, pause, depletion/rotation, expiry,
+both outcomes and restart. A rendered fixture plus 12 seconds of viewport-click
+combat produced a 29.65-second Master-bus recording with a -7.1 dBFS peak and no
+clipped samples; its arena frame was inspected. This is signal/recording
+verification, not subjective listening approval or a human playthrough.

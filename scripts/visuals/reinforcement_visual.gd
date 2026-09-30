@@ -1,6 +1,8 @@
 class_name ReinforcementVisual
 extends Node3D
 
+signal availability_changed(available: bool)
+
 @export var rise_time: float = 0.55
 @export var sink_time: float = 0.4
 @export var stagger: float = 0.09
@@ -27,6 +29,7 @@ func set_available(value: bool) -> void:
 	if value == _available:
 		return
 	_available = value
+	availability_changed.emit(_available)
 	if _transition != null:
 		_transition.kill()
 	_transition = create_tween().set_parallel(true)

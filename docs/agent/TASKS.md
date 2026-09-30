@@ -2,8 +2,24 @@
 
 ## Active Work
 
-Animated recruitment craters complete; no implementation task remains active.
+Essential gameplay sounds complete; no implementation task remains active.
 Wave/progression changes are explicitly discussion-only.
+
+## Task: Essential Gameplay Sounds
+
+Status: complete; import, real-time headless/rendered audio checks, movement,
+combat, recruitment, grave visuals and rendered UI checks pass
+Priority: normal
+
+Scope: Generate three short source effects (gravestone, halberd impact, zombie
+grunt), derive variants locally, and add clear attack warnings without further
+API calls. Attach sounds to actual gameplay events with bounded playback.
+No music or combat tuning changes. Keep credentials outside the repository.
+
+Acceptance: Grave transitions and combat events trigger their sounds once;
+crowd sounds stay sparse, warnings remain clear, and pause/outcome/restart stop
+or freeze playback appropriately. Verify credit receipts, audio assets, event
+timing and a recorded rendered run.
 
 ## Task: Animated Recruitment Craters
 

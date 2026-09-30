@@ -39,7 +39,9 @@ only for the missing scope. Do not invent a next milestone or expand the backlog
   HUD, working pause/result controls, weightier character animations and a larger
   arena with simple low-poly environment props. Keep combat tuning and hit timing
   unchanged. Large decorative rocks stay outside playable bounds; small ground
-  details do not introduce obstacles. No audio, custom shaders, persistence,
+  details do not introduce obstacles. A small set of gameplay sound effects is
+  authorized, with sparse playback and conservative generation-credit use.
+  No music, custom shaders, persistence,
   networking, or unrelated systems.
 - Do not introduce dependencies, plugins, global services, event buses, ECS,
   pooling, or navigation infrastructure without a concrete current need.

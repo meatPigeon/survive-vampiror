@@ -2,6 +2,9 @@ class_name Survivor
 extends Node3D
 
 signal phase_changed(phase: int)
+signal attack_warned(kind: Attack)
+signal attack_struck(kind: Attack)
+signal attack_hit()
 
 enum Attack { SWEEP, CHARGE, SPIN }
 enum State { HUNT, WINDUP, STRIKE, RECOVERY, STOPPED }
@@ -59,6 +62,7 @@ func update_combat(agents: Array[HordeAgent], delta: float) -> void:
 				state = State.STRIKE
 				_time = 0.0
 				visual.strike()
+				attack_struck.emit(attack_kind)
 				if attack_kind != Attack.CHARGE:
 					_hit_area(agents)
 		State.STRIKE:
@@ -186,9 +190,11 @@ func _begin_attack(kind: Attack, target: Vector3) -> void:
 			attack_area.show_arc(_origin, _attack_direction, spin_radius, 360.0, Color(0.8, 0.2, 1, 0.45))
 	visual.face(_attack_direction)
 	visual.attack(StringName(Attack.keys()[kind].to_lower()), current_windup(), current_strike(), current_recovery())
+	attack_warned.emit(kind)
 
 
 func _hit_area(agents: Array[HordeAgent]) -> void:
+	var hit: bool = false
 	for agent: HordeAgent in agents.duplicate():
 		if state == State.STOPPED:
 			break
@@ -197,9 +203,13 @@ func _hit_area(agents: Array[HordeAgent]) -> void:
 			offset.length() <= attack_range and offset.normalized().dot(_attack_direction) >= cos(deg_to_rad(attack_angle * 0.5)))
 		if inside:
 			agent.health.take_damage(spin_damage if attack_kind == Attack.SPIN else attack_damage)
+			hit = true
+	if hit:
+		attack_hit.emit()
 
 
 func _hit_charge(agents: Array[HordeAgent], from: Vector3, to: Vector3) -> void:
+	var hit: bool = false
 	for agent: HordeAgent in agents.duplicate():
 		if state == State.STOPPED:
 			break
@@ -212,6 +222,9 @@ func _hit_charge(agents: Array[HordeAgent], from: Vector3, to: Vector3) -> void:
 		if agent.global_position.distance_to(closest) <= charge_width * 0.5:
 			_hit_ids[agent.get_instance_id()] = true
 			agent.health.take_damage(charge_damage)
+			hit = true
+	if hit:
+		attack_hit.emit()
 
 
 func current_windup() -> float:

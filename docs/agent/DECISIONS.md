@@ -1,5 +1,19 @@
 # Architecture Decisions
 
+## Add A Small Scene-Owned Gameplay Sound Set
+
+Status: accepted, 2026-09-30
+
+Decision: Use three short generated sources and offline synthesis/processing
+for essential combat and recruitment cues. A BattleAudio scene receives explicit
+gameplay/visual signals, with six bounded players and a shared zombie cooldown.
+Keep audio independent of combat timing, and keep API calls out of the game.
+
+Reason: The user authorized sound implementation and stressed limited credits.
+Three one-second requests reported 30 credits total; reusing these recordings
+and synthesizing warning/swing cues locally supplies feedback without further
+generation or per-zombie audio clutter. Music remains outside this pass.
+
 ## Show Recruitment Availability With Animated Gravestones
 
 Status: accepted, 2026-09-30

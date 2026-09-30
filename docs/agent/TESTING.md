@@ -16,6 +16,7 @@ godot --headless --path . --script res://tests/knight_animation_smoke.gd --fixed
 godot --headless --path . --script res://tests/targeting_smoke.gd --fixed-fps 60
 godot --headless --path . --script res://tests/combat_balance.gd --fixed-fps 60
 godot --headless --path . --script res://tests/character_assets.gd
+godot --headless --path . --script res://tests/audio_smoke.gd
 ```
 
 Import first on a fresh checkout to register classes. Each test must print PASS,
@@ -53,6 +54,15 @@ Godot may continue after a script error.
   `/tmp/survive_graves_{inactive,rising,active,sinking,closed}.png`.
   Add `--wide` after `--capture` to retain the arena camera/HUD and write
   `/tmp/survive_graves_wide_*.png` instead.
+- **Audio smoke:** initial silence, loaded non-looping clips, one voice per
+  category, distinct attack warnings, confirmed hits versus misses, one contact
+  per multi-victim attack, throttled bites/casualties/recruitment, silent expiry,
+  grave rotation/depletion, pause, both outcomes and restart. Run without
+  `--fixed-fps`: audio playback follows wall-clock time rather than accelerated
+  simulation time. `godot --path . --script res://tests/audio_smoke.gd -- --record`
+  records the Master bus through these scenarios and 12 seconds of actual
+  viewport-click combat to `/tmp/survive_audio_check.wav`; the arena frame is
+  `/tmp/survive_audio_battle.png`. No microphone or API call is used.
 - **UI smoke (UI branch):** real viewport clicks for pause/resume/sprint/replay,
   modal command blocking, pre-start state, cooldown display, frozen gameplay,
   permanent-count warning, contextual visibility, health trail pause behavior,
@@ -135,6 +145,9 @@ Launch `godot --path .` or F5 in the editor.
    Confirm result, separate killed/expired statistics and stopped combat/timers.
 8. Restart; verify full HP, 40 permanent zombies, zero temporary zombies, phase 1,
    inactive sites, cleared statistics and ready sprint.
+9. Listen for distinct warning pulse patterns, a swish on strikes, contact only
+   on hits, sparse zombie grunts and stone motion at recruitment sites. Confirm
+   voices freeze on pause and stop at outcome/restart; assess the mix by ear.
 
 Record actual results in [PROJECT_STATE.md](PROJECT_STATE.md). Distinguish
 scripted input and screenshot inspection from human playtesting.

@@ -1,4 +1,4 @@
-[gd_scene load_steps=13 format=3]
+[gd_scene load_steps=14 format=3]
 
 [ext_resource type="PackedScene" path="res://scenes/components/horde.tscn" id="1_horde"]
 [ext_resource type="PackedScene" path="res://scenes/components/survivor.tscn" id="2_survivor"]
@@ -12,6 +12,8 @@
 [ext_resource type="Script" path="res://scripts/visuals/arena_camera.gd" id="7_camera"]
 
 [ext_resource type="PackedScene" path="res://scenes/environments/arena_environment.tscn" id="8_environment"]
+
+[ext_resource type="PackedScene" path="res://scenes/components/battle_audio.tscn" id="9_audio"]
 
 [sub_resource type="StandardMaterial3D" id="Material_floor"]
 albedo_color = Color(0.20, 0.235, 0.155, 1)
@@ -92,6 +94,8 @@ position = Vector3(-10, 0, 10)
 position = Vector3(14, 0, 8)
 
 [node name="HUD" parent="." instance=ExtResource("6_hud")]
+
+[node name="BattleAudio" parent="." instance=ExtResource("9_audio")]
 
 [connection signal="move_requested" from="GroundCommand" to="Horde" method="command_move"]
 

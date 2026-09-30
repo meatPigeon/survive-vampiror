@@ -25,6 +25,7 @@ Main (Node3D / arena.gd)
 │       ├── Visual (ReinforcementVisual): crater + three animated gravestones
 │       └── Label
 ├── GroundCommand (always-process input)
+├── BattleAudio (components/battle_audio.tscn): six bounded audio players
 └── HUD (ui/battle_hud.tscn / BattleHUD)
     └── Frame: slim boss bar, grouped horde counts, contextual controls, modal overlay
 ```
@@ -104,6 +105,14 @@ signal-up/call-down composition conventions.
   Physics priority 1 resolves combat after horde movement at priority 0. It
   stops further damage/recruitment as soon as either terminal condition occurs.
 
+- `scripts/audio/battle_audio.gd` is scene-owned presentation, initialized by
+  Arena with explicit knight/horde/site references. Knight emits warning,
+  strike and actual-contact signals. Existing health/count signals drive sparse
+  zombie voices, and ReinforcementVisual emits availability transitions for
+  stone sounds. Six single-voice AudioStreamPlayers bound concurrency; no
+  per-agent players, autoload, event bus or runtime network access. Pitch
+  variation uses its own random generator. Arena stops every voice at outcome;
+  inherited processing pauses playback and cooldowns with the tree.
 - `scripts/ui/battle_hud.gd` formats the current knight/horde/site state into
   labels and progress bars. A delayed health trail eases presentation while
   authoritative health updates immediately; this pauses with gameplay. The HUD
@@ -133,3 +142,7 @@ import by `.gdignore`. GLBs in `assets/characters/` include skinned meshes,
 `CharacterRig/Skeleton3D` and AnimationPlayer idle/run clips. Only visuals rotate
 for facing; in-place clips never move gameplay roots. Source assets are unchanged
 by the jam implementation. See [the asset guide](../../art/characters/README.md).
+
+Sound source MP3s, prompts and credit receipts live in `art/audio/`, excluded
+from Godot import. `assets/audio/` contains ready-to-play WAVs; their offline
+build script and provenance are documented in [the audio guide](../../art/audio/README.md).

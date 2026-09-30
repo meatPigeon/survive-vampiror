@@ -1,0 +1,12 @@
+{
+  "provider": "ElevenLabs",
+  "model_id": "eleven_text_to_sound_v2",
+  "prompt": "One short low-pitched goofy zombie grunt, a gravelly throaty huh-urr, small chubby cartoon creature, comical and slightly monstrous rather than terrifying. Single quick vocalization starting immediately, dry close recording, no intelligible words, no scream, no music, no background or reverb.",
+  "duration_seconds": 1.0,
+  "prompt_influence": 0.6,
+  "loop": false,
+  "status": "complete",
+  "date": "2026-09-30",
+  "reported_credit_cost": "10",
+  "content_type": "audio/mpeg"
+}

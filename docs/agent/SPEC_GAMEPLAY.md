@@ -113,7 +113,12 @@ are omitted. Modal overlays block floor clicks.
 The arena has authored low-poly rocks outside its playable bounds, low scrub and
 pebbles, and flat ground patches. These are decorative, with no collision or
 pathfinding; the full 60 × 44 floor remains available for horde movement.
-No title menu, audio, custom shaders, saves, multiplayer,
+Short non-positional sound cues accompany grave transitions, confirmed weapon
+contact and sparse zombie combat/recruitment. One, two and three metallic pulses
+distinguish sweep, charge and spin windups. Each attack sounds one swing and at
+most one contact, even across multiple victims. Pausing freezes sounds; either
+outcome stops them and restart creates silent fresh players.
+No title menu, music, custom shaders, saves, multiplayer,
 upgrades or other modes are part of this version. Runtime whole-body attacks,
 bites, movement lean and hit/death responses remain separate from the source
 Blender idle/run Actions. These change visual transforms only, not movement,

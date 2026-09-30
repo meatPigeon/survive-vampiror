@@ -12,6 +12,7 @@ var _site_window: int = -1
 @onready var survivor: Survivor = $Survivor
 @onready var sites: Node3D = $Reinforcements
 @onready var hud: BattleHUD = $HUD
+@onready var battle_audio: BattleAudio = $BattleAudio
 
 
 func _ready() -> void:
@@ -24,6 +25,7 @@ func _ready() -> void:
 	_update_knight_health(survivor.health.current_health, survivor.health.max_health)
 	_update_horde_count(horde.agents.size())
 	_update_status()
+	battle_audio.setup(survivor, horde, sites)
 
 
 func _begin_battle() -> void:
@@ -91,6 +93,7 @@ func _finish_battle(won: bool) -> void:
 	if battle_over:
 		return
 	battle_over = true
+	battle_audio.stop_all()
 	horde.stop()
 	survivor.stop_combat()
 	hud.show_result(won, elapsed, horde)

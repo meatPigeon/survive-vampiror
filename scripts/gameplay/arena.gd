@@ -11,13 +11,7 @@ var _site_window: int = -1
 @onready var horde: HordeController = $Horde
 @onready var survivor: Survivor = $Survivor
 @onready var sites: Node3D = $Reinforcements
-@onready var health_bar: ProgressBar = $HUD/Status/KnightHealth
-@onready var knight_label: Label = $HUD/Status/KnightLabel
-@onready var horde_label: Label = $HUD/Status/HordeLabel
-@onready var fight_label: Label = $HUD/Status/FightLabel
-@onready var sprint_label: Label = $HUD/Status/SprintLabel
-@onready var reserves_label: Label = $HUD/ReservesLabel
-@onready var result_label: Label = $HUD/Result
+@onready var hud: BattleHUD = $HUD
 
 
 func _ready() -> void:
@@ -71,8 +65,7 @@ func toggle_pause() -> void:
 	if battle_over:
 		return
 	get_tree().paused = not get_tree().paused
-	result_label.text = "Paused\nEsc: resume   R: restart"
-	result_label.visible = get_tree().paused
+	hud.set_paused(get_tree().paused)
 
 
 func restart() -> void:
@@ -81,24 +74,11 @@ func restart() -> void:
 
 
 func _update_status() -> void:
-	fight_label.text = "Click the floor to begin. Defeat the knight." if not battle_started else (
-		"Phase %d/3  |  %d:%02d\n%s" % [survivor.phase, int(elapsed) / 60, int(elapsed) % 60, survivor.status_text()])
-	sprint_label.text = "SPACE: sprint READY" if horde.sprint_cooldown_remaining <= 0.0 else (
-		"SPACE: sprint %.1fs" % horde.sprint_cooldown_remaining)
-	horde_label.text = "Permanent: %d  |  Temporary: %d\nTotal: %d / %d" % [
-		horde.permanent_count(), horde.temporary_count(), horde.agents.size(), horde.max_agents]
-	if horde.temporary_count() > 0:
-		horde_label.text += "  |  Next expiry: %ds" % ceili(horde.next_expiration())
-	reserves_label.text = "Reinforcements open\nwhen the fight starts."
-	if active_site != null:
-		reserves_label.text = "%s: %d temporary recruits\nNext site in %ds" % [
-			active_site.name, active_site.remaining, ceili(site_interval - fmod(elapsed, site_interval))]
+	hud.update_status(horde, survivor, battle_started, elapsed, active_site, site_interval)
 
 
 func _update_knight_health(current: int, maximum: int) -> void:
-	health_bar.max_value = maximum
-	health_bar.value = current
-	knight_label.text = "Knight: %d / %d" % [current, maximum]
+	hud.set_knight_health(current, maximum)
 
 
 func _update_horde_count(_remaining: int) -> void:
@@ -113,7 +93,4 @@ func _finish_battle(won: bool) -> void:
 	battle_over = true
 	horde.stop()
 	survivor.stop_combat()
-	result_label.text = ("Victory! The knight has fallen." if won else "Defeat! No permanent zombies remain.") + (
-		"\nTime %d:%02d  |  Killed %d  |  Expired %d\nRecruited %d  |  Press R to play again" % [
-			int(elapsed) / 60, int(elapsed) % 60, horde.casualties, horde.expired_count, horde.recruited])
-	result_label.show()
+	hud.show_result(won, elapsed, horde)

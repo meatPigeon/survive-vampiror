@@ -21,7 +21,8 @@ Main (Node3D / arena.gd)
 ├── Reinforcements
 │   └── West, South, East (components/reinforcement_site.tscn)
 ├── GroundCommand (always-process input)
-└── HUD (plain labels and health bar)
+└── HUD (ui/battle_hud.tscn / BattleHUD)
+    └── Frame: boss status, horde/recruitment/sprint dock, pause/result overlay
 ```
 
 No autoloads, services, event bus, plugins, navigation framework or dependencies.
@@ -63,13 +64,21 @@ signal-up/call-down composition conventions.
   resets the batch; deactivation discards leftovers/progress. Recruitment calls
   the horde and subtracts only the actual added count; there is no local timer.
 - `scripts/gameplay/arena.gd` starts on the first command, ticks lifetimes, combat and
-  recruitment, handles results, pause/restart, and writes the technical HUD.
+  recruitment, handles results and pause/restart, and supplies state to BattleHUD.
   It owns the exported site interval and derives the current window from run
   elapsed time, cycling the three scene children. The window number (not just
   site identity) ensures a fresh batch even when a time step skips a full cycle.
   Count changes synchronously lose the run when permanent count reaches zero.
   Physics priority 1 resolves combat after horde movement at priority 0. It
   stops further damage/recruitment as soon as either terminal condition occurs.
+
+- `scripts/ui/battle_hud.gd` formats the current knight/horde/site state into
+  labels and progress bars. It contains no combat or scheduling logic. The
+  reusable scene owns shared styles and anchored/container layout. Explicit
+  pause/restart/sprint signals call existing scene handlers. Always-process HUD
+  buttons work while paused; noninteractive controls ignore mouse input, while
+  the pause/result backdrop consumes it. Buttons have no keyboard focus so
+  Space remains the horde sprint shortcut. Result views expose replay, not resume.
 
 ## Contracts And Limits
 

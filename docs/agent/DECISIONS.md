@@ -179,3 +179,18 @@ owns composition and lifetime ticking; agents retain ordinary Health/death
 handling and identify expiry for statistics. Ordinary colored rings and existing
 HUD labels expose the rules. No new infrastructure or art is required. Knight
 HP, attack geometry, targeting and HP-phase progression remain unchanged.
+
+
+## Isolate The Requested UI Experiment
+
+Status: accepted, 2026-09-30
+
+Decision: Preserve the verified gameplay in `f6d4513` on `gpt-full-game-test` and
+build the UI on `ui-hud-prototype`. Use a reusable Godot Control/CanvasLayer
+scene with a presentation script, shared built-in styles and explicit signals
+to existing gameplay handlers. Keep tuning and game rules unchanged.
+
+Reason: The user requested a UI draft on its own branch. Moving display strings
+out of Arena keeps presentation changes separate from combat ownership, without
+a UI framework or dependency. Earlier no-UI-polish scope is superseded only for
+this authorized HUD and pause/result exploration.

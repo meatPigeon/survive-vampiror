@@ -9,6 +9,7 @@ godot --headless --path . --editor --quit
 godot --headless --path . --script res://tests/prototype_smoke.gd --fixed-fps 60
 godot --headless --path . --script res://tests/combat_smoke.gd --fixed-fps 60
 godot --headless --path . --script res://tests/reinforcement_smoke.gd --fixed-fps 60
+godot --headless --path . --script res://tests/ui_smoke.gd --fixed-fps 60
 godot --headless --path . --script res://tests/targeting_smoke.gd --fixed-fps 60
 godot --headless --path . --script res://tests/combat_balance.gd --fixed-fps 60
 godot --headless --path . --script res://tests/character_assets.gd
@@ -34,6 +35,11 @@ Godot may continue after a script error.
   combat death versus expiry statistics, defeat with temporary survivors,
   immediate stop within a knight hit loop, pause/resume, victory freeze and reset.
   Render with `-- --capture` for `/tmp/survive_reinforcement_*.png`.
+- **UI smoke (UI branch):** real viewport clicks for pause/resume/sprint/replay,
+  modal command blocking, pre-start state, cooldown display, frozen gameplay,
+  permanent-count warning, victory/defeat controls, reset and small-window layout.
+  Render via `godot --path . --script res://tests/ui_smoke.gd --fixed-fps 60 -- --capture`;
+  screenshots are `/tmp/survive_ui_{ready,pause,victory,critical,defeat,small}.png`.
 - **Targeting smoke:** nearby singleton versus larger reachable group for sweep
   and charge, unreachable distractions, matching knight/warning direction, actual
   group damage, aiming a sector between groups, and locked direction after the
@@ -130,3 +136,9 @@ pass: passive defeat at 51.2 s, active victory at 201.5 s with 11 permanent and
 10 temporary survivors, 48 recruits and 30 expirations. Startup, mixed kinds,
 pause, all warnings, recruitment and both outcomes were inspected. The full
 rendered and headless tests use scripted input, not a human playtest.
+
+
+UI branch verification: import, UI/combat/movement checks, rendered reinforcement
+checks and headless full balance pass. The rendered UI input test passes;
+1280 × 800 and 960 × 600 layouts and all modal/critical states were inspected.
+Gameplay tuning and headless full-run results match the temporary-recruit version.

@@ -1,4 +1,4 @@
-[gd_scene load_steps=9 format=3]
+[gd_scene load_steps=10 format=3]
 
 [ext_resource type="PackedScene" path="res://scenes/components/horde.tscn" id="1_horde"]
 [ext_resource type="PackedScene" path="res://scenes/components/survivor.tscn" id="2_survivor"]
@@ -6,6 +6,8 @@
 [ext_resource type="Script" path="res://scripts/gameplay/arena.gd" id="4_arena"]
 
 [ext_resource type="PackedScene" path="res://scenes/components/reinforcement_site.tscn" id="5_site"]
+
+[ext_resource type="PackedScene" path="res://scenes/ui/battle_hud.tscn" id="6_hud"]
 
 [sub_resource type="StandardMaterial3D" id="Material_floor"]
 albedo_color = Color(0.24, 0.28, 0.32, 1)
@@ -71,80 +73,14 @@ position = Vector3(-10, 0, 10)
 [node name="East" parent="Reinforcements" instance=ExtResource("5_site")]
 position = Vector3(14, 0, 8)
 
-[node name="HUD" type="CanvasLayer" parent="."]
-
-[node name="Status" type="VBoxContainer" parent="HUD"]
-offset_left = 24.0
-offset_top = 20.0
-offset_right = 294.0
-mouse_filter = 2
-theme_override_constants/separation = 8
-
-[node name="KnightLabel" type="Label" parent="HUD/Status"]
-layout_mode = 2
-theme_override_font_sizes/font_size = 22
-
-[node name="KnightHealth" type="ProgressBar" parent="HUD/Status"]
-custom_minimum_size = Vector2(0, 18)
-layout_mode = 2
-mouse_filter = 2
-show_percentage = false
-
-[node name="HordeLabel" type="Label" parent="HUD/Status"]
-layout_mode = 2
-theme_override_font_sizes/font_size = 18
-
-[node name="FightLabel" type="Label" parent="HUD/Status"]
-layout_mode = 2
-
-[node name="SprintLabel" type="Label" parent="HUD/Status"]
-layout_mode = 2
-
-[node name="ReservesLabel" type="Label" parent="HUD"]
-anchor_left = 1.0
-anchor_right = 1.0
-offset_left = -380.0
-offset_top = 24.0
-offset_right = -24.0
-offset_bottom = 70.0
-grow_horizontal = 0
-horizontal_alignment = 2
-mouse_filter = 2
-theme_override_font_sizes/font_size = 18
-
-[node name="Help" type="Label" parent="HUD"]
-anchor_top = 1.0
-anchor_bottom = 1.0
-offset_left = 24.0
-offset_top = -112.0
-offset_right = 650.0
-offset_bottom = -14.0
-mouse_filter = 2
-text = "Left click: command all   SPACE: sprint   ESC: pause   R: restart\nWhite rings: permanent. Lose them all and you lose!\nBlue rings: temporary (45s). Green circle: recruit (hold 2s).\nDodge the warning; bite during recovery."
-
-[node name="Result" type="Label" parent="HUD"]
-visible = false
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -300.0
-offset_top = -50.0
-offset_right = 300.0
-offset_bottom = 50.0
-grow_horizontal = 2
-grow_vertical = 2
-mouse_filter = 2
-theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
-theme_override_constants/shadow_offset_x = 2
-theme_override_constants/shadow_offset_y = 2
-theme_override_font_sizes/font_size = 30
-horizontal_alignment = 1
-vertical_alignment = 1
+[node name="HUD" parent="." instance=ExtResource("6_hud")]
 
 [connection signal="move_requested" from="GroundCommand" to="Horde" method="command_move"]
 
 [connection signal="sprint_requested" from="GroundCommand" to="Horde" method="command_sprint"]
 [connection signal="pause_requested" from="GroundCommand" to="." method="toggle_pause"]
 [connection signal="restart_requested" from="GroundCommand" to="." method="restart"]
+
+[connection signal="pause_requested" from="HUD" to="." method="toggle_pause"]
+[connection signal="restart_requested" from="HUD" to="." method="restart"]
+[connection signal="sprint_requested" from="HUD" to="Horde" method="command_sprint"]

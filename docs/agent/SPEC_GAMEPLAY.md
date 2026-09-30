@@ -96,8 +96,11 @@ show inactive/exhausted status or recruitment progress.
 
 ## Presentation Boundary
 
-Gameplay is the current deliverable. HUD labels, colored attack shapes, reserve
-rings and existing characters are sufficient to operate it. No polished menus,
-audio, custom shaders, decorative environment, saves, multiplayer, upgrades or
-other modes are part of this version. Runtime attack animation remains separate
+The separate UI branch adds a styled in-game HUD and pause/result overlays
+with mouse buttons for the existing sprint, pause, resume and replay actions.
+Permanent count warns at 20% of the initial army or below; this is presentation
+only. The temporary bar shows the earliest remaining lifetime; the recruitment
+bar shows time left in the active site window. Modal overlays block floor clicks.
+No title menu, audio, custom shaders, decorative environment, saves, multiplayer,
+upgrades or other modes are part of this version. Runtime attack animation remains separate
 from the source Blender idle/run Actions.

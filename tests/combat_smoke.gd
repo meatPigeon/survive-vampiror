@@ -181,7 +181,7 @@ func _run() -> void:
 	await _frames(90)
 	_check(horde.sprint_remaining == 0 and horde.sprint_cooldown_remaining > 0, "sprint expires before it can be reused")
 	knight.health.take_damage(10000)
-	_check(scene.battle_over and scene.get_node("HUD/Result").text.begins_with("Victory"), "knight death ends the run in victory")
+	_check(scene.battle_over and scene.hud.result_label.text.begins_with("Victory"), "knight death ends the run in victory")
 	var count: int = horde.agents.size()
 	await _frames(30)
 	_check(horde.agents.size() == count and not horde.commands_enabled, "outcome stops damage and movement commands")
@@ -195,7 +195,7 @@ func _run() -> void:
 	_check(scene.active_site == null and scene.get_node("Reinforcements/West").remaining == 0, "restart resets sites to the waiting state")
 	for agent: HordeAgent in horde.agents.duplicate():
 		agent.health.take_damage(100)
-	_check(scene.battle_over and scene.get_node("HUD/Result").text.begins_with("Defeat"), "zero zombies is defeat even with unused reserves")
+	_check(scene.battle_over and scene.hud.result_label.text.begins_with("Defeat"), "zero zombies is defeat even with unused reserves")
 	_key(KEY_R)
 	await _frames(5)
 	_key(KEY_ESCAPE)

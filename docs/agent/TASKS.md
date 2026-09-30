@@ -2,9 +2,23 @@
 
 ## Active Work
 
-None. Permanent horde and rotating temporary reinforcements are implemented
-and verified.
+None. The separate UI prototype is implemented and verified.
 Wave/progression changes are explicitly discussion-only.
+
+## Task: In-Game UI Prototype On A Separate Branch
+
+Status: complete; import, viewport-click UI checks, combat/movement regression,
+reinforcement checks and full headless balance pass; rendered states inspected
+Priority: normal
+
+Scope: `ui-hud-prototype`, based on gameplay checkpoint `f6d4513`. Styled knight
+health/phase, horde composition, temporary expiry, recruitment window and sprint
+HUD; working pause/resume/restart/sprint buttons and result overlay. Keep combat,
+models and tuning unchanged. No new game modes, audio or shaders.
+
+Acceptance: HUD reflects real gameplay, modal clicks never command the floor,
+buttons work during pause, replay resets the scene, and ready/mixed/critical/
+pause/win/loss views fit the tested 1280 × 800 and 960 × 600 windows.
 
 ## Task: Permanent Horde And Rotating Temporary Reinforcements
 

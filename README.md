@@ -2,8 +2,9 @@
 
 A short Godot 4.7 / GDScript game: command a zombie horde and overwhelm one
 knight. A run takes roughly three to four minutes. The gameplay is complete on
-`gpt-full-game-test`; the interface, arena and attack markers are functional
-placeholders. Sound and visual polish are intentionally absent.
+`gpt-full-game-test`. The separate `ui-hud-prototype` branch adds a styled
+in-game HUD and pause/result screens. Arena and attack markers remain functional
+placeholders; sound and world-art polish are absent.
 
 Open `project.godot` in Godot and press **F5**, or run `godot --path .`.
 The fight waits until your first ground command.
@@ -14,6 +15,7 @@ The fight waits until your first ground command.
 | Space | Sprint toward the current command for 1.4 seconds; 7-second cooldown |
 | Esc | Pause / resume |
 | R | Restart, including from pause or the result screen |
+| HUD buttons (UI branch) | Sprint, pause, resume and restart / play again |
 
 The knight hunts the horde and changes attack patterns at two-thirds and
 one-third health. **Orange sector:** dodge sideways. **Yellow lane:** leave the

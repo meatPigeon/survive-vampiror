@@ -2,7 +2,7 @@ class_name KnightVisual
 extends Node3D
 
 const HIT_FLASH: Material = preload("res://art/hit_flash.tres")
-const SWORD: PackedScene = preload("res://scenes/components/sword.tscn")
+const HALBERD: PackedScene = preload("res://scenes/components/halberd.tscn")
 
 var _flash_tween: Tween
 var _recoil_tween: Tween
@@ -21,13 +21,14 @@ var _hit_recoil: float = 0.0
 
 func _ready() -> void:
 	var hand := BoneAttachment3D.new()
+	hand.name = "WeaponHand"
 	hand.bone_name = "Hand.R"
 	skeleton.add_child(hand)
-	var sword: Node3D = SWORD.instantiate()
-	hand.add_child(sword)
-	sword.position.y = 0.08
+	var halberd: Node3D = HALBERD.instantiate()
+	hand.add_child(halberd)
+	halberd.position.y = 0.08
 	var rest: Quaternion = skeleton.get_bone_global_rest(skeleton.find_bone("Hand.R")).basis.get_rotation_quaternion()
-	sword.quaternion = Quaternion(Vector3.UP, rest.inverse() * Vector3.FORWARD)
+	halberd.quaternion = Quaternion(Vector3.UP, rest.inverse() * Vector3.FORWARD)
 	animation_player.add_animation_library(&"combat", AnimationLibrary.new())
 	# Duplicate source clips in this instance; their reset tracks restore the rig
 	# after attacks without modifying imported animation resources.

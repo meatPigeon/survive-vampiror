@@ -55,7 +55,8 @@ Charge checks the swept path each tick, excludes positions beyond the displayed
 lane endpoints, and remembers already-hit zombies until that charge ends. The
 warning stays fixed in world space while the knight moves. A charge with no
 usable movement at a boundary falls back to a sweep. These are geometric damage
-checks, not collisions with the visible sword.
+checks, not collisions with the visible halberd. The flagged halberd replaces
+the hand-held sword visually; its length does not change these damage shapes.
 
 Phase patterns change at HP thresholds; an attack already in progress finishes
 with its original timing and shape:

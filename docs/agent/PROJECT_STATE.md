@@ -23,6 +23,8 @@ preserved in the branch's initial commit `dc63168`.
 - Knight pursues nearby zombies, aims sweep/charge toward the largest reachable
   group, and warns before attacking. Spin remains omnidirectional. Locked warnings and recovery periods allow counterplay. His HP thresholds
   change attack patterns without interrupting an attack already underway.
+- Knight carries a low-poly halberd with a long wooden shaft, axe/spear head
+  and folded crimson pennant, attached to the original right-hand bone.
 - Rotating recruitment: one active site, west/south/east every 30 s, with a
   fresh batch of 12 temporary zombies. Recruits expire 45 s after spawn or die
   earlier from damage. Two-second occupation, cap 60, leftovers retained only
@@ -177,3 +179,17 @@ active 0.37/0.50-second pilots win at 210.2/202.8 seconds with 8/5 permanent and
 is 209.3 seconds with 9 permanent and 12 temporary survivors, 48 recruits and
 28 expirations. Startup, corner, resize, attack, recruitment and outcome views
 were inspected. These are scripted runs and visual checks, not a human playtest.
+
+## Flagged Halberd (2026-09-30)
+
+The hand-held sword scene has been replaced by `components/halberd.tscn`: a
+wooden shaft, faceted axe head/cutting edge, rear spike, spear tip and crimson
+swallowtail pennant with a gold band. KnightVisual reuses the right-hand bone
+attachment and existing animation clips. The pennant is folded mesh geometry,
+not cloth simulation. Original GLBs, combat parameters and hit shapes are unchanged.
+
+Editor import, headless/rendered knight-animation checks, combat and rendered UI
+checks pass. Idle/run close-ups, all three attack pose sets/motion frames and
+the arena view were inspected. The long shaft clears the floor across sampled
+idle/run/attack poses. Full balance was not rerun for this visual-only replacement;
+no human playtest is claimed.

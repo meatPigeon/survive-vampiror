@@ -25,8 +25,10 @@ Action Editor, select `run`, and set the timeline end to 24.
 
 Motion is in place: the `Root` stays at the origin. Animation does not move the
 gameplay entity. These source assets contain no attack clip. The arena adds a
-runtime whole-body sweep/charge/spin clips and a hand-attached sword in
-`KnightVisual`. `ZombieVisual` adds bite lunges, speed lean, turn banking, stride
+runtime whole-body sweep/charge/spin clips and a hand-attached halberd with a
+crimson pennant in `KnightVisual`. The reusable weapon is authored directly in
+`scenes/components/halberd.tscn`; it follows the existing right-hand bone.
+`ZombieVisual` adds bite lunges, speed lean, turn banking, stride
 compression and hit/death responses. Health and melee rules belong to gameplay;
 all presentation stays below the gameplay roots. Combat death tumbles; temporary
 expiry collapses. Original source Actions and exported GLBs remain unchanged.

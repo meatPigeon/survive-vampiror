@@ -11,7 +11,7 @@ Main (Node3D / arena.gd)
 │   └── authored ground patches, reusable rock/scrub clusters and low pebbles
 ├── Survivor (components/survivor.tscn)
 │   ├── Visual (knight GLB / KnightVisual)
-│   │   └── skeleton + runtime hand-held sword
+│   │   └── skeleton + WeaponHand attachment + flagged halberd
 │   ├── Health
 │   └── AttackArea (AttackPreview, top_level)
 ├── Horde (components/horde.tscn)
@@ -72,7 +72,9 @@ signal-up/call-down composition conventions.
   stay unchanged. Source animations are referenced, never modified.
 - `scripts/visuals/knight_visual.gd` owns the imported knight's idle/run, facing,
   hand attachment, cached whole-body attack clips, throttled flash/recoil and
-  death pose. Survivor calls strike/recover at existing combat transitions,
+  death pose. The `Hand.R` bone carries `components/halberd.tscn`, a static
+  low-poly weapon with a folded pennant; it adds no collision or cloth system.
+  Survivor calls strike/recover at existing combat transitions,
   synchronizing clip time without altering damage timing. Charge legs reuse
   source running beneath a braced torso; spin rotates CharacterRig, not Visual.
   Source locomotion clips are duplicated locally to add rig-reset tracks.

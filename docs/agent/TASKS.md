@@ -2,8 +2,22 @@
 
 ## Active Work
 
-Larger arena and simple environment complete; no implementation task remains active.
+Flagged halberd replacement complete; no implementation task remains active.
 Wave/progression changes are explicitly discussion-only.
+
+## Task: Give The Knight A Flagged Halberd
+
+Status: complete; import, headless/rendered animation, combat and rendered UI
+checks pass; idle/run, all three attacks and arena views inspected
+Priority: normal
+
+Scope: Replace the hand-held sword with a simple low-poly halberd: long shaft,
+axe blade, spear point and small pennant. Reuse the hand attachment and existing
+attack clips; keep combat timing, damage and warning geometry unchanged.
+
+Acceptance: The weapon is held correctly and reads as a flagged polearm in the
+arena and close-ups; inspect idle/run and all three attacks, run animation and
+combat regression checks.
 
 ## Task: Larger Arena And Simple Surroundings
 

@@ -10,6 +10,8 @@ godot --headless --path . --script res://tests/prototype_smoke.gd --fixed-fps 60
 godot --headless --path . --script res://tests/combat_smoke.gd --fixed-fps 60
 godot --headless --path . --script res://tests/reinforcement_smoke.gd --fixed-fps 60
 godot --headless --path . --script res://tests/ui_smoke.gd --fixed-fps 60
+godot --headless --path . --script res://tests/zombie_animation_smoke.gd --fixed-fps 60
+godot --headless --path . --script res://tests/knight_animation_smoke.gd --fixed-fps 60
 godot --headless --path . --script res://tests/targeting_smoke.gd --fixed-fps 60
 godot --headless --path . --script res://tests/combat_balance.gd --fixed-fps 60
 godot --headless --path . --script res://tests/character_assets.gd
@@ -37,9 +39,19 @@ Godot may continue after a script error.
   Render with `-- --capture` for `/tmp/survive_reinforcement_*.png`.
 - **UI smoke (UI branch):** real viewport clicks for pause/resume/sprint/replay,
   modal command blocking, pre-start state, cooldown display, frozen gameplay,
-  permanent-count warning, victory/defeat controls, reset and small-window layout.
+  permanent-count warning, contextual visibility, health trail pause behavior,
+  victory/defeat controls, reset and small-window layout.
   Render via `godot --path . --script res://tests/ui_smoke.gd --fixed-fps 60 -- --capture`;
   screenshots are `/tmp/survive_ui_{ready,pause,victory,critical,defeat,small}.png`.
+- **Zombie animation smoke:** movement/sprint lean and cadence, banking, idle
+  settling, head/torso bite contact, recoil/flash cleanup, unchanged gameplay
+  roots, pause freeze, immediate gameplay death and delayed visual cleanup for
+  both damage and expiry. `--capture` writes close-up frames at 20 fps into
+  `/tmp/survive_zombie_frames/`.
+- **Knight animation smoke:** distinct loaded/contact poses, exact impact seek,
+  preserved attack/follow-through during charge and recovery, locked facing,
+  finite poses, rest restoration, pause and visual-only death. `--capture`
+  writes pose sheets; add `--motion` for `/tmp/survive_knight_motion/` at 30 fps.
 - **Targeting smoke:** nearby singleton versus larger reachable group for sweep
   and charge, unreachable distractions, matching knight/warning direction, actual
   group damage, aiming a sector between groups, and locked direction after the
@@ -142,3 +154,13 @@ UI branch verification: import, UI/combat/movement checks, rendered reinforcemen
 checks and headless full balance pass. The rendered UI input test passes;
 1280 × 800 and 960 × 600 layouts and all modal/critical states were inspected.
 Gameplay tuning and headless full-run results match the temporary-recruit version.
+
+
+Animation/HUD revision: focused animation and existing combat, recruitment,
+movement, targeting and UI checks pass. Rendered close-up zombie gait/bite/hit/
+death frames and all three knight attack comparisons were inspected. Headless
+full-run results remain unchanged. Integrated rendered verification passes:
+passive defeat at 51.2 s and active victory at 201.5 s with 11 permanent and
+10 temporary survivors, 48 recruits and 30 expirations. Arena warnings,
+recruitment and outcomes were inspected. The full rendered check used
+`--disable-vsync` to avoid display throttling; project settings remain unchanged.

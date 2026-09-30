@@ -42,11 +42,12 @@ func update_recruitment(horde: HordeController, delta: float) -> void:
 
 func _update_label() -> void:
 	$Ring.visible = active and remaining > 0
+	label.visible = active and remaining > 0
 	if not active:
-		label.text = str(name) + "\nINACTIVE"
+		label.text = ""
 	elif remaining == 0:
-		label.text = str(name) + "\nEMPTY"
+		label.text = ""
 	elif progress > 0.0:
 		label.text = "+%d  %d%%" % [remaining, roundi(progress / summon_time * 100.0)]
 	else:
-		label.text = "%s: +%d TEMP\nRally here" % [name, remaining]
+		label.text = "%s  +%d" % [name, remaining]

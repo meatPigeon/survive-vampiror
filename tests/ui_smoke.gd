@@ -17,6 +17,7 @@ func _run() -> void:
 	var hud: BattleHUD = scene.hud
 	var horde: HordeController = scene.horde
 	_check(hud.sprint_button.disabled and hud.permanent_count.text == "40", "ready HUD shows permanent count and disabled sprint")
+	_check(not hud.get_node("%TemporaryGroup").visible and not hud.get_node("%Rally").visible, "ready view hides empty recruits and inactive reinforcement information")
 	await _capture("ready")
 	await _click_control(hud.get_node("%PauseButton"))
 	_check(paused and hud.overlay.visible and not scene.battle_started, "pause button works before battle without issuing a ground command")
@@ -57,7 +58,7 @@ func _run() -> void:
 	for index: int in range(34):
 		horde.agents[0].health.take_damage(100)
 	await _frames(2)
-	_check(hud.permanent_hint.text == "PROTECT THE LAST 6" and hud.temporary_count.text == "12", "critical permanent count stays distinct from temporary recruits")
+	_check(hud.permanent_hint.text == "Keep them alive" and hud.temporary_count.text == "+12", "critical permanent count stays distinct from temporary recruits")
 	await _capture("critical")
 	for agent: HordeAgent in horde.agents.duplicate():
 		if agent.kind == HordeAgent.Kind.PERMANENT:
@@ -72,9 +73,23 @@ func _run() -> void:
 	root.size = Vector2i(960, 600)
 	await _frames(4)
 	var boss: Control = hud.get_node("Frame/Boss")
-	var brand: Control = hud.get_node("Frame/Brand")
-	var run: Control = hud.get_node("Frame/Run")
-	_check(not boss.get_global_rect().intersects(brand.get_global_rect()) and not boss.get_global_rect().intersects(run.get_global_rect()), "top panels do not overlap at 960 by 600")
+	var pause_button: Control = hud.get_node("%PauseButton")
+	_check(not boss.get_global_rect().intersects(pause_button.get_global_rect()), "boss and pause stay separate at 960 by 600")
+	horde = scene.horde
+	horde.command_move(Vector3.ZERO)
+	horde.recruit(12, Vector3(-2, 0, 3))
+	await _frames(3)
+	var horde_display: Control = hud.get_node("Frame/Horde")
+	var sprint: Control = hud.get_node("%Sprint")
+	var rally: Control = hud.get_node("%Rally")
+	_check(not horde_display.get_global_rect().intersects(sprint.get_global_rect()) and not sprint.get_global_rect().intersects(rally.get_global_rect()), "horde, sprint and recruitment do not overlap in the small mixed-crowd view")
+	_check(hud.get_node("%TemporaryGroup").visible and rally.visible, "secondary information appears when relevant")
+	scene.survivor.health.take_damage(100)
+	await _click_control(hud.get_node("%PauseButton"))
+	var trail_value: float = hud.health_trail.value
+	await _frames(15)
+	_check(hud.health_trail.value == trail_value, "health presentation freezes during pause")
+	await _click_control(hud.resume_button)
 	await _capture("small")
 	print("UI smoke: %s" % ("PASS" if _failures == 0 else "FAIL (%d)" % _failures))
 	quit(0 if _failures == 0 else 1)

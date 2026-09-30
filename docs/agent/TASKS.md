@@ -2,8 +2,23 @@
 
 ## Active Work
 
-None. The separate UI prototype is implemented and verified.
+Animation/HUD revision complete; no implementation task remains active.
 Wave/progression changes are explicitly discussion-only.
+
+## Task: Character Animation Feel And HUD Simplification
+
+Status: complete; focused motion/UI checks and headless full runs pass;
+integrated rendered full run passes, close-up motion and arena states inspected
+Priority: high
+
+Scope: Whole-body knight anticipation/strikes/recovery, zombie gait/bite/hit/death
+responses, and a less crowded HUD on the existing UI branch. Preserve gameplay
+parameters and damage timing. No audio, shaders, world-art pass or new mechanics.
+
+Acceptance: Actions read distinctly in motion; hit poses match gameplay timing;
+visuals never move gameplay roots; pause and cleanup remain correct. HUD reduces
+persistent cards/copy, retains working controls and communicates actual state.
+Inspect close-up motion and arena gameplay; run existing regression checks.
 
 ## Task: In-Game UI Prototype On A Separate Branch
 

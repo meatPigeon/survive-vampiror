@@ -3,7 +3,7 @@
 A short Godot 4.7 / GDScript game: command a zombie horde and overwhelm one
 knight. A run takes roughly three to four minutes. The gameplay is complete on
 `gpt-full-game-test`. The separate `ui-hud-prototype` branch adds a styled
-in-game HUD and pause/result screens. Arena and attack markers remain functional
+in-game HUD, pause/result screens and weightier character animation. Arena and attack markers remain functional
 placeholders; sound and world-art polish are absent.
 
 Open `project.godot` in Godot and press **F5**, or run `godot --path .`.
@@ -41,7 +41,8 @@ separate combat casualties from expired recruits. Pause freezes these timers.
 
 [Zombie and knight assets](art/characters/README.md) include editable Blender
 sources, rigs, idle/run animations and GLB exports. Gameplay uses these models
-and adds a small runtime sword animation; no Blender rebuild is needed to play.
+and adds runtime whole-body knight attacks, zombie bite lunges, movement lean,
+hit reactions and death feedback; no Blender rebuild is needed to play.
 
 ## Development
 

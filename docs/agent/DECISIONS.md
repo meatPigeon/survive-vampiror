@@ -194,3 +194,20 @@ Reason: The user requested a UI draft on its own branch. Moving display strings
 out of Arena keeps presentation changes separate from combat ownership, without
 a UI framework or dependency. Earlier no-UI-polish scope is superseded only for
 this authorized HUD and pause/result exploration.
+
+
+## Add Character Weight Without Changing Combat; Reduce HUD Density
+
+Status: accepted, 2026-09-30
+
+Decision: Answer the animation/cheap-crowded-UI feedback on the current UI branch.
+Add runtime pose/secondary-motion responses under the existing visual nodes;
+keep attack impact synchronized to gameplay, preserve locked aim and leave
+movement/damage parameters unchanged. Retain authored idle/run source assets.
+Replace the numbered dashboard with a slim boss bar, grouped horde counts,
+contextual recruitment/sprint information and fewer world labels.
+
+Reason: Anticipation, sharp contact, recoil and follow-through make the existing
+combat readable; context and hierarchy reduce persistent UI noise. Separate
+visual components follow the existing KnightVisual precedent without a new
+animation framework, global time manipulation, shader or dependency.

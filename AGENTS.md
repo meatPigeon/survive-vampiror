@@ -5,7 +5,7 @@
 Survive Vampiror is an early Godot 3D prototype in which the player commands a
 horde against one knight in a complete short jam-style encounter. Keep gameplay
 logic complete. The `ui-hud-prototype` branch additionally explores the in-game
-HUD and pause/result screens.
+HUD, pause/result screens and character animation feel.
 
 ## Required Context Before Work
 
@@ -35,8 +35,9 @@ only for the missing scope. Do not invent a next milestone or expand the backlog
 - Current authorized scope: a complete jam-style gameplay loop with knight
   phases/attacks, horde movement and sprint, permanent zombies and rotating
   temporary reinforcements, outcomes, pause and restart. This supersedes the earlier basic-combat-only scope.
-- UI exploration is authorized on `ui-hud-prototype`: in-game HUD and working
-  pause/result controls. Keep gameplay tuning unchanged. No audio, custom
+- Presentation work is authorized on `ui-hud-prototype`: a restrained in-game
+  HUD, working pause/result controls and weightier character animations. Keep
+  gameplay tuning, hit timing and gameplay-root transforms unchanged. No audio, custom
   shaders, decorative world assets, persistence, networking, or unrelated systems.
 - Do not introduce dependencies, plugins, global services, event buses, ECS,
   pooling, or navigation infrastructure without a concrete current need.

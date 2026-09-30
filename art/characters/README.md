@@ -25,8 +25,11 @@ Action Editor, select `run`, and set the timeline end to 24.
 
 Motion is in place: the `Root` stays at the origin. Animation does not move the
 gameplay entity. These source assets contain no attack clip. The arena adds a
-small runtime arm-swing animation and a hand-attached sword in `KnightVisual`;
-health and melee rules belong to the gameplay scenes.
+runtime whole-body sweep/charge/spin clips and a hand-attached sword in
+`KnightVisual`. `ZombieVisual` adds bite lunges, speed lean, turn banking, stride
+compression and hit/death responses. Health and melee rules belong to gameplay;
+all presentation stays below the gameplay roots. Combat death tumbles; temporary
+expiry collapses. Original source Actions and exported GLBs remain unchanged.
 
 ## Editing The Rig
 
@@ -91,3 +94,18 @@ finite poses, stationary roots, foot movement, and animated upper bodies.
 captures both animations into `/tmp/survive_character_frames/` using a graphical
 display. Rendered poses were visually inspected. The arena instances these assets; no
 retargeting is implemented.
+
+
+Runtime animation checks and close-up captures:
+
+```sh
+godot --headless --path . --script res://tests/zombie_animation_smoke.gd --fixed-fps 60
+godot --headless --path . --script res://tests/knight_animation_smoke.gd --fixed-fps 60
+godot --path . --script res://tests/zombie_animation_smoke.gd --fixed-fps 60 -- --capture
+godot --path . --script res://tests/knight_animation_smoke.gd --fixed-fps 60 -- --capture --motion
+```
+
+Zombie capture frames are written at 20 fps to `/tmp/survive_zombie_frames/`;
+knight pose sheets to `/tmp/survive_knight_{sweep,charge,spin}.png`, and the motion
+comparison at 30 fps to `/tmp/survive_knight_motion/`. These are verification
+artifacts, not engine assets. Pause freezes clips, procedural offsets and tweens.

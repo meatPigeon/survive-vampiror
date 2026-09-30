@@ -58,6 +58,7 @@ func update_combat(agents: Array[HordeAgent], delta: float) -> void:
 			if _time >= current_windup():
 				state = State.STRIKE
 				_time = 0.0
+				visual.strike()
 				if attack_kind != Attack.CHARGE:
 					_hit_area(agents)
 		State.STRIKE:
@@ -65,15 +66,12 @@ func update_combat(agents: Array[HordeAgent], delta: float) -> void:
 			if attack_kind == Attack.CHARGE:
 				var previous: Vector3 = global_position
 				global_position = _origin.lerp(_charge_end, minf(_time / charge_duration, 1.0))
-				visual.run(_attack_direction)
 				_hit_charge(agents, previous, global_position)
-			elif attack_kind == Attack.SPIN:
-				visual.rotation.y += TAU * delta / current_strike()
 			if state != State.STOPPED and _time >= current_strike():
 				state = State.RECOVERY
 				_time = 0.0
 				attack_area.hide()
-				visual.idle()
+				visual.recover()
 		State.RECOVERY:
 			_time += delta
 			if _time >= current_recovery():

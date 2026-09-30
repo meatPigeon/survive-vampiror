@@ -28,7 +28,7 @@ non-English keyboard layouts.
   activation. Requires an existing movement command; cannot refresh early.
   No invulnerability or damage bonus. Timers freeze during pause.
 - Run/idle and facing follow actual movement. Dead zombies leave the active
-  list immediately, briefly fall/shrink, then are freed. Death emits once.
+  list immediately, tumble/shrink (or softly collapse on expiry), then are freed within 0.6 seconds. Death emits once.
 
 ## Knight
 
@@ -91,16 +91,21 @@ immediately. Once an outcome is set it cannot be reversed.
 Pause freezes lifetimes and the site schedule; both also stop after an outcome.
 Restart restores 40 full-health permanent zombies, empty statistics and the
 pre-command state. HUD shows permanent/temporary counts, the next expiration,
-the active site's remaining batch and time to the next switch. Site labels
-show inactive/exhausted status or recruitment progress.
+the active site's remaining batch and time to the next switch. Only the active site with available recruits has a world label/ring; its label
+shows the batch or occupation progress. The HUD reports the next switch when
+the current batch is exhausted.
 
 ## Presentation Boundary
 
 The separate UI branch adds a styled in-game HUD and pause/result overlays
 with mouse buttons for the existing sprint, pause, resume and replay actions.
 Permanent count warns at 20% of the initial army or below; this is presentation
-only. The temporary bar shows the earliest remaining lifetime; the recruitment
-bar shows time left in the active site window. Modal overlays block floor clicks.
+only. The temporary readout appears only while recruits live and shows the
+earliest expiry. Recruitment progress appears only while summoning; the text
+shows time until rotation. Empty panels, persistent instructions and branding
+are omitted. Modal overlays block floor clicks.
 No title menu, audio, custom shaders, decorative environment, saves, multiplayer,
-upgrades or other modes are part of this version. Runtime attack animation remains separate
-from the source Blender idle/run Actions.
+upgrades or other modes are part of this version. Runtime whole-body attacks,
+bites, movement lean and hit/death responses remain separate from the source
+Blender idle/run Actions. These change visual transforms only, not movement,
+damage, recovery windows or attack targeting.

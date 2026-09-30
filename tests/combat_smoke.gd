@@ -103,7 +103,7 @@ func _run() -> void:
 	initial_hp = knight.health.current_health
 	front.update_combat(knight, 10)
 	_check(knight.health.current_health == initial_hp, "dead zombie cannot bite")
-	await _frames(25)
+	await _frames(55)
 	_check(not is_instance_valid(front), "dead zombie is freed after death feedback")
 	scene.free()
 

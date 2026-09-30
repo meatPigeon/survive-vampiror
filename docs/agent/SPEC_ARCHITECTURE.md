@@ -16,13 +16,13 @@ Main (Node3D / arena.gd)
 │   ├── TargetMarker
 │   └── HordeAgent × living/spawning/death-feedback instances
 │       ├── KindMarker (white permanent / blue temporary ring)
-│       ├── Visual (zombie GLB)
+│       ├── Visual (zombie GLB / ZombieVisual)
 │       └── Health
 ├── Reinforcements
 │   └── West, South, East (components/reinforcement_site.tscn)
 ├── GroundCommand (always-process input)
 └── HUD (ui/battle_hud.tscn / BattleHUD)
-    └── Frame: boss status, horde/recruitment/sprint dock, pause/result overlay
+    └── Frame: slim boss bar, grouped horde counts, contextual controls, modal overlay
 ```
 
 No autoloads, services, event bus, plugins, navigation framework or dependencies.
@@ -41,10 +41,11 @@ signal-up/call-down composition conventions.
   agent lifetimes over a snapshot because deaths remove entries immediately.
   `stop()` prevents further movement, lifetimes, recruitment and sprint. It does not own knight attack decisions.
 - `scripts/gameplay/horde_agent.gd` owns planar steering, local separation,
-  idle/run/facing, bite cooldown/range, hit and death feedback. Kind is assigned
+  bite cooldown/range, lifetime and visual-event dispatch. Kind is assigned
   before scene entry. Temporary lifetime is ticked explicitly; an expired flag
   distinguishes expiry from damage while reusing Health and the death signal.
-  Sprint arrives as a speed multiplier. Dead agents stop participating before visual cleanup.
+  Sprint arrives as a speed multiplier. Dead agents stop participating before
+  visual cleanup; the death tween completion frees the agent.
 - `scripts/gameplay/survivor.gd` owns knight pursuit, health phases, three attack
   patterns and their damage. Before windup it scores sweep/charge directions by
   reachable living targets; pursuit still uses the nearest zombie. Scoring runs
@@ -53,8 +54,16 @@ signal-up/call-down composition conventions.
   recovery and stopped states; there is no general state-machine infrastructure.
   Position/direction are locked at windup. Attack loops copy the active list
   because damage can synchronously emit death and remove members.
+- `scripts/visuals/zombie_visual.gd` owns imported locomotion/facing, speed lean,
+  turn banking, stride compression/lift, cached skeletal bite, brief hit recoil
+  and fall/expiry tweens. Secondary motion lives on CharacterRig; gameplay roots
+  stay unchanged. Source animations are referenced, never modified.
 - `scripts/visuals/knight_visual.gd` owns the imported knight's idle/run, facing,
-  hand attachment, cached runtime attack clips, hit flash and death pose.
+  hand attachment, cached whole-body attack clips, throttled flash/recoil and
+  death pose. Survivor calls strike/recover at existing combat transitions,
+  synchronizing clip time without altering damage timing. Charge legs reuse
+  source running beneath a braced torso; spin rotates CharacterRig, not Visual.
+  Source locomotion clips are duplicated locally to add rig-reset tracks.
   `scripts/visuals/attack_preview.gd` draws an arc or rectangle from gameplay
   parameters. It uses world space so a charge does not move its warning.
 - `scripts/gameplay/health.gd` holds current/max HP, clamps damage at zero, and
@@ -73,7 +82,9 @@ signal-up/call-down composition conventions.
   stops further damage/recruitment as soon as either terminal condition occurs.
 
 - `scripts/ui/battle_hud.gd` formats the current knight/horde/site state into
-  labels and progress bars. It contains no combat or scheduling logic. The
+  labels and progress bars. A delayed health trail eases presentation while
+  authoritative health updates immediately; this pauses with gameplay. The HUD
+  contains no combat or scheduling logic. The
   reusable scene owns shared styles and anchored/container layout. Explicit
   pause/restart/sprint signals call existing scene handlers. Always-process HUD
   buttons work while paused; noninteractive controls ignore mouse input, while

@@ -1,12 +1,13 @@
-[gd_scene load_steps=5 format=3]
+[gd_scene load_steps=6 format=3]
 
 [ext_resource type="Script" path="res://scripts/gameplay/horde_agent.gd" id="1_agent"]
 [ext_resource type="PackedScene" path="res://assets/characters/zombie.glb" id="2_zombie"]
 [ext_resource type="Script" path="res://scripts/gameplay/health.gd" id="3_health"]
+[ext_resource type="Script" path="res://scripts/visuals/zombie_visual.gd" id="4_visual"]
 
 [sub_resource type="TorusMesh" id="KindRing"]
 inner_radius = 0.28
-outer_radius = 0.36
+outer_radius = 0.32
 rings = 16
 ring_segments = 6
 
@@ -26,3 +27,4 @@ max_health = 30
 [node name="Visual" parent="." instance=ExtResource("2_zombie")]
 rotation_degrees = Vector3(0, 180, 0)
 scale = Vector3(0.5, 0.5, 0.5)
+script = ExtResource("4_visual")

@@ -2,8 +2,20 @@
 
 ## Active Work
 
-Animation/HUD revision complete; no implementation task remains active.
+Viewport framing fix complete; no implementation task remains active.
 Wave/progression changes are explicitly discussion-only.
+
+## Task: Fill The Game Window
+
+Status: complete; import, headless/rendered movement and resize checks, rendered
+UI and headless combat checks pass; four aspect ratios visually inspected
+Priority: normal
+
+Scope: Remove the apparent black inset around gameplay, fit the camera on resize,
+and keep the HUD over the world. Preserve arena bounds and command projection.
+
+Acceptance: Ground reaches every window edge, the full playable arena remains
+visible, resized views have no letterboxing, and UI/ground clicks still work.
 
 ## Task: Character Animation Feel And HUD Simplification
 

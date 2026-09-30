@@ -13,7 +13,9 @@ preserved in the branch's initial commit `dc63168`.
 
 - One complete encounter: ready state, first-click start, elapsed time,
   three knight phases, victory/defeat statistics, pause/resume and restart.
-- Existing 44 × 32 arena, fixed camera, rigged knight and zombie GLBs.
+- Existing 44 × 32 arena, fixed-angle camera that fits the window, rigged knight
+  and zombie GLBs. Ground continues behind the HUD to the window edges; its
+  slightly darker surround is visual only and does not change playable bounds.
 - 40 permanent starters, shared crowd commands/separation/bounds, automatic
   bites and death. Losing the last permanent immediately loses the run.
 - Space sprint: 2× speed for 1.4 s, 7 s cooldown; actual run animation follows.
@@ -37,6 +39,10 @@ Rules/tuning are in [SPEC_GAMEPLAY.md](SPEC_GAMEPLAY.md); code ownership is in
 ## Verification
 
 - Editor import and headless startup pass without errors.
+- Window-filling presentation: headless/rendered prototype checks pass at
+  16:10, 16:9, 4:3 and 21:9, with corners/character heads visible and correct
+  command projection. Rendered views and HUD were inspected; UI and combat
+  smoke checks pass. The visual surround does not accept movement commands.
 - `prototype_smoke.gd`: crowd command/projection, animation, bounds and separation
   regressions pass with arena combat disabled in that isolated fixture.
 - `combat_smoke.gd`: health, bites, warning geometry/timing, charge movement and

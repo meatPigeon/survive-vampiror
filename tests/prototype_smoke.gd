@@ -84,6 +84,25 @@ func _run() -> void:
 	_check(_horde.command_position.distance_to(target) < 0.01, "click projection survives resize")
 	_check_gathering(target, "survivor")
 	await _capture("survivor")
+
+	# Fit the whole arena after resize, including character heads near its edges.
+	for window_size: Vector2i in [Vector2i(1280, 800), Vector2i(1152, 648), Vector2i(960, 720), Vector2i(1120, 480)]:
+		root.size = window_size
+		await _frames(3)
+		var viewport_rect: Rect2 = root.get_visible_rect()
+		var rendered_rect: Rect2 = root.get_stretch_transform() * viewport_rect
+		_check(rendered_rect.size.is_equal_approx(Vector2(root.size)), "viewport fills resized window without letterboxing")
+		for x: float in [-22.0, 22.0]:
+			for z: float in [-16.0, 16.0]:
+				for y: float in [0.0, 2.3]:
+					_check(viewport_rect.has_point(_camera.unproject_position(Vector3(x, y, z))), "playable edges and character heads stay visible after resize")
+		_click(_camera.unproject_position(target))
+		await _frames(2)
+		_check(_horde.command_position.distance_to(target) < 0.01, "ground command remains accurate at each aspect ratio")
+		_click(Vector2(2, 2))
+		await _frames(2)
+		_check(_horde.command_position.distance_to(target) < 0.01, "visual surround does not expand command bounds")
+		await _capture("viewport_%dx%d" % [window_size.x, window_size.y])
 	print("Prototype smoke: %s" % ("PASS" if _failures == 0 else "FAIL (%d)" % _failures))
 	quit(0 if _failures == 0 else 1)
 

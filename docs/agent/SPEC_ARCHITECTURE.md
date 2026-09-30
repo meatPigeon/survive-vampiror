@@ -6,7 +6,7 @@
 
 ```text
 Main (Node3D / arena.gd)
-├── Ground, WorldEnvironment, Sun, Camera
+├── Ground, GroundSurround (visual only), WorldEnvironment, Sun, Camera
 ├── Survivor (components/survivor.tscn)
 │   ├── Visual (knight GLB / KnightVisual)
 │   │   └── skeleton + runtime hand-held sword
@@ -31,6 +31,11 @@ signal-up/call-down composition conventions.
 
 ## Ownership And Data Flow
 
+- `scripts/visuals/arena_camera.gd` fits the orthographic view to the unchanged
+  Ground bounds when the viewport resizes. The fixed tilt and a small margin
+  keep the arena and character heads visible. Canvas stretch expands with the
+  window aspect; a larger plain GroundSurround fills the background without
+  participating in targeting or movement bounds.
 - `scripts/input/ground_command.gd` projects left clicks onto the floor and
   emits movement intent. Keyboard signals request sprint, pause or restart.
   It processes while paused so resume works; movement/sprint are rejected while

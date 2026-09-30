@@ -23,7 +23,10 @@ Godot may continue after a script error.
 
 - **Prototype smoke:** combat-disabled fixture for initial crowd, real mouse
   projection, rejected input, movement, redirect, separation, corner clamps,
-  resize, model instances, facing and idle/run transitions.
+  resize, model instances, facing and idle/run transitions. Viewport checks at
+  16:10, 16:9, 4:3 and 21:9 assert full-window rendering, visible arena corners
+  and character heads, accurate clicks, and rejection of the visual surround.
+  Capture mode also saves `/tmp/survive_vampiror_viewport_*.png`.
 - **Combat smoke:** health/death contract, bite range/cooldown, sweep arc,
   escaping a warning, charge movement and fixed warning, no repeated charge
   hits or hits beyond the rectangle, spin radius, HP phase thresholds, immediate

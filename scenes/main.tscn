@@ -1,4 +1,4 @@
-[gd_scene load_steps=10 format=3]
+[gd_scene load_steps=13 format=3]
 
 [ext_resource type="PackedScene" path="res://scenes/components/horde.tscn" id="1_horde"]
 [ext_resource type="PackedScene" path="res://scenes/components/survivor.tscn" id="2_survivor"]
@@ -9,6 +9,8 @@
 
 [ext_resource type="PackedScene" path="res://scenes/ui/battle_hud.tscn" id="6_hud"]
 
+[ext_resource type="Script" path="res://scripts/visuals/arena_camera.gd" id="7_camera"]
+
 [sub_resource type="StandardMaterial3D" id="Material_floor"]
 albedo_color = Color(0.24, 0.28, 0.32, 1)
 roughness = 1.0
@@ -16,6 +18,14 @@ roughness = 1.0
 [sub_resource type="PlaneMesh" id="Mesh_floor"]
 material = SubResource("Material_floor")
 size = Vector2(44, 32)
+
+[sub_resource type="StandardMaterial3D" id="Material_surround"]
+albedo_color = Color(0.21, 0.25, 0.29, 1)
+roughness = 1.0
+
+[sub_resource type="PlaneMesh" id="Mesh_surround"]
+material = SubResource("Material_surround")
+size = Vector2(200, 200)
 
 [sub_resource type="Environment" id="Environment_arena"]
 background_mode = 1
@@ -32,6 +42,10 @@ script = ExtResource("4_arena")
 [node name="Ground" type="MeshInstance3D" parent="."]
 mesh = SubResource("Mesh_floor")
 
+[node name="GroundSurround" type="MeshInstance3D" parent="."]
+position = Vector3(0, -0.02, 0)
+mesh = SubResource("Mesh_surround")
+
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
 environment = SubResource("Environment_arena")
 
@@ -41,13 +55,15 @@ light_energy = 1.2
 shadow_enabled = true
 directional_shadow_max_distance = 80.0
 
-[node name="Camera" type="Camera3D" parent="."]
+[node name="Camera" type="Camera3D" parent="." node_paths=PackedStringArray("ground")]
 position = Vector3(0, 32, 24)
 rotation_degrees = Vector3(-53.1301, 0, 0)
 projection = 1
 current = true
 size = 36.0
 far = 100.0
+script = ExtResource("7_camera")
+ground = NodePath("../Ground")
 
 [node name="Survivor" parent="." instance=ExtResource("2_survivor")]
 position = Vector3(6, 0, -3)

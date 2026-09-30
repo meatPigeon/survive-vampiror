@@ -8,6 +8,7 @@ var remaining: int = 0
 var active: bool = false
 var progress: float = 0.0
 @onready var label: Label3D = $Label
+@onready var visual: ReinforcementVisual = $Visual
 
 
 func _ready() -> void:
@@ -41,7 +42,7 @@ func update_recruitment(horde: HordeController, delta: float) -> void:
 
 
 func _update_label() -> void:
-	$Ring.visible = active and remaining > 0
+	visual.set_available(active and remaining > 0)
 	label.visible = active and remaining > 0
 	if not active:
 		label.text = ""

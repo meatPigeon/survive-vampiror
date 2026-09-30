@@ -1,5 +1,17 @@
 # Architecture Decisions
 
+## Show Recruitment Availability With Animated Gravestones
+
+Status: accepted, 2026-09-30
+
+Decision: Keep a shallow crater at every recruitment site; raise three stones
+while the site has stock and sink them when unavailable. A separate visual
+component owns interrupted/pause-safe tweens; gameplay changes state immediately.
+
+Reason: The user requested animated crater/grave landmarks. Persistent meshes
+and local visual transforms fit the current flat arena without terrain cutting,
+collision, navigation or changes to recruitment timing and stock.
+
 ## Enlarge The Clearing With Static Decorative Surroundings
 
 Status: accepted, 2026-09-30

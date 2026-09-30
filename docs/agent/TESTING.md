@@ -9,6 +9,7 @@ godot --headless --path . --editor --quit
 godot --headless --path . --script res://tests/prototype_smoke.gd --fixed-fps 60
 godot --headless --path . --script res://tests/combat_smoke.gd --fixed-fps 60
 godot --headless --path . --script res://tests/reinforcement_smoke.gd --fixed-fps 60
+godot --headless --path . --script res://tests/reinforcement_visual_smoke.gd --fixed-fps 60
 godot --headless --path . --script res://tests/ui_smoke.gd --fixed-fps 60
 godot --headless --path . --script res://tests/zombie_animation_smoke.gd --fixed-fps 60
 godot --headless --path . --script res://tests/knight_animation_smoke.gd --fixed-fps 60
@@ -44,6 +45,14 @@ Godot may continue after a script error.
   combat death versus expiry statistics, defeat with temporary survivors,
   immediate stop within a knight hit loop, pause/resume, victory freeze and reset.
   Render with `-- --capture` for `/tmp/survive_reinforcement_*.png`.
+- **Reinforcement visual smoke:** persistent inactive craters, staggered rise/sink,
+  pause in both directions, repeated updates, full-cycle stock refresh, immediate
+  closure, reversal, same-frame opening/exhaustion, retained stock at capacity,
+  outcome settling and restart cleanup. Site roots and stock remain authoritative.
+  Render with `-- --capture` for close-ups at
+  `/tmp/survive_graves_{inactive,rising,active,sinking,closed}.png`.
+  Add `--wide` after `--capture` to retain the arena camera/HUD and write
+  `/tmp/survive_graves_wide_*.png` instead.
 - **UI smoke (UI branch):** real viewport clicks for pause/resume/sprint/replay,
   modal command blocking, pre-start state, cooldown display, frozen gameplay,
   permanent-count warning, contextual visibility, health trail pause behavior,
@@ -112,9 +121,12 @@ Launch `godot --path .` or F5 in the editor.
    and repeated presses do not bypass the cooldown.
 3. Dodge the orange sector sideways, leave the yellow charge lane, and retreat
    outside the purple circle. Return during recovery to bite the knight.
-4. Rally at the active green site for two seconds. Confirm blue-ring recruits,
-   lifetime countdown, cap 60 and partial stock. Leave mid-summon to interrupt it.
+4. Rally at the crater with raised gravestones for two seconds. Confirm blue-ring
+   recruits, lifetime countdown, cap 60 and partial stock. Leave mid-summon to
+   interrupt it.
    Check west/south/east rotation every 30 seconds and discarded old stock.
+   Stones should rise on opening and sink on closure/exhaustion; empty craters
+   remain on the floor and do not obstruct the horde.
    White-ring permanent zombies must retain health and never expire.
 5. Play through the HP phase thresholds; confirm the later attack patterns.
 6. Pause during a warning and recruitment; verify gameplay/animations/timers

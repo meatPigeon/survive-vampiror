@@ -92,9 +92,14 @@ immediately. Once an outcome is set it cannot be reversed.
 Pause freezes lifetimes and the site schedule; both also stop after an outcome.
 Restart restores 40 full-health permanent zombies, empty statistics and the
 pre-command state. HUD shows permanent/temporary counts, the next expiration,
-the active site's remaining batch and time to the next switch. Only the active site with available recruits has a world label/ring; its label
-shows the batch or occupation progress. The HUD reports the next switch when
-the current batch is exhausted.
+the active site's remaining batch and time to the next switch. Each site has a
+persistent shallow crater. Three gravestones rise in sequence when recruits are
+available and sink when the window closes or stock is exhausted. The world label
+appears only while available and shows the batch or occupation progress. Reaching
+capacity with stock left keeps the graves raised. Visual transitions do not delay
+activation/deactivation, add collision or affect recruitment. Pause freezes them;
+an in-progress transition may settle after the outcome without changing stock.
+The HUD reports the next switch when the current batch is exhausted.
 
 ## Presentation Boundary
 

@@ -22,6 +22,8 @@ Main (Node3D / arena.gd)
 │       └── Health
 ├── Reinforcements
 │   └── West, South, East (components/reinforcement_site.tscn)
+│       ├── Visual (ReinforcementVisual): crater + three animated gravestones
+│       └── Label
 ├── GroundCommand (always-process input)
 └── HUD (ui/battle_hud.tscn / BattleHUD)
     └── Frame: slim boss bar, grouped horde counts, contextual controls, modal overlay
@@ -86,6 +88,13 @@ signal-up/call-down composition conventions.
   occupation progress. Arena explicitly activates/deactivates it. Activation
   resets the batch; deactivation discards leftovers/progress. Recruitment calls
   the horde and subtracts only the actual added count; there is no local timer.
+- `scripts/visuals/reinforcement_visual.gd` receives availability from its site
+  (`active && remaining > 0`). Reusable crater/tombstone meshes live under
+  `scenes/components/environment/`. The crater persists; staggered, node-bound
+  tweens raise/lower the stones without moving the site or blocking recruitment.
+  Repeated state refreshes preserve a transition; reversal cancels its previous
+  tween. Tree pause freezes motion and scene removal cleans it up. Props have
+  no collision, terrain deformation or gameplay authority.
 - `scripts/gameplay/arena.gd` starts on the first command, ticks lifetimes, combat and
   recruitment, handles results and pause/restart, and supplies state to BattleHUD.
   It owns the exported site interval and derives the current window from run

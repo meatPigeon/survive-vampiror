@@ -2,8 +2,23 @@
 
 ## Active Work
 
-Flagged halberd replacement complete; no implementation task remains active.
+Animated recruitment craters complete; no implementation task remains active.
 Wave/progression changes are explicitly discussion-only.
+
+## Task: Animated Recruitment Craters
+
+Status: complete; editor import, headless/rendered visual and recruitment checks,
+headless combat and rendered UI pass; transitions and full-arena views inspected
+Priority: normal
+
+Scope: Replace recruitment circles with persistent shallow craters and three
+gravestones that rise on availability and sink on window expiry or exhaustion.
+Preserve recruitment rules, combat tuning and unobstructed movement. Audio is
+discussion-only, with no sound or music implementation.
+
+Acceptance: Availability remains clear, transitions freeze on pause and handle
+interruption/restart, and depletion/rotation still change gameplay immediately.
+Inspect rendered transitions and run focused visual/recruitment regressions.
 
 ## Task: Give The Knight A Flagged Halberd
 

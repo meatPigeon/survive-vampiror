@@ -87,12 +87,12 @@ func update_status(
 	if site != null:
 		var remaining: int = ceili(site_interval - fmod(elapsed, site_interval))
 		site_name.text = "%s · %d waiting" % [site.name, site.remaining]
-		site_hint.text = "Hold the circle %.0fs · moves in %ds" % [site.summon_time, remaining]
+		site_hint.text = "Hold the crater %.0fs · moves in %ds" % [site.summon_time, remaining]
 		if site.progress > 0.0:
 			site_hint.text = "Calling reinforcements · %d%%" % roundi(site.progress / site.summon_time * 100)
 		elif site.remaining == 0:
 			site_name.text = "Reinforcements depleted"
-			site_hint.text = "Next circle in %ds" % remaining
+			site_hint.text = "Next site in %ds" % remaining
 		site_bar.value = site.progress / site.summon_time * 100.0
 	var sprint_ready: bool = started and horde.commands_enabled and horde.sprint_cooldown_remaining <= 0.0
 	%Sprint.visible = started and knight.state != Survivor.State.STOPPED

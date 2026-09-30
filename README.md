@@ -27,16 +27,19 @@ The starting **40 permanent zombies** have white rings. They do not expire,
 but cannot be replaced: **losing the last permanent zombie is defeat**, even
 with temporary zombies still alive. Kill the knight to win.
 
-Command the active **green circle** and keep at least one zombie there for two
-seconds to recruit up to 12 **temporary zombies**, marked with blue rings.
+Command the active **crater with raised gravestones** and keep at least one
+zombie there for two seconds to recruit up to 12 **temporary zombies**, marked
+with blue rings.
 They die after 45 seconds from recruitment, or earlier from damage. The horde
 can hold 60 in total. All zombies share movement commands and sprint.
 
 One site is active at a time: west → south → east, switching every 30 seconds
 from the first command. Each activation has a fresh batch; unused stock is lost
 when the site switches. Reaching the cap preserves leftovers only until that
-switch. HUD shows both zombie counts, next expiry and site timer; results
-separate combat casualties from expired recruits. Pause freezes these timers.
+switch. Gravestones rise when a site opens and sink when its window closes or
+its batch is exhausted; the empty crater stays visible. HUD shows both zombie
+counts, next expiry and site timer; results separate combat casualties from
+expired recruits. Pause freezes these timers.
 
 ## Characters
 

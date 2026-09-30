@@ -29,6 +29,9 @@ preserved in the branch's initial commit `dc63168`.
   fresh batch of 12 temporary zombies. Recruits expire 45 s after spawn or die
   earlier from damage. Two-second occupation, cap 60, leftovers retained only
   until the next switch. Timers freeze before start, on pause and after outcome.
+- Recruitment sites are persistent shallow craters. Three gravestones rise in
+  sequence while a site has available recruits and sink on closure/exhaustion.
+  These non-colliding visual props do not change occupation or stock rules.
 - Restrained HUD: slim knight HP/phase bar with a delayed damage trail, grouped
   horde counts, contextual expiry/recruitment info, and discreet sprint control.
   Empty temporary readouts and inactive/exhausted world-site labels are hidden.
@@ -193,3 +196,16 @@ checks pass. Idle/run close-ups, all three attack pose sets/motion frames and
 the arena view were inspected. The long shaft clears the floor across sampled
 idle/run/attack poses. Full balance was not rerun for this visual-only replacement;
 no human playtest is claimed.
+
+## Animated Recruitment Craters (2026-09-30)
+
+Crater/tombstone scenes replace the green recruitment rings. ReinforcementVisual
+animates only gravestone transforms; site state controls availability immediately.
+Transitions pause with the tree, reverse safely, and are freed on restart. The
+craters are shallow mesh props above the existing floor, not terrain holes.
+Recruitment timing, stock, cap, combat and movement tuning are unchanged.
+
+Editor import, headless/rendered visual and reinforcement checks, headless combat
+and rendered UI checks pass. Inactive, rising, available, sinking and closed close-ups
+and full-arena views were inspected. Full balance was not rerun for this
+visual-only change; no human playtest is claimed.

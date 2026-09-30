@@ -11,6 +11,6 @@
 - **Recovery**: the knight's stationary interval after an attack; safe bite window.
 - **Permanent zombie**: one of the 40 starters; white ring, no expiry, no replacement. Losing the last one loses the run.
 - **Temporary zombie**: blue-ring recruit; dies after 45 seconds or earlier from damage.
-- **Recruitment site**: one active green circle with a batch of 12; rotates west/south/east every 30 seconds.
+- **Recruitment site**: a crater whose gravestones rise while its batch of 12 is available; activity rotates west/south/east every 30 seconds.
 - **Health**: entity HP; zero emits death once.
 - **Run**: one scene instance, from first command to victory/defeat or restart.

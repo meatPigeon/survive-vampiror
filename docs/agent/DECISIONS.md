@@ -1,5 +1,18 @@
 # Architecture Decisions
 
+## Enlarge The Clearing With Static Decorative Surroundings
+
+Status: accepted, 2026-09-30
+
+Decision: Use a 60 × 44 flat floor, shared low-poly prop scenes and authored
+placements. Put large rocks outside the playable bounds; keep only low scrub,
+pebbles and ground patches inside. Retain the window-fitted camera, combat
+tuning and recruitment-site positions.
+
+Reason: The user requested a larger map and simple surroundings. This provides
+space and environmental landmarks while preserving the current steering and
+encounter, without introducing navigation or procedural generation.
+
 ## Use Godot 4.7, Typed GDScript, And Reusable 3D Scenes
 
 Status: accepted

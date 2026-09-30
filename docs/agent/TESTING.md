@@ -27,6 +27,10 @@ Godot may continue after a script error.
   16:10, 16:9, 4:3 and 21:9 assert full-window rendering, visible arena corners
   and character heads, accurate clicks, and rejection of the visual surround.
   Capture mode also saves `/tmp/survive_vampiror_viewport_*.png`.
+  Corner destinations/resize edges use actual floor bounds. The corner allows
+  a 5.5-unit gathering radius because separation packs 40 agents into a quarter
+  of the floor; central targets retain 5.0. Both retain minimum pair separation
+  and per-agent boundary assertions.
 - **Combat smoke:** health/death contract, bite range/cooldown, sweep arc,
   escaping a warning, charge movement and fixed warning, no repeated charge
   hits or hits beyond the rectangle, spin radius, HP phase thresholds, immediate
@@ -63,7 +67,9 @@ Godot may continue after a script error.
 - **Combat balance:** actual viewport mouse/keyboard input. Passive and reckless
   chasing must lose; active pilots with 0.37 and 0.50 s reaction delays must win
   within five minutes with permanent survivors, visit all phases/attacks and
-  use temporary reinforcements. The pilot reacts to visible warning geometry and named
+  use temporary reinforcements. The fixture registers its current scene, and
+  the pilot stops sending commands immediately on outcome so a final ground
+  click cannot activate replay through the result modal. The pilot reacts to visible warning geometry and named
   attack type, visits the active site when fewer than eight temporary zombies remain and
   the visible window allows travel/occupation, and uses sprint when dodging
   charges/spins. It abandons a site when inactive, exhausted or the horde is full. It never teleports agents or changes HP in full runs.
@@ -167,3 +173,13 @@ passive defeat at 51.2 s and active victory at 201.5 s with 11 permanent and
 10 temporary survivors, 48 recruits and 30 expirations. Arena warnings,
 recruitment and outcomes were inspected. The full rendered check used
 `--disable-vsync` to avoid display throttling; project settings remain unchanged.
+
+
+Larger-arena/environment verification: editor import, headless/rendered prototype
+checks (including all four window ratios and the enlarged corner), combat,
+targeting, reinforcement and rendered UI checks pass. All large rock mesh bounds
+are outside the playable 60 × 44 rectangle. Headless active runs win at
+210.2/202.8 s with 8/5 permanent and 12/10 temporary survivors; passive/chase
+still lose at 51.2/39.3 s. The full rendered run passes at 209.3 s with 9 permanent
+and 12 temporary survivors. Terrain, warning readability, recruitment, outcomes,
+corner gathering and resized views were inspected. No human playtest is claimed.

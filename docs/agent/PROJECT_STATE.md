@@ -4,7 +4,7 @@
 
 Gameplay checkpoint `f6d4513` is preserved on `gpt-full-game-test`; the current
 `ui-hud-prototype` branch adds the requested in-game interface and character
-animation feel.
+animation feel, plus simple low-poly arena surroundings.
 Godot 4.7.2, typed GDScript, GL Compatibility,
 1280 × 800 startup window. The earlier stationary-knight balance prototype is
 preserved in the branch's initial commit `dc63168`.
@@ -13,9 +13,10 @@ preserved in the branch's initial commit `dc63168`.
 
 - One complete encounter: ready state, first-click start, elapsed time,
   three knight phases, victory/defeat statistics, pause/resume and restart.
-- Existing 44 × 32 arena, fixed-angle camera that fits the window, rigged knight
-  and zombie GLBs. Ground continues behind the HUD to the window edges; its
-  slightly darker surround is visual only and does not change playable bounds.
+- A 60 × 44 arena (formerly 44 × 32), fixed-angle camera that fits the window,
+  rigged knight and zombie GLBs. Ground continues behind the HUD to the window
+  edges. Authored rock clusters frame the perimeter; scrub, low pebbles and
+  muted ground patches break up the floor. The surround/props are visual only.
 - 40 permanent starters, shared crowd commands/separation/bounds, automatic
   bites and death. Losing the last permanent immediately loses the run.
 - Space sprint: 2× speed for 1.4 s, 7 s cooldown; actual run animation follows.
@@ -59,8 +60,11 @@ Rules/tuning are in [SPEC_GAMEPLAY.md](SPEC_GAMEPLAY.md); code ownership is in
 
 The UI branch has a quiet bone/charcoal HUD, serif titles, generous spacing and
 modal pause/result screens. The earlier four-card dashboard has been replaced.
-Markers and arena remain technical placeholders. No sound, custom shaders or
-world-art polish was added. Blender assets remain
+Combat markers remain technical placeholders. The arena now has a simple
+low-poly environment pass with ordinary mesh materials; no sound or custom
+shaders. Large rocks are outside movement bounds and walkable pebbles are only
+0.1134 units tall. There is no obstacle collision or procedural map generation.
+Blender assets remain
 unchanged: one skinned mesh each, 18 deform bones, source foot IK, idle/run
 Actions; runtime KnightVisual and ZombieVisual own the new animation responses. See
 [the asset guide](../../art/characters/README.md).
@@ -154,3 +158,22 @@ run also passes: passive defeat at 51.2 seconds and active victory at 201.5 seco
 with 11 permanent and 10 temporary survivors, 48 recruits and 30 expirations.
 Arena attack warnings, recruitment and outcomes were inspected with the revised
 HUD and motion. No human playtest or subjective feel approval is claimed.
+
+## Larger Clearing And Surroundings (2026-09-30)
+
+The walkable floor is now 60 × 44, 87.5% larger in area. Static environment scenes
+add faceted rocks, scrub/grass, low pebbles and layered ground patches. Large rock
+mesh bounds all stay outside the playable rectangle (minimum clearance 0.433).
+Flat ground patches sit below foot markers and warning meshes. Combat parameters,
+actor starts and recruitment positions are unchanged; camera framing follows
+the larger floor and retains full-window coverage.
+
+Editor import, headless/rendered movement and four-aspect resize checks, combat,
+targeting, reinforcements and rendered UI checks pass. New-corner gathering
+settles at 5.02 maximum distance with 0.58 minimum pair separation; all agents
+stay inside bounds. Headless passive/chase losses remain 51.2/39.3 seconds;
+active 0.37/0.50-second pilots win at 210.2/202.8 seconds with 8/5 permanent and
+12/10 temporary survivors. Rendered passive loss is 51.2 seconds; active victory
+is 209.3 seconds with 9 permanent and 12 temporary survivors, 48 recruits and
+28 expirations. Startup, corner, resize, attack, recruitment and outcome views
+were inspected. These are scripted runs and visual checks, not a human playtest.

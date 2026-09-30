@@ -2,7 +2,7 @@
 
 ## Complete Run
 
-One flat 44 × 32 arena, one knight, 40 player-controlled zombies. The camera is
+One flat 60 × 44 arena, one knight, 40 player-controlled zombies. The camera is
 fixed and angled. The run waits for the first ground command. Kill the knight
 to win; zero living permanent zombies loses immediately, even with temporary survivors
 or an available recruitment site.
@@ -104,7 +104,10 @@ only. The temporary readout appears only while recruits live and shows the
 earliest expiry. Recruitment progress appears only while summoning; the text
 shows time until rotation. Empty panels, persistent instructions and branding
 are omitted. Modal overlays block floor clicks.
-No title menu, audio, custom shaders, decorative environment, saves, multiplayer,
+The arena has authored low-poly rocks outside its playable bounds, low scrub and
+pebbles, and flat ground patches. These are decorative, with no collision or
+pathfinding; the full 60 × 44 floor remains available for horde movement.
+No title menu, audio, custom shaders, saves, multiplayer,
 upgrades or other modes are part of this version. Runtime whole-body attacks,
 bites, movement lean and hit/death responses remain separate from the source
 Blender idle/run Actions. These change visual transforms only, not movement,

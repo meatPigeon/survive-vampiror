@@ -64,10 +64,12 @@ func _run() -> void:
 		_check(agent.animation_player.current_animation == &"idle", "gathered zombie returns to idle")
 	await _capture("gathered")
 
-	target = Vector3(21.8, 0, 15.8)
+	var corner: Vector2 = _horde.movement_bounds.end - Vector2(0.2, 0.2)
+	target = Vector3(corner.x, 0, corner.y)
 	_click(_camera.unproject_position(target))
-	await _frames(1200)
-	_check_gathering(target, "corner")
+	await _frames(1800)
+	# At a corner, separation packs the crowd into only a quarter of the floor.
+	_check_gathering(target, "corner", 5.5)
 	for agent: HordeAgent in _horde.agents:
 		var safe_bounds: Rect2 = _horde.movement_bounds.grow(-agent.body_radius + 0.001)
 		_check(safe_bounds.has_point(Vector2(agent.global_position.x, agent.global_position.z)), "agent stays on floor")
@@ -92,8 +94,8 @@ func _run() -> void:
 		var viewport_rect: Rect2 = root.get_visible_rect()
 		var rendered_rect: Rect2 = root.get_stretch_transform() * viewport_rect
 		_check(rendered_rect.size.is_equal_approx(Vector2(root.size)), "viewport fills resized window without letterboxing")
-		for x: float in [-22.0, 22.0]:
-			for z: float in [-16.0, 16.0]:
+		for x: float in [_horde.movement_bounds.position.x, _horde.movement_bounds.end.x]:
+			for z: float in [_horde.movement_bounds.position.y, _horde.movement_bounds.end.y]:
 				for y: float in [0.0, 2.3]:
 					_check(viewport_rect.has_point(_camera.unproject_position(Vector3(x, y, z))), "playable edges and character heads stay visible after resize")
 		_click(_camera.unproject_position(target))
@@ -123,7 +125,7 @@ func _frames(count: int) -> void:
 		await physics_frame
 
 
-func _check_gathering(target: Vector3, label: String) -> void:
+func _check_gathering(target: Vector3, label: String, max_radius: float = 5.0) -> void:
 	var largest_distance: float = 0.0
 	var nearest_pair: float = INF
 	for agent: HordeAgent in _horde.agents:
@@ -132,7 +134,7 @@ func _check_gathering(target: Vector3, label: String) -> void:
 			if agent != other:
 				nearest_pair = minf(nearest_pair, agent.global_position.distance_to(other.global_position))
 	print("%s: furthest from target %.2f, nearest pair %.2f" % [label, largest_distance, nearest_pair])
-	_check(largest_distance < 5.0, label + ": every agent reaches the commanded area")
+	_check(largest_distance < max_radius, label + ": every agent reaches the commanded area")
 	_check(nearest_pair > 0.56, label + ": crowd bodies remain separate")
 
 

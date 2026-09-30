@@ -1,0 +1,37 @@
+[gd_scene format=4]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_i18ya"]
+resource_name = "WarmSlate"
+albedo_color = Color(0.31, 0.35, 0.34, 1)
+
+[sub_resource type="ArrayMesh" id="ArrayMesh_2nfuo"]
+resource_name = "FacetedStone"
+_surfaces = [{
+"aabb": AABB(-0.92, -0.08, -0.88, 1.83, 1.34, 1.7),
+"format": 34359738375,
+"primitive": 3,
+"uv_scale": Vector4(0, 0, 0, 0),
+"vertex_count": 84,
+"vertex_data": PackedByteArray("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")
+}]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_j7mt6"]
+resource_name = "WeatheredSlate"
+albedo_color = Color(0.4, 0.43, 0.39, 1)
+
+[node name="RockCluster" type="Node3D" unique_id=1142893036]
+
+[node name="MainStone" type="MeshInstance3D" parent="." unique_id=1485169492]
+transform = Transform3D(0.95105654, 0, -0.309017, 0, 1, 0, 0.309017, 0, 0.95105654, -0.38, 0, -0.1)
+material_override = SubResource("StandardMaterial3D_i18ya")
+mesh = SubResource("ArrayMesh_2nfuo")
+
+[node name="LowStone" type="MeshInstance3D" parent="." unique_id=677122285]
+transform = Transform3D(0.6146484, 0, 0.43096304, 0, 0.58, 0, -0.48021597, 0, 0.55160755, 0.92, 0, 0.2)
+material_override = SubResource("StandardMaterial3D_j7mt6")
+mesh = SubResource("ArrayMesh_2nfuo")
+
+[node name="Chip" type="MeshInstance3D" parent="." unique_id=1382440462]
+transform = Transform3D(0.12051661, 0, 0.3328698, 0, 0.29, 0, -0.37091205, 0, 0.108155936, -1.19, 0, 0.67)
+material_override = SubResource("StandardMaterial3D_i18ya")
+mesh = SubResource("ArrayMesh_2nfuo")

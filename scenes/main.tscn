@@ -11,27 +11,25 @@
 
 [ext_resource type="Script" path="res://scripts/visuals/arena_camera.gd" id="7_camera"]
 
+[ext_resource type="PackedScene" path="res://scenes/environments/arena_environment.tscn" id="8_environment"]
+
 [sub_resource type="StandardMaterial3D" id="Material_floor"]
-albedo_color = Color(0.24, 0.28, 0.32, 1)
+albedo_color = Color(0.20, 0.235, 0.155, 1)
 roughness = 1.0
 
 [sub_resource type="PlaneMesh" id="Mesh_floor"]
 material = SubResource("Material_floor")
-size = Vector2(44, 32)
-
-[sub_resource type="StandardMaterial3D" id="Material_surround"]
-albedo_color = Color(0.21, 0.25, 0.29, 1)
-roughness = 1.0
+size = Vector2(60, 44)
 
 [sub_resource type="PlaneMesh" id="Mesh_surround"]
-material = SubResource("Material_surround")
+material = SubResource("Material_floor")
 size = Vector2(200, 200)
 
 [sub_resource type="Environment" id="Environment_arena"]
 background_mode = 1
 background_color = Color(0.055, 0.065, 0.08, 1)
 ambient_light_source = 3
-ambient_light_color = Color(0.8, 0.87, 1, 1)
+ambient_light_color = Color(0.91, 0.94, 0.82, 1)
 ambient_light_energy = 0.65
 reflected_light_source = 2
 tonemap_mode = 0
@@ -46,11 +44,14 @@ mesh = SubResource("Mesh_floor")
 position = Vector3(0, -0.02, 0)
 mesh = SubResource("Mesh_surround")
 
+[node name="ArenaEnvironment" parent="." instance=ExtResource("8_environment")]
+
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
 environment = SubResource("Environment_arena")
 
 [node name="Sun" type="DirectionalLight3D" parent="."]
 rotation_degrees = Vector3(-55, -25, 0)
+light_color = Color(1, 0.94, 0.80, 1)
 light_energy = 1.2
 shadow_enabled = true
 directional_shadow_max_distance = 80.0
@@ -64,6 +65,7 @@ size = 36.0
 far = 100.0
 script = ExtResource("7_camera")
 ground = NodePath("../Ground")
+framing_margin = 2.5
 
 [node name="Survivor" parent="." instance=ExtResource("2_survivor")]
 position = Vector3(6, 0, -3)

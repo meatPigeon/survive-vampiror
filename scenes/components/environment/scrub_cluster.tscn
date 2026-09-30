@@ -1,0 +1,59 @@
+[gd_scene format=4]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_bsowc"]
+resource_name = "DustySage"
+albedo_color = Color(0.34, 0.4, 0.23, 1)
+
+[sub_resource type="ArrayMesh" id="ArrayMesh_edcq5"]
+resource_name = "LowScrub"
+_surfaces = [{
+"aabb": AABB(-0.5, 0.02, -0.42, 0.98, 0.63, 0.77),
+"format": 34359738375,
+"primitive": 3,
+"uv_scale": Vector4(0, 0, 0, 0),
+"vertex_count": 45,
+"vertex_data": PackedByteArray("AAAAvwrXIz24HoW+KVyPPQrXozw9Cte+H4XrvpqZmT49Cle+KVyPPQrXozw9Cte+CtcjPc3MzD57FK6+H4XrvpqZmT49Cle+H4XrvpqZmT49Cle+CtcjPc3MzD57FK6+KVyPvWZmJj8K1yM8KVyPPQrXozw9Cte+j8L1Ps3MTD0K16O9CtcjPc3MzD57FK6+j8L1Ps3MTD0K16O99ijcPilcjz6PwvW8CtcjPc3MzD57FK6+CtcjPc3MzD57FK6+9ijcPilcjz6PwvW8KVyPvWZmJj8K1yM8j8L1Ps3MTD0K16O9cT2KPgrXozwzM7M+9ijcPilcjz6PwvW8cT2KPgrXozwzM7M+AACAPlK4nj7hepQ+9ijcPilcjz6PwvW89ijcPilcjz6PwvW8AACAPlK4nj7hepQ+KVyPvWZmJj8K1yM8cT2KPgrXozwzM7M+UrievgrXozzD9ag+AACAPlK4nj7hepQ+UrievgrXozzD9ag+4XqUvo/CdT64HoU+AACAPlK4nj7hepQ+AACAPlK4nj7hepQ+4XqUvo/CdT64HoU+KVyPvWZmJj8K1yM8UrievgrXozzD9ag+AAAAvwrXIz24HoW+4XqUvo/CdT64HoU+AAAAvwrXIz24HoW+H4XrvpqZmT49Cle+4XqUvo/CdT64HoU+4XqUvo/CdT64HoU+H4XrvpqZmT49Cle+KVyPvWZmJj8K1yM85RPZ6MhXgY3lE9noyFeBjeUT2ejIV4GNIBBa5uNaTo4gEFrm41pOjiAQWubjWk6OejhF6AAub5t6OEXoAC5vm3o4RegALm+bI+9JzqSxr6Uj70nOpLGvpSPvSc6ksa+lI+mDzVG1I6oj6YPNUbUjqiPpg81RtSOqrMUk13E0a9qsxSTXcTRr2qzFJNdxNGvauM+7iLhZ27q4z7uIuFnburjPu4i4Wdu6Gsp4jbVW3rsayniNtVbeuxrKeI21Vt67pK7QvDZHuM6krtC8Nke4zqSu0Lw2R7jOb3wglTp/LItvfCCVOn8si298IJU6fyyLM3dgnSh/DpAzd2CdKH8OkDN3YJ0ofw6Q5HUFsFlsDJ/kdQWwWWwMn+R1BbBZbAyfBCxqkGuWSLQELGqQa5ZItAQsapBrlki0/ic8h+2cQbf+JzyH7ZxBt/4nPIftnEG3C0jwreR1t6YLSPCt5HW3pgtI8K3kdbem")
+}]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_veaeq"]
+resource_name = "DryOlive"
+albedo_color = Color(0.43, 0.45, 0.26, 1)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_m3iwp"]
+resource_name = "DryGrass"
+albedo_color = Color(0.55, 0.49, 0.3, 1)
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_2mbr4"]
+resource_name = "DryGrassBlade"
+top_radius = 0.0
+bottom_radius = 0.055
+height = 0.58
+radial_segments = 4
+rings = 1
+
+[node name="ScrubCluster" type="Node3D" unique_id=1485787449]
+
+[node name="CenterScrub" type="MeshInstance3D" parent="." unique_id=656555671]
+transform = Transform3D(0.97437006, 0, -0.22495106, 0, 1, 0, 0.22495106, 0, 0.97437006, -0.12, 0, -0.16)
+material_override = SubResource("StandardMaterial3D_bsowc")
+mesh = SubResource("ArrayMesh_edcq5")
+
+[node name="LowScrub" type="MeshInstance3D" parent="." unique_id=918116012]
+transform = Transform3D(0.724017, 0, 0.33801955, 0, 0.68, 0, -0.3849667, 0, 0.6357223, 0.5, 0, 0.22)
+material_override = SubResource("StandardMaterial3D_veaeq")
+mesh = SubResource("ArrayMesh_edcq5")
+
+[node name="SideScrub" type="MeshInstance3D" parent="." unique_id=588740301]
+transform = Transform3D(0.27351174, 0, 0.6075332, 0, 0.57, 0, -0.6443534, 0, 0.2578825, -0.64, 0, 0.21)
+material_override = SubResource("StandardMaterial3D_bsowc")
+mesh = SubResource("ArrayMesh_edcq5")
+
+[node name="GrassLeft" type="MeshInstance3D" parent="." unique_id=1453097223]
+transform = Transform3D(0.96105546, -0.27635565, 0, 0.27635565, 0.96105546, 0, 0, 0, 1, 0.13, 0.25, 0.5)
+material_override = SubResource("StandardMaterial3D_m3iwp")
+mesh = SubResource("CylinderMesh_2mbr4")
+
+[node name="GrassRight" type="MeshInstance3D" parent="." unique_id=301821143]
+transform = Transform3D(0.82357556, 0.20287125, 0, -0.21029338, 0.79450816, 0, 0, 0, 0.85, 0.26, 0.2, 0.52)
+material_override = SubResource("StandardMaterial3D_m3iwp")
+mesh = SubResource("CylinderMesh_2mbr4")

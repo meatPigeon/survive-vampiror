@@ -7,6 +7,8 @@
 ```text
 Main (Node3D / arena.gd)
 ├── Ground, GroundSurround (visual only), WorldEnvironment, Sun, Camera
+├── ArenaEnvironment (environments/arena_environment.tscn)
+│   └── authored ground patches, reusable rock/scrub clusters and low pebbles
 ├── Survivor (components/survivor.tscn)
 │   ├── Visual (knight GLB / KnightVisual)
 │   │   └── skeleton + runtime hand-held sword
@@ -31,11 +33,16 @@ signal-up/call-down composition conventions.
 
 ## Ownership And Data Flow
 
-- `scripts/visuals/arena_camera.gd` fits the orthographic view to the unchanged
+- `scripts/visuals/arena_camera.gd` fits the orthographic view to the current
   Ground bounds when the viewport resizes. The fixed tilt and a small margin
   keep the arena and character heads visible. Canvas stretch expands with the
   window aspect; a larger plain GroundSurround fills the background without
   participating in targeting or movement bounds.
+- `scenes/environments/arena_environment.tscn` owns static prop placement and
+  ground patches. Reusable rock/scrub scenes in `scenes/components/environment/`
+  share baked flat-shaded meshes/materials. Large rocks sit outside the Ground
+  AABB; walkable details are low and non-colliding. No runtime generation,
+  obstacle steering or new presentation script is needed.
 - `scripts/input/ground_command.gd` projects left clicks onto the floor and
   emits movement intent. Keyboard signals request sprint, pause or restart.
   It processes while paused so resume works; movement/sprint are rejected while

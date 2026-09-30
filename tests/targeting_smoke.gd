@@ -64,8 +64,11 @@ func _run() -> void:
 	knight.update_combat(horde.agents, knight.windup_time * 0.5)
 	for index: int in range(4):
 		_check(horde.agents[index].health.current_health == 30, "moving out of the locked sector still dodges damage")
-	knight.global_position = Vector3(20, 0, 14)
-	knight._begin_attack(Survivor.Attack.CHARGE, Vector3(23, 0, 17))
+	var corner: Vector2 = horde.movement_bounds.end
+	knight.global_position = Vector3(corner.x - 2.0, 0, corner.y - 2.0)
+	knight._begin_attack(Survivor.Attack.CHARGE, Vector3(corner.x + 1.0, 0, corner.y + 1.0))
+	_check(horde.movement_bounds.has_point(Vector2(knight._charge_end.x, knight._charge_end.z)),
+		"charge endpoint remains inside the actual arena corner")
 	_check((-knight.visual.global_basis.z.normalized()).dot(-knight.attack_area.global_basis.z) > 0.99,
 		"knight faces the actual lane after its endpoint is clamped at a corner")
 	scene.free()

@@ -2,8 +2,22 @@
 
 ## Active Work
 
-Viewport framing fix complete; no implementation task remains active.
+Larger arena and simple environment complete; no implementation task remains active.
 Wave/progression changes are explicitly discussion-only.
+
+## Task: Larger Arena And Simple Surroundings
+
+Status: complete; import, movement/resize, combat, targeting, reinforcement and
+UI checks pass; headless/rendered full runs pass and environment views inspected
+Priority: normal
+
+Scope: Enlarge the floor from 44 × 32 to 60 × 44 and add authored low-poly rocks,
+scrub, low pebbles and ground patches. Keep combat tuning, initial actors and
+recruitment sites unchanged. Preserve full-window framing and direct steering.
+
+Acceptance: The extra ground accepts commands and remains visible on resize;
+large props do not obstruct the walkable floor; actors and warnings remain
+readable. Verify movement to new edges, combat, UI and complete encounter runs.
 
 ## Task: Fill The Game Window
 

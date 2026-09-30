@@ -23,6 +23,7 @@ func _run() -> void:
 func _battle(strategy: String, reaction_frames: int) -> void:
 	var scene: Node3D = MAIN.instantiate()
 	root.add_child(scene)
+	current_scene = scene
 	var horde: HordeController = scene.get_node("Horde")
 	var knight: Survivor = scene.get_node("Survivor")
 	var camera: Camera3D = scene.get_node("Camera")
@@ -40,6 +41,9 @@ func _battle(strategy: String, reaction_frames: int) -> void:
 	while not scene.battle_over and frames < 18000:
 		await physics_frame
 		frames += 1
+		# The tick can finish the battle; do not send ground clicks into its modal.
+		if scene.battle_over:
+			break
 		phases[knight.phase - 1] = true
 		if knight.attack_area.visible:
 			warning_frames += 1

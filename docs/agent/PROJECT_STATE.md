@@ -68,6 +68,20 @@ Rules/tuning are in [SPEC_GAMEPLAY.md](SPEC_GAMEPLAY.md); code ownership is in
 
 ## Presentation And Limits
 
+Three standalone [music sketches](../../art/audio/music_concepts/README.md)
+are available for comparison: Undead March, Graveyard Groove and Tiny Siege.
+They are original locally authored MIDI compositions rendered with FluidSynth
+and GeneralUser GS, not ElevenLabs outputs. Music API returned HTTP 402
+`paid_plan_required`; no successful music generation or retry occurred.
+Local previews use zero API credits and remain outside Godot import/runtime.
+The user has not selected a track or authorized its integration yet.
+
+The MP3s decode correctly and last 27.48/26.56/29.54 seconds. Measured loudness
+is -18.26/-18.30/-18.37 LUFS with no clipped samples. MIDI, composition source,
+instrument provenance and license are retained beside them. These are faded
+comparison sketches, not final seamless loops; no subjective listening approval
+is claimed. Gameplay is unchanged, so gameplay tests were not rerun for this pass.
+
 The UI branch has a quiet bone/charcoal HUD, serif titles, generous spacing and
 modal pause/result screens. The earlier four-card dashboard has been replaced.
 Combat markers remain technical placeholders. The arena now has a simple

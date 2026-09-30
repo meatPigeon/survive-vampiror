@@ -41,7 +41,9 @@ only for the missing scope. Do not invent a next milestone or expand the backlog
   unchanged. Large decorative rocks stay outside playable bounds; small ground
   details do not introduce obstacles. A small set of gameplay sound effects is
   authorized, with sparse playback and conservative generation-credit use.
-  No music, custom shaders, persistence,
+  Three standalone music sketches are authorized for comparison; wait for the
+  user's choice before adding music playback to the game.
+  No custom shaders, persistence,
   networking, or unrelated systems.
 - Do not introduce dependencies, plugins, global services, event buses, ECS,
   pooling, or navigation infrastructure without a concrete current need.

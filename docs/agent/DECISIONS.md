@@ -1,5 +1,17 @@
 # Architecture Decisions
 
+## Compare Music Before Runtime Integration
+
+Status: accepted, 2026-09-30
+
+Decision: Deliver three short, original MIDI-based music sketches rendered
+offline, keeping them in `art/audio/music_concepts/` outside Godot import.
+Wait for the user's selection before adding background playback.
+
+Reason: The user requested three alternatives and conservative credit use.
+ElevenLabs rejected the Music API request with `paid_plan_required`; the local
+sketches allow comparison without a subscription change or further API calls.
+
 ## Add A Small Scene-Owned Gameplay Sound Set
 
 Status: accepted, 2026-09-30

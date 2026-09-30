@@ -2,8 +2,21 @@
 
 ## Active Work
 
-No active implementation task.
+Three music sketches delivered; awaiting the user's choice before integration.
 Wave/progression changes are explicitly discussion-only.
+
+## Task: Three Music Concepts
+
+Status: complete; three previews rendered and decoded, levels checked
+Priority: normal
+
+Scope: Three short instrumental alternatives: a comic undead march, a medieval
+groove and a tense siege rhythm. Keep generation spending conservative. The
+ElevenLabs Music request was rejected because the account requires a paid plan;
+compose and render local sketches instead. Do not add runtime music yet.
+
+Acceptance: Three distinct playable previews, editable composition sources and
+clear provenance. Verify audio files and levels; the user chooses a direction.
 
 ## Task: Additional Gameplay Sound Feedback
 

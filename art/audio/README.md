@@ -1,5 +1,8 @@
 # Gameplay sound sources
 
+Standalone music comparison sketches are documented in
+[music_concepts/README.md](music_concepts/README.md); they are not used at runtime.
+
 Five original sound effects were generated with
 [ElevenLabs Sound Effects](https://elevenlabs.io/docs/api-reference/text-to-sound-effects/convert)
 on 2026-09-30. Each sibling JSON file records its prompt, model, request settings

@@ -1,0 +1,17 @@
+{
+  "title": "Graveyard Groove",
+  "source": "Original locally composed MIDI; not an ElevenLabs generation",
+  "tempo_bpm": 114,
+  "bars": 12,
+  "duration_seconds": 26.563,
+  "renderer": "FluidSynth 2.6.1",
+  "soundfont": "GeneralUser GS 2.0.3",
+  "soundfont_sha256": "9575028c7a1f589f5770fccc8cff2734566af40cd26ed836944e9a5152688cfe",
+  "target_lufs": -18,
+  "target_true_peak_dbfs": -2,
+  "api_credits_spent": 0,
+  "runtime_integration": false,
+  "verified_integrated_lufs": -18.3,
+  "verified_true_peak_dbfs": -2.23,
+  "verified_clipped_samples": 0
+}

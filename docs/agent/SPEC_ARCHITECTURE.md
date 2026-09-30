@@ -15,6 +15,7 @@ Main (Node3D / arena.gd)
 ├── Horde (components/horde.tscn)
 │   ├── TargetMarker
 │   └── HordeAgent × living/spawning/death-feedback instances
+│       ├── KindMarker (white permanent / blue temporary ring)
 │       ├── Visual (zombie GLB)
 │       └── Health
 ├── Reinforcements
@@ -35,13 +36,19 @@ signal-up/call-down composition conventions.
   paused. Inputs are marked handled before restart can remove the node.
 - `scripts/gameplay/horde_controller.gd` owns the living agent list, shared
   target, bounds, initial scatter, recruitment cap/statistics and sprint timers.
-  Agent deaths remove entries immediately. `stop()` prevents further movement,
-  recruitment and sprint. It does not own knight attack decisions.
+  It creates permanent starters and temporary recruits, exposes counts by kind and the next expiry, and ticks
+  agent lifetimes over a snapshot because deaths remove entries immediately.
+  `stop()` prevents further movement, lifetimes, recruitment and sprint. It does not own knight attack decisions.
 - `scripts/gameplay/horde_agent.gd` owns planar steering, local separation,
-  idle/run/facing, bite cooldown/range, hit and death feedback. Sprint arrives
-  as a speed multiplier. Dead agents stop participating before visual cleanup.
+  idle/run/facing, bite cooldown/range, hit and death feedback. Kind is assigned
+  before scene entry. Temporary lifetime is ticked explicitly; an expired flag
+  distinguishes expiry from damage while reusing Health and the death signal.
+  Sprint arrives as a speed multiplier. Dead agents stop participating before visual cleanup.
 - `scripts/gameplay/survivor.gd` owns knight pursuit, health phases, three attack
-  patterns and their damage. A small local enum tracks hunt, windup, strike,
+  patterns and their damage. Before windup it scores sweep/charge directions by
+  reachable living targets; pursuit still uses the nearest zombie. Scoring runs
+  only at attack selection, with the same floor-clamped charge endpoint used
+  for execution. A small local enum tracks hunt, windup, strike,
   recovery and stopped states; there is no general state-machine infrastructure.
   Position/direction are locked at windup. Attack loops copy the active list
   because damage can synchronously emit death and remove members.
@@ -51,11 +58,16 @@ signal-up/call-down composition conventions.
   parameters. It uses world space so a charge does not move its warning.
 - `scripts/gameplay/health.gd` holds current/max HP, clamps damage at zero, and
   emits `changed`/one-time `died`. It knows neither faction nor battle outcome.
-- `scripts/gameplay/reinforcement_site.gd` owns finite reserves and occupation
-  progress. It requests recruitment through the horde and subtracts only the
-  actual added count. It never runs independently after the battle ends.
-- `scripts/gameplay/arena.gd` starts on the first command, ticks combat and
+- `scripts/gameplay/reinforcement_site.gd` owns activity, the current batch and
+  occupation progress. Arena explicitly activates/deactivates it. Activation
+  resets the batch; deactivation discards leftovers/progress. Recruitment calls
+  the horde and subtracts only the actual added count; there is no local timer.
+- `scripts/gameplay/arena.gd` starts on the first command, ticks lifetimes, combat and
   recruitment, handles results, pause/restart, and writes the technical HUD.
+  It owns the exported site interval and derives the current window from run
+  elapsed time, cycling the three scene children. The window number (not just
+  site identity) ensures a fresh batch even when a time step skips a full cycle.
+  Count changes synchronously lose the run when permanent count reaches zero.
   Physics priority 1 resolves combat after horde movement at priority 0. It
   stops further damage/recruitment as soon as either terminal condition occurs.
 
@@ -67,8 +79,8 @@ exists. The knight and horde share floor bounds. Separation checks all other
 living zombies and is intended for the capped 60-agent crowd.
 
 No automatic combat begins before the first command. Tree pause freezes actors,
-animations, cooldowns, recruitment and elapsed time. The always-process input
-node can call the paused arena's resume/restart methods. Restart unpauses and
+animations, cooldowns, recruitment, temporary lifetimes and elapsed time. The
+always-process input node can call the paused arena's resume/restart methods. Restart unpauses and
 reloads the scene, so all mutable gameplay state belongs to that run.
 
 ## Assets

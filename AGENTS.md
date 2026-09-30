@@ -32,8 +32,8 @@ only for the missing scope. Do not invent a next milestone or expand the backlog
 
 - Preserve user changes; do not rewrite unrelated files.
 - Current authorized scope: a complete jam-style gameplay loop with knight
-  phases/attacks, horde movement and sprint, finite reinforcements, outcomes,
-  pause and restart. This supersedes the earlier basic-combat-only scope.
+  phases/attacks, horde movement and sprint, permanent zombies and rotating
+  temporary reinforcements, outcomes, pause and restart. This supersedes the earlier basic-combat-only scope.
 - Keep presentation functional: no UI polish, audio, custom shaders, decorative
   assets, persistence, networking, or unrelated systems.
 - Do not introduce dependencies, plugins, global services, event buses, ECS,
@@ -63,6 +63,7 @@ Commands, from the project root:
 godot --headless --path . --editor --quit
 godot --headless --path . --script res://tests/prototype_smoke.gd --fixed-fps 60
 godot --headless --path . --script res://tests/combat_smoke.gd --fixed-fps 60
+godot --headless --path . --script res://tests/reinforcement_smoke.gd --fixed-fps 60
 godot --headless --path . --script res://tests/combat_balance.gd --fixed-fps 60
 godot --path .
 ```

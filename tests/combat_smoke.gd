@@ -121,9 +121,11 @@ func _run() -> void:
 	_check(site.progress == 0.0, "leaving interrupts recruitment")
 	horde.agents[0].global_position = site.global_position
 	site.update_recruitment(horde, 2.1)
-	_check(horde.agents.size() == 52 and site.remaining == 0, "site adds its finite reserve to the horde")
+	_check(horde.agents.size() == 52 and site.remaining == 0, "site adds its current batch to the horde")
 	site.update_recruitment(horde, 100)
-	_check(horde.agents.size() == 52, "spent reserves cannot be farmed")
+	_check(horde.agents.size() == 52, "spent site cannot recruit again in the same window")
+	scene.elapsed = scene.site_interval
+	scene._update_site_schedule()
 	site = scene.get_node("Reinforcements/South")
 	horde.command_move(site.global_position)
 	horde.agents[0].global_position = site.global_position
@@ -190,7 +192,7 @@ func _run() -> void:
 	knight = scene.get_node("Survivor")
 	_check(not scene.battle_started and not scene.battle_over and knight.phase == 1, "restart resets the run and phases")
 	_check(horde.agents.size() == 40 and horde.recruited == 0 and horde.sprint_cooldown_remaining == 0, "restart resets horde, statistics and sprint")
-	_check(scene.get_node("Reinforcements/West").remaining == 12, "restart replenishes finite sites")
+	_check(scene.active_site == null and scene.get_node("Reinforcements/West").remaining == 0, "restart resets sites to the waiting state")
 	for agent: HordeAgent in horde.agents.duplicate():
 		agent.health.take_damage(100)
 	_check(scene.battle_over and scene.get_node("HUD/Result").text.begins_with("Defeat"), "zero zombies is defeat even with unused reserves")

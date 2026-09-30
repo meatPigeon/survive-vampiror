@@ -2,8 +2,38 @@
 
 ## Active Work
 
-None. The gameplay-only jam encounter is implemented and verified on
-`gpt-full-game-test`.
+None. Permanent horde and rotating temporary reinforcements are implemented
+and verified.
+Wave/progression changes are explicitly discussion-only.
+
+## Task: Permanent Horde And Rotating Temporary Reinforcements
+
+Status: complete; mechanics, headless full runs and rendered full run pass;
+HUD, mixed crowd, recruitment, warnings and outcomes inspected
+Priority: high
+
+Scope: Permanent starters, 45-second temporary recruits, immediate defeat on
+permanent wipe, one active recruitment site rotating every 30 seconds with a
+fresh batch of 12. Shared controls, cap 60, functional kind/count/timer feedback,
+pause/restart and separate killed/expired statistics. Preserve the targeting fix.
+Waves, weapons and progression changes remain discussion-only.
+
+Acceptance: Both expiry and combat death remove agents exactly once; temporary
+survivors cannot prevent defeat. Site rotation, partial batches/cap and timers
+work through pause/restart/outcomes. Passive play loses and active viewport-input
+runs win with permanent survivors. Inspect rendered grouping, HUD and outcomes.
+
+## Task: Aim At The Larger Zombie Group
+
+Status: complete; focused headless/rendered checks, editor import, combat,
+movement and full-run balance regressions pass
+Priority: high
+
+Scope: Sweep and charge should favor the largest reachable group instead of the
+nearest singleton. Preserve the locked warning/dodge window, damage and existing
+progression. Verify a nearby singleton against a crowd, out-of-range distractions,
+a sector aimed between groups, actual damage, and no tracking during windup.
+
 
 ## Task: Finish The Jam Gameplay Loop
 

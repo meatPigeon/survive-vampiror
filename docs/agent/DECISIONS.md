@@ -138,3 +138,44 @@ Validation: Actual viewport-driven full runs lose with passive/reckless play
 and win with delayed reactions, sprint and reserves. Unit/scenario checks cover
 pause/replay, death, attack geometry and finite resource rules. See
 [TESTING.md](TESTING.md) for evidence and limits.
+
+
+## Aim Directional Attacks At The Larger Reachable Group
+
+Status: accepted, 2026-09-30
+
+Decision: At attack selection, score candidate sweep sectors and charge lanes
+by living targets covered. Consider center and edge directions rather than only
+headings directly toward a zombie. Reuse the charge endpoint calculation for
+scoring and execution. Keep pursuit, attack patterns and locked windup unchanged.
+
+Reason: The closest individual previously distracted the knight from a nearby
+crowd. Scoring the actual attack footprint avoids targeting an unreachable mass
+or averaging opposing clusters into empty space. The check only runs when an
+attack begins; no new AI framework is needed for the capped crowd.
+
+Consequences: Spin remains omnidirectional. The knight/preview agree on direction
+after floor clamping. Wave-based progression and new weapons are discussion-only;
+this fix does not implement or change progression.
+
+
+## Preserve The Starting Horde; Make Reinforcements Temporary
+
+Status: accepted, 2026-09-30; supersedes finite per-run reserves and total-wipe
+loss in the earlier jam encounter decision
+
+Decision: Keep 40 permanent starters and shared movement/sprint. Defeat is the
+loss of the last permanent zombie, regardless of temporary survivors. Recruits
+live for 45 seconds from spawn, with the same combat stats. One of the existing
+three sites is active per 30-second window, west/south/east in order, each with
+12 recruits. Unused stock is lost on rotation; total living cap remains 60.
+
+Reason: The user wants irreversible losses in the original army and expendable
+short-lived reinforcements, without splitting controls or implementing waves yet.
+Fixed windows encourage movement and bounded batches prevent stock accumulation.
+
+Consequences: Arena owns the schedule and permanent-wipe outcome; the controller
+owns composition and lifetime ticking; agents retain ordinary Health/death
+handling and identify expiry for statistics. Ordinary colored rings and existing
+HUD labels expose the rules. No new infrastructure or art is required. Knight
+HP, attack geometry, targeting and HP-phase progression remain unchanged.

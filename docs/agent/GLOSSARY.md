@@ -9,6 +9,8 @@
 - **Sprint**: Space-triggered temporary movement boost with a cooldown.
 - **Warning / attack area**: locked orange sector, yellow lane, or purple circle.
 - **Recovery**: the knight's stationary interval after an attack; safe bite window.
-- **Reserve site**: green circle containing finite recruits, claimed by occupation.
+- **Permanent zombie**: one of the 40 starters; white ring, no expiry, no replacement. Losing the last one loses the run.
+- **Temporary zombie**: blue-ring recruit; dies after 45 seconds or earlier from damage.
+- **Recruitment site**: one active green circle with a batch of 12; rotates west/south/east every 30 seconds.
 - **Health**: entity HP; zero emits death once.
 - **Run**: one scene instance, from first command to victory/defeat or restart.

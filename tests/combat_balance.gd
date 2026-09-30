@@ -53,14 +53,14 @@ func _battle(strategy: String, reaction_frames: int) -> void:
 			for agent: HordeAgent in horde.agents:
 				center += agent.global_position
 			center /= maxf(1, horde.agents.size())
-			if camp != null and camp.remaining == 0:
+			if camp != null and (not camp.active or camp.remaining == 0 or horde.agents.size() >= horde.max_agents):
 				camp = null
-			if camp == null and horde.agents.size() < 26:
-				var distance: float = INF
-				for candidate: ReinforcementSite in scene.get_node("Reinforcements").get_children():
-					if candidate.remaining > 0 and center.distance_to(candidate.global_position) < distance:
-						distance = center.distance_to(candidate.global_position)
-						camp = candidate
+			if camp == null and horde.temporary_count() < 8 and horde.agents.size() < horde.max_agents:
+				var candidate: ReinforcementSite = scene.active_site
+				var time_left: float = scene.site_interval - fmod(scene.elapsed, scene.site_interval)
+				# Travel and occupation must fit inside the visible active window.
+				if candidate != null and candidate.remaining > 0 and time_left > center.distance_to(candidate.global_position) / 3.6 + 5.0:
+					camp = candidate
 			# The pilot reacts to the visible warning and HUD attack type, with
 			# a human-scale delay. All actions use mouse/keyboard viewport input.
 			if warning_frames == reaction_frames:
@@ -91,15 +91,15 @@ func _battle(strategy: String, reaction_frames: int) -> void:
 			print("%s: %ds, phase %d, HP %d, zombies %d, recruited %d" % [strategy, frames / 60, knight.phase, knight.health.current_health, horde.agents.size(), horde.recruited])
 	_check(scene.battle_over, strategy + ": fight ends within five minutes")
 	if strategy == "active":
-		_check(not knight.health.is_alive() and horde.agents.size() >= 5, "active commands can finish the game with a margin for mistakes")
+		_check(not knight.health.is_alive() and horde.permanent_count() > 0, "active commands can win while preserving permanent zombies")
 		_check(phases.all(func(seen: bool) -> bool: return seen), "winning run visits all three phases")
 		_check(attacks.all(func(count: int) -> bool: return count > 0), "winning run encounters every attack")
-		_check(horde.recruited > 0 and horde.recruited <= 36, "winning run uses finite reinforcements")
+		_check(horde.recruited > 0, "winning run uses temporary reinforcements")
 	else:
-		_check(knight.health.is_alive() and horde.agents.is_empty(), "passive or reckless chasing cannot win")
-	print("%s reaction=%.2fs: %.1fs, knight=%d HP, zombies=%d, recruits=%d, attacks=%s" % [
+		_check(knight.health.is_alive() and horde.permanent_count() == 0, "passive or reckless chasing cannot win")
+	print("%s reaction=%.2fs: %.1fs, knight=%d HP, permanent=%d, temporary=%d, recruits=%d, expired=%d, attacks=%s" % [
 		strategy, reaction_frames / 60.0, frames / 60.0, knight.health.current_health,
-		horde.agents.size(), horde.recruited, attacks])
+		horde.permanent_count(), horde.temporary_count(), horde.recruited, horde.expired_count, attacks])
 	for frame: int in range(40):
 		await physics_frame
 	await _capture(strategy + "_result")

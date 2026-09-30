@@ -103,11 +103,65 @@ func _hunt(agents: Array[HordeAgent], delta: float) -> void:
 		next = Attack.CHARGE
 	var reach: float = charge_range if next == Attack.CHARGE else (spin_radius if next == Attack.SPIN else attack_range)
 	if nearest_distance <= reach:
-		_begin_attack(next, nearest.global_position)
+		_begin_attack(next, _choose_attack_target(next, agents, nearest.global_position))
 		return
 	var direction: Vector3 = (nearest.global_position - global_position).normalized()
 	global_position = _clamp_to_floor(global_position + direction * move_speed * delta)
 	visual.run(direction)
+
+
+func _choose_attack_target(kind: Attack, agents: Array[HordeAgent], fallback: Vector3) -> Vector3:
+	# Spin has no aiming direction. Pursuit still follows the nearest zombie.
+	if kind == Attack.SPIN:
+		return fallback
+	var reach: float = sqrt(charge_range * charge_range + charge_width * charge_width * 0.25) if kind == Attack.CHARGE else attack_range
+	var targets: Array[Vector3] = []
+	for agent: HordeAgent in agents:
+		if agent.health.is_alive() and global_position.distance_to(agent.global_position) <= reach:
+			targets.append(agent.global_position)
+	var best_target: Vector3 = fallback
+	var best_count: int = _count_targets(kind, fallback, targets)
+	for target: Vector3 in targets:
+		var offset: Vector3 = target - global_position
+		if offset.is_zero_approx():
+			continue
+		# Also consider the edges: the best sector/lane can lie between zombies.
+		var half_angle: float = deg_to_rad(attack_angle * 0.5) if kind == Attack.SWEEP else asin(minf(1.0, charge_width * 0.5 / offset.length()))
+		half_angle = maxf(0.0, half_angle - 0.0001)
+		for angle: float in [0.0, -half_angle, half_angle]:
+			var aim: Vector3 = global_position + offset.rotated(Vector3.UP, angle)
+			var count: int = _count_targets(kind, aim, targets)
+			if count > best_count:
+				best_count = count
+				best_target = aim
+	return best_target
+
+
+func _count_targets(kind: Attack, target: Vector3, targets: Array[Vector3]) -> int:
+	var direction: Vector3 = (target - global_position).normalized()
+	var lane_length: float = 0.0
+	if kind == Attack.CHARGE:
+		var end: Vector3 = _charge_endpoint(target)
+		lane_length = global_position.distance_to(end)
+		if lane_length < 0.1:
+			return 0
+		direction = (end - global_position).normalized()
+	var count: int = 0
+	for position: Vector3 in targets:
+		var offset: Vector3 = position - global_position
+		if kind == Attack.SWEEP:
+			if offset.normalized().dot(direction) >= cos(deg_to_rad(attack_angle * 0.5)):
+				count += 1
+		else:
+			var along: float = offset.dot(direction)
+			if along >= 0.0 and along <= lane_length and (offset - direction * along).length() <= charge_width * 0.5:
+				count += 1
+	return count
+
+
+func _charge_endpoint(target: Vector3) -> Vector3:
+	var offset: Vector3 = target - global_position
+	return _clamp_to_floor(global_position + offset.normalized() * minf(charge_range, offset.length() + 1.5))
 
 
 func _begin_attack(kind: Attack, target: Vector3) -> void:
@@ -117,14 +171,13 @@ func _begin_attack(kind: Attack, target: Vector3) -> void:
 	if _attack_direction.is_zero_approx():
 		_attack_direction = Vector3.FORWARD
 	_origin = global_position
-	_charge_end = _clamp_to_floor(_origin + _attack_direction * minf(charge_range, _origin.distance_to(target) + 1.5))
+	_charge_end = _charge_endpoint(target)
 	if kind == Attack.CHARGE and _origin.distance_to(_charge_end) < 0.1:
 		kind = Attack.SWEEP
 		attack_kind = kind
 	_hit_ids.clear()
 	state = State.WINDUP
 	_time = 0.0
-	visual.face(_attack_direction)
 	match kind:
 		Attack.SWEEP:
 			attack_area.show_arc(_origin, _attack_direction, attack_range, attack_angle, Color(1, 0.3, 0.08, 0.5))
@@ -133,11 +186,14 @@ func _begin_attack(kind: Attack, target: Vector3) -> void:
 			attack_area.show_lane(_origin, _attack_direction, _origin.distance_to(_charge_end), charge_width, Color(1, 0.8, 0.1, 0.5))
 		Attack.SPIN:
 			attack_area.show_arc(_origin, _attack_direction, spin_radius, 360.0, Color(0.8, 0.2, 1, 0.45))
+	visual.face(_attack_direction)
 	visual.attack(StringName(Attack.keys()[kind].to_lower()), current_windup(), current_strike(), current_recovery())
 
 
 func _hit_area(agents: Array[HordeAgent]) -> void:
 	for agent: HordeAgent in agents.duplicate():
+		if state == State.STOPPED:
+			break
 		var offset: Vector3 = agent.global_position - _origin
 		var inside: bool = offset.length() <= spin_radius if attack_kind == Attack.SPIN else (
 			offset.length() <= attack_range and offset.normalized().dot(_attack_direction) >= cos(deg_to_rad(attack_angle * 0.5)))
@@ -147,6 +203,8 @@ func _hit_area(agents: Array[HordeAgent]) -> void:
 
 func _hit_charge(agents: Array[HordeAgent], from: Vector3, to: Vector3) -> void:
 	for agent: HordeAgent in agents.duplicate():
+		if state == State.STOPPED:
+			break
 		if _hit_ids.has(agent.get_instance_id()):
 			continue
 		var along_lane: float = (agent.global_position - _origin).dot(_attack_direction)

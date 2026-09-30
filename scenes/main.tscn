@@ -92,7 +92,7 @@ show_percentage = false
 
 [node name="HordeLabel" type="Label" parent="HUD/Status"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 22
+theme_override_font_sizes/font_size = 18
 
 [node name="FightLabel" type="Label" parent="HUD/Status"]
 layout_mode = 2
@@ -100,8 +100,17 @@ layout_mode = 2
 [node name="SprintLabel" type="Label" parent="HUD/Status"]
 layout_mode = 2
 
-[node name="ReservesLabel" type="Label" parent="HUD/Status"]
-layout_mode = 2
+[node name="ReservesLabel" type="Label" parent="HUD"]
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -380.0
+offset_top = 24.0
+offset_right = -24.0
+offset_bottom = 70.0
+grow_horizontal = 0
+horizontal_alignment = 2
+mouse_filter = 2
+theme_override_font_sizes/font_size = 18
 
 [node name="Help" type="Label" parent="HUD"]
 anchor_top = 1.0
@@ -111,7 +120,7 @@ offset_top = -112.0
 offset_right = 650.0
 offset_bottom = -14.0
 mouse_filter = 2
-text = "Left click: command horde\nSPACE: sprint   ESC: pause   R: restart\nDodge the warning; bite during recovery.\nGreen circles: rally for reinforcements."
+text = "Left click: command all   SPACE: sprint   ESC: pause   R: restart\nWhite rings: permanent. Lose them all and you lose!\nBlue rings: temporary (45s). Green circle: recruit (hold 2s).\nDodge the warning; bite during recovery."
 
 [node name="Result" type="Label" parent="HUD"]
 visible = false

@@ -1,7 +1,7 @@
 # Survive Vampiror
 
 A short Godot 4.7 / GDScript game: command a zombie horde and overwhelm one
-knight. A run takes roughly three minutes. The gameplay is complete on
+knight. A run takes roughly three to four minutes. The gameplay is complete on
 `gpt-full-game-test`; the interface, arena and attack markers are functional
 placeholders. Sound and visual polish are intentionally absent.
 
@@ -20,12 +20,20 @@ one-third health. **Orange sector:** dodge sideways. **Yellow lane:** leave the
 charge path. **Purple circle:** retreat outside it. Return to bite during his
 recovery; following him continuously without dodging loses the fight.
 
-Command a **green circle** and keep at least one zombie there for two seconds
-to recruit its reserve. Each of three sites holds 12 zombies; they do not
-regenerate. The horde starts with 40 and can hold 60. Unused reserves remain at
-a site when you reach the cap. Losing every zombie ends the run, even if
-reserves remain. Defeat the knight to win; the result shows time, casualties
-and recruited zombies.
+The starting **40 permanent zombies** have white rings. They do not expire,
+but cannot be replaced: **losing the last permanent zombie is defeat**, even
+with temporary zombies still alive. Kill the knight to win.
+
+Command the active **green circle** and keep at least one zombie there for two
+seconds to recruit up to 12 **temporary zombies**, marked with blue rings.
+They die after 45 seconds from recruitment, or earlier from damage. The horde
+can hold 60 in total. All zombies share movement commands and sprint.
+
+One site is active at a time: west → south → east, switching every 30 seconds
+from the first command. Each activation has a fresh batch; unused stock is lost
+when the site switches. Reaching the cap preserves leftovers only until that
+switch. HUD shows both zombie counts, next expiry and site timer; results
+separate combat casualties from expired recruits. Pause freezes these timers.
 
 ## Characters
 

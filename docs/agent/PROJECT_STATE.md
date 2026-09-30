@@ -11,16 +11,19 @@ preserved in the branch's initial commit `dc63168`.
 - One complete encounter: ready state, first-click start, elapsed time,
   three knight phases, victory/defeat statistics, pause/resume and restart.
 - Existing 44 × 32 arena, fixed camera, rigged knight and zombie GLBs.
-- 40 zombies, crowd commands/separation/bounds, automatic bites and death.
+- 40 permanent starters, shared crowd commands/separation/bounds, automatic
+  bites and death. Losing the last permanent immediately loses the run.
 - Space sprint: 2× speed for 1.4 s, 7 s cooldown; actual run animation follows.
-- Knight pursues nearby zombies, warns then executes sweep, moving charge or
-  spin. Locked warnings and recovery periods allow counterplay. His HP thresholds
+- Knight pursues nearby zombies, aims sweep/charge toward the largest reachable
+  group, and warns before attacking. Spin remains omnidirectional. Locked warnings and recovery periods allow counterplay. His HP thresholds
   change attack patterns without interrupting an attack already underway.
-- Three finite reserve sites: 12 zombies each, two-second occupation, horde cap
-  60, unused reserves retained at capacity. One survivor can recruit; a wiped
-  horde loses immediately.
-- Functional HUD: HP, count/cap, phase, attack instruction, time, sprint cooldown,
-  reserve total and result. Ground markers are gameplay cues, not visual polish.
+- Rotating recruitment: one active site, west/south/east every 30 s, with a
+  fresh batch of 12 temporary zombies. Recruits expire 45 s after spawn or die
+  earlier from damage. Two-second occupation, cap 60, leftovers retained only
+  until the next switch. Timers freeze before start, on pause and after outcome.
+- Functional HUD: HP, permanent/temporary counts, next expiry, active site and
+  switch timer, phase, attack instruction, time, sprint cooldown and result.
+  White/blue foot rings distinguish kinds. Results separate kills from expiry.
 - Scene-owned state with explicit references/signals; no new framework or plugin.
 
 Rules/tuning are in [SPEC_GAMEPLAY.md](SPEC_GAMEPLAY.md); code ownership is in
@@ -32,11 +35,11 @@ Rules/tuning are in [SPEC_GAMEPLAY.md](SPEC_GAMEPLAY.md); code ownership is in
 - `prototype_smoke.gd`: crowd command/projection, animation, bounds and separation
   regressions pass with arena combat disabled in that isolated fixture.
 - `combat_smoke.gd`: health, bites, warning geometry/timing, charge movement and
-  one-hit-per-charge, spin, phase thresholds, death removal, finite recruitment,
+  one-hit-per-charge, spin, phase thresholds, death removal, recruitment/cap,
   capacity, sprint speed/cooldown, waiting for input, pause, terminal states and
   replay pass. Restart was corrected to mark input handled before scene removal.
 - `character_assets.gd`: source GLB idle/run bindings and animation checks pass.
-- `combat_balance.gd`: full mouse/keyboard-driven runs pass. Single-click passive
+- Prior jam baseline (`5064113`), `combat_balance.gd`: full mouse/keyboard-driven runs passed. Single-click passive
   play loses at 71 s; chasing without dodging loses at 46.2 s. Active runs with
   0.37/0.50 s reaction delay win at 174.5/178.6 s, with 29/30 surviving zombies
   and 24/36 recruits. Both wins visit every phase and all three attack types.
@@ -54,9 +57,47 @@ and capped at 60; no larger-horde performance claim. Scripted winning runs are
 not a human difficulty assessment. These boundaries are not a feature backlog.
 
 
-Rendered full-run verification passed under the Compatibility renderer: passive
+The prior jam baseline rendered full-run verification passed under the Compatibility renderer: passive
 play lost at 71.0 s; the active run won at 178.4 s with 26 zombies and 24 recruits.
 All three attack warnings, reserves, and victory/defeat captures were inspected.
 Final startup/pause captures verify the technical HUD, larger reserve labels,
 and bottom controls text without covering the west reserve site. No human
 playthrough or subjective difficulty approval is claimed.
+
+
+## Directional Targeting Fix (2026-09-30)
+
+Sweep and charge now select a candidate direction covering the most living,
+reachable targets, rather than always aiming at the nearest individual. Sector
+edge candidates allow aiming between groups; charge scoring uses its actual
+floor-clamped lane. The warning remains locked during windup. Knight facing
+matches the clamped charge direction. Pursuit, damage, phases and progression
+are unchanged; waves/new weapons are explicitly discussion-only.
+
+Editor import, `targeting_smoke.gd`, `combat_smoke.gd`, `prototype_smoke.gd` and
+`combat_balance.gd` pass. Rendered targeting captures were inspected. New full-run
+results: passive defeat 51.2 s, reckless chase defeat 39.3 s, active wins
+184.4/186.6 s with 32/25 survivors and 36 recruits. Full-run results here are
+headless scripted input; graphical inspection covered the focused aiming scenes.
+
+
+## Permanent Horde And Temporary Recruits (2026-09-30)
+
+The rules above supersede the previous finite-reserve version. Both zombie kinds
+retain 30 HP and existing bite/movement stats; knight tuning remains unchanged.
+New `reinforcement_smoke.gd` covers schedule cycling, stock discard, permanent
+health retention, independent lifetime batches, expiry-before-bites/recruitment,
+combat-versus-expiry accounting, immediate loss with temporary survivors,
+stopping a strike mid-loop, pause, victory freeze and restart. It passes headless
+and the focused rendered checks pass. Movement, combat and targeting checks pass.
+
+Headless full runs pass with actual viewport input: passive loses at 51.2 s,
+reckless chase at 39.3 s; active 0.37/0.50 s reaction runs win at 206.8/226.4 s,
+with 11/6 permanent and 11/12 temporary survivors. They recruit 48/60 zombies,
+with 29/39 expiring, and see all phases and attacks. Starting tuning (45 s life,
+30 s windows, batches of 12, knight 3000 HP) required no balance changes.
+Full rendered verification also passes: passive defeat at 51.2 s; active victory
+at 201.5 s with 11 permanent and 10 temporary survivors, 48 recruits and 30
+expirations. Startup, mixed crowd, pause, all attack warnings, recruitment and
+both outcomes were inspected. Recruitment HUD was moved to the upper right to
+avoid covering the west site. No human playtest is claimed.

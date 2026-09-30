@@ -3,6 +3,8 @@ extends Node3D
 
 signal died(agent: HordeAgent)
 
+enum Kind { PERMANENT, TEMPORARY }
+
 const HIT_FLASH: Material = preload("res://art/hit_flash.tres")
 
 @export var move_speed: float = 3.6
@@ -19,6 +21,9 @@ const HIT_FLASH: Material = preload("res://art/hit_flash.tres")
 
 var _bite_cooldown: float = 0.0
 var _flash_tween: Tween
+var kind: Kind = Kind.PERMANENT
+var lifetime_remaining: float = 0.0
+var expired: bool = false
 
 @onready var visual: Node3D = $Visual
 @onready var animation_player: AnimationPlayer = $Visual/AnimationPlayer
@@ -27,9 +32,22 @@ var _flash_tween: Tween
 
 
 func _ready() -> void:
+	var marker_material := StandardMaterial3D.new()
+	marker_material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	marker_material.albedo_color = Color(0.1, 0.8, 1.0) if kind == Kind.TEMPORARY else Color.WHITE
+	$KindMarker.material_override = marker_material
 	_play_animation(&"idle")
 	health.changed.connect(_on_health_changed)
 	health.died.connect(_on_died)
+
+
+func update_lifetime(delta: float) -> void:
+	if kind != Kind.TEMPORARY or not health.is_alive():
+		return
+	lifetime_remaining = maxf(0.0, lifetime_remaining - delta)
+	if lifetime_remaining <= 0.0:
+		expired = true
+		health.take_damage(health.current_health)
 
 
 func move_toward_command(
@@ -98,6 +116,7 @@ func _on_health_changed(_current: int, _maximum: int) -> void:
 
 
 func _on_died() -> void:
+	$KindMarker.hide()
 	animation_player.pause()
 	died.emit(self)
 	var death_tween: Tween = create_tween().set_parallel(true)

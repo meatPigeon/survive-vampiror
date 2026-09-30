@@ -1,4 +1,4 @@
-[gd_scene load_steps=7 format=3]
+[gd_scene load_steps=9 format=3]
 
 [ext_resource type="Script" path="res://scripts/audio/battle_audio.gd" id="1_script"]
 [ext_resource type="AudioStream" path="res://assets/audio/halberd_swish.wav" id="2_swish"]
@@ -6,6 +6,8 @@
 [ext_resource type="AudioStream" path="res://assets/audio/zombie_grunt.wav" id="4_voice"]
 [ext_resource type="AudioStream" path="res://assets/audio/grave_rise.wav" id="5_rise"]
 [ext_resource type="AudioStream" path="res://assets/audio/grave_sink.wav" id="6_sink"]
+[ext_resource type="AudioStream" path="res://assets/audio/horde_step.wav" id="7_step"]
+[ext_resource type="AudioStream" path="res://assets/audio/zombie_bite.wav" id="8_bite"]
 
 [node name="BattleAudio" type="Node"]
 script = ExtResource("1_script")
@@ -32,3 +34,20 @@ volume_db = -13.0
 [node name="GraveSink" type="AudioStreamPlayer" parent="."]
 stream = ExtResource("6_sink")
 volume_db = -16.0
+
+[node name="Footsteps" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("7_step")
+volume_db = -22.0
+
+[node name="Bite" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("8_bite")
+volume_db = -17.0
+
+[node name="Command" type="AudioStreamPlayer" parent="."]
+volume_db = -17.0
+
+[node name="Notice" type="AudioStreamPlayer" parent="."]
+volume_db = -14.0
+
+[node name="Result" type="AudioStreamPlayer" parent="."]
+volume_db = -8.0

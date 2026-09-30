@@ -71,6 +71,7 @@ func toggle_pause() -> void:
 
 
 func restart() -> void:
+	battle_audio.stop_all()
 	get_tree().paused = false
 	get_tree().reload_current_scene()
 
@@ -93,7 +94,7 @@ func _finish_battle(won: bool) -> void:
 	if battle_over:
 		return
 	battle_over = true
-	battle_audio.stop_all()
+	battle_audio.finish(won)
 	horde.stop()
 	survivor.stop_combat()
 	hud.show_result(won, elapsed, horde)

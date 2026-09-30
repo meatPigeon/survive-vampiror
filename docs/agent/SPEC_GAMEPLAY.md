@@ -117,7 +117,10 @@ Short non-positional sound cues accompany grave transitions, confirmed weapon
 contact and sparse zombie combat/recruitment. One, two and three metallic pulses
 distinguish sweep, charge and spin windups. Each attack sounds one swing and at
 most one contact, even across multiple victims. Pausing freezes sounds; either
-outcome stops them and restart creates silent fresh players.
+outcome stops gameplay voices and plays a distinct short victory/defeat cue.
+Restart creates silent fresh players. Actual horde travel drives shared footsteps;
+successful commands/sprint, bite contact, recruitment and temporary expiry have
+bounded cues. Expiry batches coalesce, and rejected sprint requests stay silent.
 No title menu, music, custom shaders, saves, multiplayer,
 upgrades or other modes are part of this version. Runtime whole-body attacks,
 bites, movement lean and hit/death responses remain separate from the source

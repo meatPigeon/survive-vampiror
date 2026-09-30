@@ -3,6 +3,8 @@ extends Node3D
 
 signal count_changed(remaining: int)
 signal move_commanded()
+signal sprint_started()
+signal moved(mean_distance: float)
 
 @export var agent_scene: PackedScene = preload("res://scenes/components/horde_agent.tscn")
 @export var agent_count: int = 40
@@ -100,6 +102,7 @@ func command_sprint() -> void:
 		return
 	sprint_remaining = sprint_duration
 	sprint_cooldown_remaining = sprint_cooldown
+	sprint_started.emit()
 
 
 func command_move(position_on_ground: Vector3) -> void:
@@ -122,8 +125,13 @@ func _physics_process(delta: float) -> void:
 	sprint_remaining = maxf(0.0, sprint_remaining - delta)
 	sprint_cooldown_remaining = maxf(0.0, sprint_cooldown_remaining - delta)
 	var speed_scale: float = sprint_multiplier if sprint_remaining > 0.0 else 1.0
+	var distance: float = 0.0
 	for agent: HordeAgent in agents:
+		var previous: Vector3 = agent.global_position
 		agent.move_toward_command(command_position, agents, movement_bounds, delta, survivor, speed_scale)
+		distance += previous.distance_to(agent.global_position)
+	if not agents.is_empty():
+		moved.emit(distance / float(agents.size()))
 
 
 func stop() -> void:

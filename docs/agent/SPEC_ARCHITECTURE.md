@@ -25,7 +25,7 @@ Main (Node3D / arena.gd)
 │       ├── Visual (ReinforcementVisual): crater + three animated gravestones
 │       └── Label
 ├── GroundCommand (always-process input)
-├── BattleAudio (components/battle_audio.tscn): six bounded audio players
+├── BattleAudio (components/battle_audio.tscn): eleven bounded audio players
 └── HUD (ui/battle_hud.tscn / BattleHUD)
     └── Frame: slim boss bar, grouped horde counts, contextual controls, modal overlay
 ```
@@ -55,6 +55,8 @@ signal-up/call-down composition conventions.
   It creates permanent starters and temporary recruits, exposes counts by kind and the next expiry, and ticks
   agent lifetimes over a snapshot because deaths remove entries immediately.
   `stop()` prevents further movement, lifetimes, recruitment and sprint. It does not own knight attack decisions.
+  `sprint_started` emits only on accepted sprint; `moved` reports mean actual
+  per-agent travel after movement for the shared footstep cadence.
 - `scripts/gameplay/horde_agent.gd` owns planar steering, local separation,
   bite cooldown/range, lifetime and visual-event dispatch. Kind is assigned
   before scene entry. Temporary lifetime is ticked explicitly; an expired flag
@@ -109,10 +111,13 @@ signal-up/call-down composition conventions.
   Arena with explicit knight/horde/site references. Knight emits warning,
   strike and actual-contact signals. Existing health/count signals drive sparse
   zombie voices, and ReinforcementVisual emits availability transitions for
-  stone sounds. Six single-voice AudioStreamPlayers bound concurrency; no
+  stone sounds. Horde commands/accepted sprint/movement drive feedback and
+  shared footsteps; count statistics distinguish recruitment from expiry.
+  Eleven single-voice AudioStreamPlayers bound concurrency; no
   per-agent players, autoload, event bus or runtime network access. Pitch
-  variation uses its own random generator. Arena stops every voice at outcome;
-  inherited processing pauses playback and cooldowns with the tree.
+  variation uses its own random generator. Arena stops gameplay voices at
+  outcome and requests a single victory/defeat cue; restart removes that too.
+  Inherited processing pauses playback and cooldowns with the tree.
 - `scripts/ui/battle_hud.gd` formats the current knight/horde/site state into
   labels and progress bars. A delayed health trail eases presentation while
   authoritative health updates immediately; this pauses with gameplay. The HUD

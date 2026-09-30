@@ -1,0 +1,12 @@
+{
+  "provider": "ElevenLabs",
+  "model_id": "eleven_text_to_sound_v2",
+  "prompt": "One short cartoon monster chomp: a snappy tooth clack and dry crunchy bite with a little rubbery squish. Playful zombie game, punchy but not graphic. Immediate attack, compact half-second isolated effect, no growl, no words, no music, no ambience.",
+  "duration_seconds": 0.5,
+  "prompt_influence": 0.6,
+  "loop": false,
+  "status": "complete",
+  "date": "2026-09-30",
+  "reported_credit_cost": "5",
+  "content_type": "audio/mpeg"
+}

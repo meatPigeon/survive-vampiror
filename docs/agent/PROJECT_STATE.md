@@ -40,7 +40,9 @@ preserved in the branch's initial commit `dc63168`.
 - Scene-owned state with explicit references/signals; no new framework or plugin.
 - Essential sound effects: distinct sweep/charge/spin warning patterns, swing
   noise, confirmed weapon contact, sparse zombie grunts and grave rise/sink.
-  Six bounded scene-owned voices pause with gameplay and stop at either outcome.
+  Shared footsteps, bites, command/sprint, recruitment/expiry and outcome cues
+  complete the feedback. Eleven bounded scene-owned voices pause with gameplay;
+  outcomes stop gameplay sounds and play a short result cue.
 
 Rules/tuning are in [SPEC_GAMEPLAY.md](SPEC_GAMEPLAY.md); code ownership is in
 [SPEC_ARCHITECTURE.md](SPEC_ARCHITECTURE.md).
@@ -234,3 +236,26 @@ both outcomes and restart. A rendered fixture plus 12 seconds of viewport-click
 combat produced a 29.65-second Master-bus recording with a -7.1 dBFS peak and no
 clipped samples; its arena frame was inspected. This is signal/recording
 verification, not subjective listening approval or a human playthrough.
+
+## Additional Gameplay Audio (2026-09-30)
+
+Two half-second ElevenLabs sources (footstep and bite) cost 10 additional credits,
+40 total across five requests. Command, sprint, recruitment, expiry and both
+outcome cues are synthesized offline. There are now sixteen WAVs and eleven
+single-voice players, with no runtime API dependency or music.
+
+Footsteps follow mean actual horde travel. Accepted sprint has a distinct cue;
+rejected sprint is silent. Commands and bites are throttled, simultaneous expiry
+is batched, and recruitment takes priority over expiry. Outcomes stop gameplay
+voices and play one ending cue. Restart explicitly stops audio before reloading,
+including when an ending cue is still playing. Gameplay tuning is unchanged.
+
+Editor import, real-time headless/rendered audio checks, movement, combat and
+recruitment checks pass. The rendered test records event scenarios and twelve
+seconds of actual viewport-click combat. The final 30.57-second recording peaks
+at -7.67 dBFS with no clipped samples; the arena frame was inspected. One repeated
+windowed run hit the test's wall-clock settling timeout during render stalls;
+the final X11 run with VSync disabled passes (command in TESTING.md).
+Rapid outcome/restart cleanup passes without leaked
+audio resources. Full balance was not rerun; these are automated event/recording
+checks, not subjective listening approval or a human playthrough.

@@ -6,7 +6,8 @@ knight. A run takes roughly three to four minutes. The gameplay is complete on
 in-game HUD, pause/result screens, weightier character animation and a larger
 60 × 44 clearing with simple low-poly rocks, scrub and ground detail. Attack
 markers remain functional placeholders. Short sound effects accompany attack
-warnings, weapon swings/hits, zombie combat and recruitment graves; no music.
+warnings, weapon swings/hits, zombie movement/bites, commands, sprint,
+recruitment/expiry, graves and victory/defeat; no music.
 
 Open `project.godot` in Godot and press **F5**, or run `godot --path .`.
 The fight waits until your first ground command.

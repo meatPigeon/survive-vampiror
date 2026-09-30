@@ -2,8 +2,23 @@
 
 ## Active Work
 
-Essential gameplay sounds complete; no implementation task remains active.
+No active implementation task.
 Wave/progression changes are explicitly discussion-only.
+
+## Task: Additional Gameplay Sound Feedback
+
+Status: complete; import, real-time headless/rendered audio checks, movement,
+combat and recruitment checks pass
+Priority: normal
+
+Scope: Horde movement, bite contact, command/sprint feedback, successful
+recruitment, temporary expiry and victory/defeat cues. Generate only two short
+new source recordings; synthesize other cues locally. Keep sounds bounded and
+gameplay rules unchanged; no music.
+
+Acceptance: Steps follow actual motion, invalid sprint stays silent, repeated
+commands/hits/expiry cannot stack audio, outcome plays once and restart clears
+it. Check pause, rendered audio capture and existing gameplay regressions.
 
 ## Task: Essential Gameplay Sounds
 

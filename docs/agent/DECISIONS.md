@@ -4,15 +4,17 @@
 
 Status: accepted, 2026-09-30
 
-Decision: Use three short generated sources and offline synthesis/processing
+Decision: Use five short generated sources and offline synthesis/processing
 for essential combat and recruitment cues. A BattleAudio scene receives explicit
-gameplay/visual signals, with six bounded players and a shared zombie cooldown.
+gameplay/visual signals, with eleven bounded players and shared voice/bite cooldowns.
 Keep audio independent of combat timing, and keep API calls out of the game.
 
 Reason: The user authorized sound implementation and stressed limited credits.
-Three one-second requests reported 30 credits total; reusing these recordings
-and synthesizing warning/swing cues locally supplies feedback without further
-generation or per-zombie audio clutter. Music remains outside this pass.
+The first three one-second requests reported 30 credits total; the requested
+second pass added two half-second recordings for 10 more. Reusing recordings
+and synthesizing warning/swing/notification cues supplies feedback with sparse
+crowd audio. Movement cues follow actual travel; rejected sprint stays silent.
+Music remains outside this pass.
 
 ## Show Recruitment Availability With Animated Gravestones
 

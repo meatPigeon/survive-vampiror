@@ -75,6 +75,35 @@ def whoosh():
     return samples
 
 
+def chime(notes, spacing=0.13, tail=0.3):
+    """Short wooden/metallic UI cue, not a musical backing track."""
+    length = (len(notes) - 1) * spacing + tail
+    samples = []
+    for i in range(round(RATE * length)):
+        t = i / RATE
+        value = 0.0
+        for index, frequency in enumerate(notes):
+            local = t - index * spacing
+            if 0 <= local < tail:
+                attack = min(1.0, local / 0.004)
+                value += attack * (sin(2 * pi * frequency * local) * exp(-12 * local)
+                                   + 0.22 * sin(2 * pi * frequency * 2.4 * local) * exp(-25 * local))
+        samples.append(value)
+    return samples
+
+
+def expiry():
+    rng = random.Random(70)
+    low = 0.0
+    samples = []
+    for i in range(round(RATE * 0.55)):
+        t = i / RATE
+        low += (rng.uniform(-1, 1) - low) * 0.08
+        tone = sin(2 * pi * (420 * t - 240 * t * t))
+        samples.append((low + tone * 0.12) * exp(-6 * t))
+    return samples
+
+
 if __name__ == "__main__":
     OUTPUT.mkdir(parents=True, exist_ok=True)
     stone = decode("grave_stone")
@@ -87,3 +116,14 @@ if __name__ == "__main__":
     for name, pulses, frequency in [("sweep", 1, 520), ("charge", 2, 390), ("spin", 3, 650)]:
         write(f"warning_{name}", warning(pulses, frequency), peak=0.55)
     write("halberd_swish", whoosh(), peak=0.6)
+    write("horde_step", decode("horde_step"), peak=0.5)
+    write("zombie_bite", decode("zombie_bite"), peak=0.55)
+    write("command", chime([360], tail=0.16), peak=0.4)
+    sprint = chime([180, 310], spacing=0.09, tail=0.27)
+    for i, value in enumerate(whoosh()):
+        sprint[i] += value * 0.8
+    write("sprint", sprint, peak=0.55)
+    write("recruited", chime([330, 440, 554]), peak=0.5)
+    write("expired", expiry(), peak=0.45)
+    write("victory", chime([196, 233, 294, 392], spacing=0.15, tail=0.5), peak=0.6)
+    write("defeat", chime([196, 174, 130], spacing=0.21, tail=0.6), peak=0.55)

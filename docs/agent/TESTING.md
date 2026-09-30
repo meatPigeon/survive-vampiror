@@ -56,11 +56,14 @@ Godot may continue after a script error.
   `/tmp/survive_graves_wide_*.png` instead.
 - **Audio smoke:** initial silence, loaded non-looping clips, one voice per
   category, distinct attack warnings, confirmed hits versus misses, one contact
-  per multi-victim attack, throttled bites/casualties/recruitment, silent expiry,
-  grave rotation/depletion, pause, both outcomes and restart. Run without
+  per multi-victim attack, throttled bites/casualties/recruitment, no combat grunt on expiry,
+  grave rotation/depletion, actual-travel footsteps, command throttling, accepted
+  versus rejected sprint, bite contact and batched expiry. Pause, both outcomes,
+  one-shot result cues and restart cleanup are covered. Run without
   `--fixed-fps`: audio playback follows wall-clock time rather than accelerated
-  simulation time. `godot --path . --script res://tests/audio_smoke.gd -- --record`
-  records the Master bus through these scenarios and 12 seconds of actual
+  simulation time. On the Linux test desktop, use
+  `godot --display-driver x11 --disable-vsync --max-fps 60 --path . --script res://tests/audio_smoke.gd -- --record`
+  to record the Master bus through these scenarios and 12 seconds of actual
   viewport-click combat to `/tmp/survive_audio_check.wav`; the arena frame is
   `/tmp/survive_audio_battle.png`. No microphone or API call is used.
 - **UI smoke (UI branch):** real viewport clicks for pause/resume/sprint/replay,
@@ -145,9 +148,10 @@ Launch `godot --path .` or F5 in the editor.
    Confirm result, separate killed/expired statistics and stopped combat/timers.
 8. Restart; verify full HP, 40 permanent zombies, zero temporary zombies, phase 1,
    inactive sites, cleared statistics and ready sprint.
-9. Listen for distinct warning pulse patterns, a swish on strikes, contact only
-   on hits, sparse zombie grunts and stone motion at recruitment sites. Confirm
-   voices freeze on pause and stop at outcome/restart; assess the mix by ear.
+9. Listen for distinct warning pulses, swing/hit/bite sounds, sparse grunts and
+   grave motion. Steps follow movement; commands, sprint, recruitment and expiry
+   have cues. Confirm pause freezes voices, outcome leaves only a result cue and
+   restart clears it; assess the mix by ear.
 
 Record actual results in [PROJECT_STATE.md](PROJECT_STATE.md). Distinguish
 scripted input and screenshot inspection from human playtesting.

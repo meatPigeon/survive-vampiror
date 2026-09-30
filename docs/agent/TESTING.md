@@ -9,6 +9,7 @@ godot --headless --path . --editor --quit
 godot --headless --path . --script res://tests/prototype_smoke.gd --fixed-fps 60
 godot --headless --path . --script res://tests/combat_smoke.gd --fixed-fps 60
 godot --headless --path . --script res://tests/reinforcement_smoke.gd --fixed-fps 60
+godot --headless --path . --script res://tests/recruitment_flow.gd --fixed-fps 60
 godot --headless --path . --script res://tests/reinforcement_visual_smoke.gd --fixed-fps 60
 godot --headless --path . --script res://tests/ui_smoke.gd --fixed-fps 60
 godot --headless --path . --script res://tests/zombie_animation_smoke.gd --fixed-fps 60
@@ -17,11 +18,18 @@ godot --headless --path . --script res://tests/targeting_smoke.gd --fixed-fps 60
 godot --headless --path . --script res://tests/combat_balance.gd --fixed-fps 60
 godot --headless --path . --script res://tests/character_assets.gd
 godot --headless --path . --script res://tests/audio_smoke.gd
+godot --headless --path . --script res://tests/menu_smoke.gd
 ```
 
 Import first on a fresh checkout to register classes. Each test must print PASS,
 exit 0, and produce no script errors; exit status alone is insufficient because
 Godot may continue after a script error.
+
+Current accelerated headless runs intermittently report retained audio playback
+resources during engine shutdown, including with explicit `--audio-driver Dummy`.
+Record those separately from assertion results; do not treat a PASS line as a
+clean log. The real-time audio check and rendered recruitment flow complete
+without those shutdown warnings in the current verification.
 
 - **Prototype smoke:** combat-disabled fixture for initial crowd, real mouse
   projection, rejected input, movement, redirect, separation, corner clamps,
@@ -40,26 +48,38 @@ Godot may continue after a script error.
   speed and cooldown, first-command start, pause/resume, restart from pause
   including physical-key handling, both results and stopped combat.
 - **Reinforcement smoke:** permanent starters, first-command scheduling, inactive
-  sites, full rotation and skipped windows, discarded leftovers/progress,
+  sites, random distinct next sites and skipped windows, discarded stock/progress,
+  configurable post-summon delays including zero and fractional seconds,
   retained permanent HP, lifetime on-site and across switches, independent
   batches, simultaneous expiry, expiry before combat and same-tick recruitment,
   combat death versus expiry statistics, defeat with temporary survivors,
   immediate stop within a knight hit loop, pause/resume, victory freeze and reset.
   Render with `-- --capture` for `/tmp/survive_reinforcement_*.png`.
+- **Recruitment flow:** real viewport clicks and normal horde movement drive
+  successive summons of 12, 8 and 1. Verify cap-limited visits close completely,
+  standing at a used site after a casualty cannot refill, cooldown pause/outcome
+  freeze, a different next site and restart. Knight attacks alone are disabled
+  in this focused fixture. Render with `-- --capture` for
+  `/tmp/survive_recruitment_flow_*.png` closure and next-opening views.
 - **Reinforcement visual smoke:** persistent inactive craters, staggered rise/sink,
   pause in both directions, repeated updates, full-cycle stock refresh, immediate
   closure, reversal, same-frame opening/exhaustion, retained stock at capacity,
   outcome settling and restart cleanup. Site roots and stock remain authoritative.
+  Real occupation also drives quarter/half/nearly-full ring captures; interruption,
+  pause, exhaustion and restart check indicator visibility/reset behavior.
   Render with `-- --capture` for close-ups at
   `/tmp/survive_graves_{inactive,rising,active,sinking,closed}.png`.
   Add `--wide` after `--capture` to retain the arena camera/HUD and write
   `/tmp/survive_graves_wide_*.png` instead.
-- **Audio smoke:** initial silence, loaded non-looping clips, one voice per
+- **Audio smoke:** initial silence, loaded non-looping effects, one voice per
   category, distinct attack warnings, confirmed hits versus misses, one contact
   per multi-victim attack, throttled bites/casualties/recruitment, no combat grunt on expiry,
   grave rotation/depletion, actual-travel footsteps, command throttling, accepted
   versus rejected sprint, bite contact and batched expiry. Pause, both outcomes,
-  one-shot result cues and restart cleanup are covered. Run without
+  one-shot result cues and restart cleanup are covered. The selected march starts
+  with the first command, survives repeated commands without resetting, freezes
+  on pause, resumes the same playback and wraps across its loop boundary.
+  Outcome/restart checks include stopping music. Run without
   `--fixed-fps`: audio playback follows wall-clock time rather than accelerated
   simulation time. On the Linux test desktop, use
   `godot --display-driver x11 --disable-vsync --max-fps 60 --path . --script res://tests/audio_smoke.gd -- --record`
@@ -72,6 +92,16 @@ Godot may continue after a script error.
   victory/defeat controls, reset and small-window layout.
   Render via `godot --path . --script res://tests/ui_smoke.gd --fixed-fps 60 -- --capture`;
   screenshots are `/tmp/survive_ui_{ready,pause,victory,critical,defeat,small}.png`.
+- **Menu smoke:** actual startup scene, Play/Quit and return from pause/result,
+  music/effect bus routing, independent slider gain/mute, preservation through
+  restart/scene changes, no ground-click leak, settings usable on pause, keyboard
+  sprint after closing settings and control bounds at 1280 × 800 / 960 × 600.
+  Run in real time. Render with
+  `godot --display-driver x11 --disable-vsync --max-fps 60 --path . --script res://tests/menu_smoke.gd -- --capture`;
+  captures are `/tmp/survive_menu_{main,main_small,pause_small,result}.png`.
+  Crowded recruitment captures are `/tmp/survive_ui_recruitment.png` and
+  `/tmp/survive_ui_recruitment_small.png`; inspect ring readability through
+  characters and the compact diamond/stock/timer HUD without names/percentages.
 - **Zombie animation smoke:** movement/sprint lean and cadence, banking, idle
   settling, head/torso bite contact, recoil/flash cleanup, unchanged gameplay
   roots, pause freeze, immediate gameplay death and delayed visual cleanup for
@@ -135,9 +165,11 @@ Launch `godot --path .` or F5 in the editor.
 3. Dodge the orange sector sideways, leave the yellow charge lane, and retreat
    outside the purple circle. Return during recovery to bite the knight.
 4. Rally at the crater with raised gravestones for two seconds. Confirm blue-ring
-   recruits, lifetime countdown, cap 60 and partial stock. Leave mid-summon to
+   recruits, lifetime countdown and cap 60. A partial summon must also consume
+   the site; freeing capacity cannot refill from it. Leave mid-summon to
    interrupt it.
-   Check west/south/east rotation every 30 seconds and discarded old stock.
+   Check the configured post-summon gap (default 5 seconds), a random different
+   next site and 30-second relocation for unused sites.
    Stones should rise on opening and sink on closure/exhaustion; empty craters
    remain on the floor and do not obstruct the horde.
    White-ring permanent zombies must retain health and never expire.

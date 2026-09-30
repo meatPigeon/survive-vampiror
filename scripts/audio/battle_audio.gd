@@ -42,6 +42,7 @@ var _random := RandomNumberGenerator.new()
 @onready var command: AudioStreamPlayer = $Command
 @onready var notice: AudioStreamPlayer = $Notice
 @onready var result: AudioStreamPlayer = $Result
+@onready var music: AudioStreamPlayer = $Music
 
 
 func setup(knight: Survivor, horde: HordeController, sites: Node3D) -> void:
@@ -61,6 +62,15 @@ func setup(knight: Survivor, horde: HordeController, sites: Node3D) -> void:
 	horde.moved.connect(_on_horde_moved)
 	for site: ReinforcementSite in sites.get_children():
 		site.visual.availability_changed.connect(_on_grave_availability_changed)
+
+
+func start_music() -> void:
+	if _enabled and can_process() and not music.playing:
+		music.play()
+
+
+func _exit_tree() -> void:
+	stop_all()
 
 
 func _process(delta: float) -> void:

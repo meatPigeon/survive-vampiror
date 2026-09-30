@@ -2,15 +2,19 @@
 
 ## Current Stage
 
-Gameplay checkpoint `f6d4513` is preserved on `gpt-full-game-test`; the current
-`ui-hud-prototype` branch adds the requested in-game interface and character
-animation feel, plus simple low-poly arena surroundings.
+Development continues on `main`, consolidating gameplay, the in-game interface,
+character animation, low-poly surroundings, audio and the main menu. Gameplay
+checkpoint `f6d4513` is preserved on `gpt-full-game-test`; the presentation work
+was developed on `ui-hud-prototype` before consolidation.
 Godot 4.7.2, typed GDScript, GL Compatibility,
 1280 × 800 startup window. The earlier stationary-knight balance prototype is
-preserved in the branch's initial commit `dc63168`.
+preserved in commit `dc63168`.
 
 ## Implemented
 
+- Main menu with Play, Quit and independent music/effect volume controls.
+  The same controls appear on pause; pause/results offer a return to the menu.
+  Levels and mute persist across scenes/restarts within the application session.
 - One complete encounter: ready state, first-click start, elapsed time,
   three knight phases, victory/defeat statistics, pause/resume and restart.
 - A 60 × 44 arena (formerly 44 × 32), fixed-angle camera that fits the window,
@@ -25,16 +29,21 @@ preserved in the branch's initial commit `dc63168`.
   change attack patterns without interrupting an attack already underway.
 - Knight carries a low-poly halberd with a long wooden shaft, axe/spear head
   and folded crimson pennant, attached to the original right-hand bone.
-- Rotating recruitment: one active site, west/south/east every 30 s, with a
-  fresh batch of 12 temporary zombies. Recruits expire 45 s after spawn or die
-  earlier from damage. Two-second occupation, cap 60, leftovers retained only
-  until the next switch. Timers freeze before start, on pause and after outcome.
+- Recruitment: West opens first; later sites are random with no immediate repeat.
+  Every successful two-second summon consumes its activation, discarding recruits
+  that do not fit under cap 60. A configurable gap (5 s by default) precedes
+  the next site; unused sites move after 30 s. Each opening offers 12 temporary
+  zombies, which expire 45 s after spawn or die earlier from damage.
+  Timers freeze before start, on pause and after outcome.
 - Recruitment sites are persistent shallow craters. Three gravestones rise in
   sequence while a site has available recruits and sink on closure/exhaustion.
+  A dark ring fills clockwise in mint during occupation; a diamond identifies
+  the available crater. The ring remains visible through a gathered horde.
   These non-colliding visual props do not change occupation or stock rules.
 - Restrained HUD: slim knight HP/phase bar with a delayed damage trail, grouped
   horde counts, contextual expiry/recruitment info, and discreet sprint control.
-  Empty temporary readouts and inactive/exhausted world-site labels are hidden.
+  Empty temporary readouts are hidden. Recruitment uses a diamond/stock/timer
+  readout; world labels, percentages and the duplicate HUD progress bar are removed.
   Clickable sprint/pause/resume/replay controls complement existing keyboard input.
   White/blue foot rings distinguish kinds. Results separate kills from expiry.
 - Scene-owned state with explicit references/signals; no new framework or plugin.
@@ -43,11 +52,67 @@ preserved in the branch's initial commit `dc63168`.
   Shared footsteps, bites, command/sprint, recruitment/expiry and outcome cues
   complete the feedback. Eleven bounded scene-owned voices pause with gameplay;
   outcomes stop gameplay sounds and play a short result cue.
+- The selected Undead March loops quietly during battle in the same audio scene.
+  First command starts it once; pause freezes it and outcome/restart stops it.
+  Two other music concepts remain unused alternatives.
 
 Rules/tuning are in [SPEC_GAMEPLAY.md](SPEC_GAMEPLAY.md); code ownership is in
 [SPEC_ARCHITECTURE.md](SPEC_ARCHITECTURE.md).
 
+## One Summon Per Activation And Delayed Random Sites (2026-09-30)
+
+The old behavior was reproduced with viewport input: 52 living zombies received
+8, leaving stock 4 and the ring visible; one casualty then allowed another summon
+from the same point. Successful summons now close that activation completely,
+discard excess stock and hide the ring immediately. After `site_respawn_delay`
+(Main Inspector, default 5 seconds), Arena opens a random different site. During
+the gap no site is active and the HUD counts down to the next opening. The first
+site stays West; unused points relocate after 30 seconds. This supersedes earlier
+notes about preserved partial batches and fixed west/south/east rotation.
+
+`recruitment_flow.gd` passes headless and rendered with actual viewport clicks,
+ordinary travel and successive additions of 12, 8 and 1. The used site stays
+closed after a casualty; pause/outcome freeze the gap and restart clears it.
+Rendered closure, countdown and a different opening were inspected. Scenario
+checks also cover 0- and 2.5-second settings and no immediate location repeats.
+Editor import, reinforcement/combat/grave-visual/UI/movement assertions and the
+real-time audio check pass. Two seeded full active runs win at 186.2/189.1 s,
+with 9/8 permanent survivors and 48 recruits; passive/chase losses remain
+51.2/39.3 s. These are scripted runs, not human playtesting.
+
+Some accelerated headless runs finish with audio-stream/playback resource warnings
+at shutdown despite passing their assertions, also seen in the pre-fix probe.
+Verbose output identifies WAV/Ogg playback resources; explicit Dummy did not
+eliminate the issue. The real-time audio and rendered recruitment-flow runs
+finish cleanly. No audio-lifecycle change was made as part of this recruitment fix.
+
+## Circular Recruitment Indicator (2026-09-30)
+
+Recruitment now uses a shallow mint-filled ring around the active crater and a
+diamond marker. It fills clockwise from actual occupation progress, resets when
+occupation stops, freezes on pause and disappears on closure/exhaustion. The
+indicator draws over the horde to remain readable. Floating labels and numerical
+percentages are removed; the HUD retains a matching diamond, stock, short state
+hint and rotation countdown, with no compass names or duplicate progress bar.
+Combat and recruitment parameters are unchanged.
+
+Editor import, headless movement/combat/recruitment/audio checks and focused
+headless/rendered grave-visual and UI checks pass. Quarter/half/nearly-full
+close-ups, inactive/closed states and crowded arena views at 1280 × 800 and
+960 × 600 were inspected. Full balance was not rerun for this presentation change;
+no human playtest is claimed.
+
 ## Verification
+
+- Main menu/audio settings: editor import, headless/rendered `menu_smoke.gd`,
+  HUD, audio and combat smoke checks pass. Real mouse clicks verify independent
+  gain/mute, setting retention through restart and menu transitions, no command
+  leak from Play/sliders, frozen gameplay on pause, restored keyboard sprint,
+  return from pause/result and the Quit button. Main menu at 1280 × 800 and
+  960 × 600, small-window pause and results were inspected. A test teardown now
+  frees its active arena; Quit stops audio and gives the mixer a brief release
+  interval before shutdown. There is no disk settings persistence or subjective
+  listening approval; no full balance rerun was needed for the menu changes.
 
 - Editor import and headless startup pass without errors.
 - Window-filling presentation: headless/rendered prototype checks pass at
@@ -68,13 +133,21 @@ Rules/tuning are in [SPEC_GAMEPLAY.md](SPEC_GAMEPLAY.md); code ownership is in
 
 ## Presentation And Limits
 
+Selected music integration: editor import, real-time headless/rendered audio
+smoke and combat smoke pass. Checks cover initial silence, first-command start,
+repeated commands, pause/resume, seeking across the loop boundary, both outcomes
+and restart. The 26.181837-second Ogg has no clipped samples and a decoded seam
+jump of 0.00042 full-scale. The rendered Master-bus recording is 30.75 seconds,
+peaks at -7.45 dBFS and has no clipping; the arena frame was inspected. Gameplay
+tuning is unchanged; no full balance rerun or subjective mix approval is claimed.
+
 Three standalone [music sketches](../../art/audio/music_concepts/README.md)
 are available for comparison: Undead March, Graveyard Groove and Tiny Siege.
 They are original locally authored MIDI compositions rendered with FluidSynth
 and GeneralUser GS, not ElevenLabs outputs. Music API returned HTTP 402
 `paid_plan_required`; no successful music generation or retry occurred.
 Local previews use zero API credits and remain outside Godot import/runtime.
-The user has not selected a track or authorized its integration yet.
+The user selected Undead March; a separate looping Ogg is now used during battle.
 
 The MP3s decode correctly and last 27.48/26.56/29.54 seconds. Measured loudness
 is -18.26/-18.30/-18.37 LUFS with no clipped samples. MIDI, composition source,
@@ -86,7 +159,7 @@ The UI branch has a quiet bone/charcoal HUD, serif titles, generous spacing and
 modal pause/result screens. The earlier four-card dashboard has been replaced.
 Combat markers remain technical placeholders. The arena now has a simple
 low-poly environment pass with ordinary mesh materials and short gameplay sound
-effects; no music or custom shaders. Large rocks are outside movement bounds and
+effects and the selected march; no custom shaders. Large rocks are outside movement bounds and
 walkable pebbles are only
 0.1134 units tall. There is no obstacle collision or procedural map generation.
 Blender assets remain

@@ -3,8 +3,12 @@ config_version=5
 [application]
 
 config/name="Survive Vampiror"
-run/main_scene="res://scenes/main.tscn"
+run/main_scene="res://scenes/ui/main_menu.tscn"
 config/features=PackedStringArray("4.7", "GL Compatibility")
+
+[audio]
+
+default_bus_layout="res://default_bus_layout.tres"
 
 [display]
 

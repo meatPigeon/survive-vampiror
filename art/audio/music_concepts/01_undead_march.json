@@ -10,7 +10,8 @@
   "target_lufs": -18,
   "target_true_peak_dbfs": -2,
   "api_credits_spent": 0,
-  "runtime_integration": false,
+  "runtime_integration": true,
+  "runtime_asset": "assets/audio/undead_march.ogg",
   "verified_integrated_lufs": -18.26,
   "verified_true_peak_dbfs": -2.5,
   "verified_clipped_samples": 0

@@ -2,8 +2,68 @@
 
 ## Active Work
 
-Three music sketches delivered; awaiting the user's choice before integration.
+Main menu and audio-volume controls are complete.
+All current work is consolidated on `main`; use it for further development.
 Wave/progression changes are explicitly discussion-only.
+
+## Task: Consume Recruitment Sites And Randomize The Next Opening
+
+Status: complete; viewport-input and rendered flow checks pass; mechanics/full-run
+assertions pass, with accelerated audio-shutdown warnings recorded in PROJECT_STATE
+Priority: high
+
+Scope: A successful summon closes its point, discards any excess batch at the
+horde cap, then opens a random different point after a configurable pause.
+Default pause is 5 seconds. Keep first-command start, 30-second unused windows,
+45-second recruit lifetimes, capacity, combat parameters and pause/restart.
+
+Acceptance: Full and partial summons hide the used ring; losses cannot trigger
+another summon there. No active site during the delay, no immediate location
+repeat, and timers freeze/reset correctly. Verify real viewport-click travel,
+rendered closure/reopening, configurable delays and full-run balance.
+
+## Task: Main Menu And Audio Volume
+
+Status: complete; import, headless/rendered menu, HUD, audio and combat checks pass
+Priority: normal
+
+Scope: Launch into a simple main menu with Play, Quit and music/effect sliders.
+Reuse the volume controls on pause; allow returning to the main menu from pause
+and either result. Keep volume levels through scene changes and restart for the
+current application session. No disk persistence or additional menu systems.
+
+Acceptance: Separate effective music/effect gain and mute; playable title-to-battle
+flow; no menu-click command leak; pause remains frozen while adjusting; returning
+to menu clears pause and frees battle audio. Inspect normal/small window layouts
+and run menu, HUD, audio and combat checks.
+
+## Task: Play The Selected March During Battle
+
+Status: complete; import, headless/rendered audio checks and combat smoke pass
+Priority: normal
+
+Scope: Use music concept 1 as a quiet battle loop. Start with the first command,
+pause/resume with gameplay, stop at the outcome and clear on restart. Preserve
+concepts 2 and 3 as unused alternatives; no wave or screen music system.
+
+Acceptance: Clean loop boundary, no restart from repeated movement commands,
+correct lifecycle and no clipping in a rendered combat recording. No API calls.
+
+## Task: Circular Recruitment Indicator
+
+Status: complete; import, movement, combat, recruitment, audio, grave-visual and
+UI checks pass; close-ups and crowded 1280 × 800 / 960 × 600 views inspected
+Priority: normal
+
+Scope: Replace recruitment percentages and compass-name labels with a filling
+ring around the active crater and a matching diamond marker. Keep stock and
+rotation time in a compact HUD readout; remove its duplicate progress bar.
+Preserve recruitment, combat and audio timing.
+
+Acceptance: The ring reads from the arena camera even beneath a gathered horde,
+follows occupation, freezes on pause, resets on interruption and disappears on
+closure/exhaustion. Check recruitment, grave visuals, UI, combat and rendered
+views at regular/small window sizes.
 
 ## Task: Three Music Concepts
 

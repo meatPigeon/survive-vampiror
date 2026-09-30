@@ -4,6 +4,7 @@ extends CanvasLayer
 signal pause_requested()
 signal restart_requested()
 signal sprint_requested()
+signal menu_requested()
 
 const BONE := Color("eee5d2")
 const MUTED := Color("aaa99d")
@@ -26,7 +27,6 @@ var _health_trail_delay: float = 0.0
 @onready var expiry: Label = %Expiry
 @onready var site_name: Label = %SiteName
 @onready var site_hint: Label = %SiteHint
-@onready var site_bar: ProgressBar = %SiteBar
 @onready var sprint_button: Button = %SprintButton
 @onready var sprint_bar: ProgressBar = %SprintBar
 @onready var overlay: ColorRect = %Overlay
@@ -35,6 +35,8 @@ var _health_trail_delay: float = 0.0
 @onready var result_stats: Label = %ResultStats
 @onready var resume_button: Button = %ResumeButton
 @onready var restart_button: Button = %RestartButton
+@onready var audio_controls: AudioControls = %AudioControls
+@onready var overlay_card: PanelContainer = $Frame/Overlay/Card
 
 
 func _ready() -> void:
@@ -42,6 +44,7 @@ func _ready() -> void:
 	resume_button.pressed.connect(func() -> void: pause_requested.emit())
 	restart_button.pressed.connect(func() -> void: restart_requested.emit())
 	sprint_button.pressed.connect(func() -> void: sprint_requested.emit())
+	%MenuButton.pressed.connect(func() -> void: menu_requested.emit())
 
 
 func _process(delta: float) -> void:
@@ -66,7 +69,7 @@ func set_knight_health(current: int, maximum: int) -> void:
 
 func update_status(
 	horde: HordeController, knight: Survivor, started: bool, elapsed: float,
-	site: ReinforcementSite, site_interval: float
+	site: ReinforcementSite, site_time_left: float
 ) -> void:
 	clock_label.text = "%02d:%02d" % [int(elapsed) / 60, int(elapsed) % 60]
 	phase.text = "Phase %s" % ["I", "II", "III"][knight.phase - 1]
@@ -83,17 +86,20 @@ func update_status(
 	expiry.text = "temporary · %ds" % ceili(horde.next_expiration()) if temporary > 0 else ""
 	expiry.modulate = GOLD if temporary > 0 and horde.next_expiration() <= 10.0 else CYAN
 	%Rally.visible = started and knight.state != Survivor.State.STOPPED
-	site_bar.visible = site != null and site.progress > 0.0
 	if site != null:
-		var remaining: int = ceili(site_interval - fmod(elapsed, site_interval))
-		site_name.text = "%s · %d waiting" % [site.name, site.remaining]
-		site_hint.text = "Hold the crater %.0fs · moves in %ds" % [site.summon_time, remaining]
+		var remaining: int = ceili(site_time_left)
+		site_name.text = "◇  +%d" % site.remaining
+		site_hint.text = "Hold the ring · moves in %ds" % remaining
 		if site.progress > 0.0:
-			site_hint.text = "Calling reinforcements · %d%%" % roundi(site.progress / site.summon_time * 100)
+			site_hint.text = "Summoning · moves in %ds" % remaining
 		elif site.remaining == 0:
-			site_name.text = "Reinforcements depleted"
+			site_name.text = "◇  —"
 			site_hint.text = "Next site in %ds" % remaining
-		site_bar.value = site.progress / site.summon_time * 100.0
+		elif horde.agents.size() >= horde.max_agents:
+			site_hint.text = "Horde full · moves in %ds" % remaining
+	else:
+		site_name.text = "◇  —"
+		site_hint.text = "Next site in %ds" % ceili(site_time_left)
 	var sprint_ready: bool = started and horde.commands_enabled and horde.sprint_cooldown_remaining <= 0.0
 	%Sprint.visible = started and knight.state != Survivor.State.STOPPED
 	sprint_button.disabled = not sprint_ready
@@ -122,11 +128,15 @@ func set_paused(paused: bool) -> void:
 	result_label.modulate = BONE
 	result_caption.text = "The horde can wait."
 	result_stats.text = "Click to move · Space to sprint\nKeep at least one permanent zombie alive."
+	audio_controls.show()
+	_set_card_height(520.0)
 	resume_button.show()
 	restart_button.text = "Restart   R"
 
 
 func show_result(won: bool, elapsed: float, horde: HordeController) -> void:
+	audio_controls.hide()
+	_set_card_height(390.0)
 	result_label.text = "Victory" if won else "Defeat"
 	result_label.modulate = BONE if won else RED
 	result_caption.text = "The last knight has fallen." if won else "Your permanent horde is gone."
@@ -136,3 +146,8 @@ func show_result(won: bool, elapsed: float, horde: HordeController) -> void:
 	resume_button.hide()
 	restart_button.text = "Play again   R"
 	overlay.show()
+
+
+func _set_card_height(height: float) -> void:
+	overlay_card.offset_top = -height * 0.5
+	overlay_card.offset_bottom = height * 0.5

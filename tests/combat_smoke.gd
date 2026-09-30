@@ -124,20 +124,23 @@ func _run() -> void:
 	_check(horde.agents.size() == 52 and site.remaining == 0, "site adds its current batch to the horde")
 	site.update_recruitment(horde, 100)
 	_check(horde.agents.size() == 52, "spent site cannot recruit again in the same window")
-	scene.elapsed = scene.site_interval
+	var used_site: ReinforcementSite = site
+	_check(scene.active_site == null, "successful summon leaves no available site during the cooldown")
+	scene.elapsed += scene.site_respawn_delay
 	scene._update_site_schedule()
-	site = scene.get_node("Reinforcements/South")
+	site = scene.active_site
+	_check(site != used_site and not used_site.active, "cooldown opens a different random site")
 	horde.command_move(site.global_position)
 	horde.agents[0].global_position = site.global_position
 	site.update_recruitment(horde, 2.1)
-	_check(horde.agents.size() == 60 and site.remaining == 4, "horde cap preserves unused reserves")
+	_check(horde.agents.size() == 60 and site.remaining == 0 and not site.active, "partial recruitment consumes the site and discards excess stock")
 	site.update_recruitment(horde, 100)
-	_check(site.remaining == 4, "full horde cannot waste the remaining reserves")
+	_check(site.remaining == 0, "spent site stays empty")
 	for index: int in range(3):
 		horde.agents.back().health.take_damage(100)
 	site.update_recruitment(horde, 2.1)
-	_check(horde.agents.size() == 60 and site.remaining == 1, "casualties free capacity for later recruitment")
-	_check(horde.recruited == 23 and horde.casualties == 3, "run statistics count recruits and losses")
+	_check(horde.agents.size() == 57 and site.remaining == 0, "casualties cannot reopen the used site")
+	_check(horde.recruited == 20 and horde.casualties == 3, "discarded stock never counts as recruited or killed")
 	front = horde.agents[0]
 	front.global_position = Vector3.ZERO
 	front.move_toward_command(Vector3(10, 0, 0), [], horde.movement_bounds, 0.1, null, 1.0)

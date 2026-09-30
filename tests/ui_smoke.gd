@@ -84,13 +84,36 @@ func _run() -> void:
 	var rally: Control = hud.get_node("%Rally")
 	_check(not horde_display.get_global_rect().intersects(sprint.get_global_rect()) and not sprint.get_global_rect().intersects(rally.get_global_rect()), "horde, sprint and recruitment do not overlap in the small mixed-crowd view")
 	_check(hud.get_node("%TemporaryGroup").visible and rally.visible, "secondary information appears when relevant")
+	# Keep recruitment feedback beside the active crater, with only stock/time in HUD.
+	scene.set_physics_process(false)
+	horde.set_physics_process(false)
+	var site: ReinforcementSite = scene.active_site
+	for index: int in range(horde.agents.size()):
+		var angle: float = float(index) * 2.399963
+		var distance: float = 0.5 * sqrt(float(index))
+		horde.agents[index].global_position = site.global_position + Vector3(cos(angle), 0, sin(angle)) * distance
+	horde.command_move(site.global_position)
+	site.update_recruitment(horde, site.summon_time * 0.5)
+	scene._update_status()
+	_check(hud.site_name.text == "◇  +12" and not hud.site_hint.text.contains("%"), "recruitment HUD uses a marker and stock without compass names or percentages")
+	await _frames(55)
+	await _capture("recruitment_small")
+	root.size = Vector2i(1280, 800)
+	await _frames(4)
+	await _capture("recruitment")
 	scene.survivor.health.take_damage(100)
 	await _click_control(hud.get_node("%PauseButton"))
 	var trail_value: float = hud.health_trail.value
 	await _frames(15)
 	_check(hud.health_trail.value == trail_value, "health presentation freezes during pause")
 	await _click_control(hud.resume_button)
+	root.size = Vector2i(960, 600)
+	await _frames(4)
 	await _capture("small")
+	scene.battle_audio.stop_all()
+	hud.audio_controls.stop_preview()
+	scene.queue_free()
+	await _frames(3)
 	print("UI smoke: %s" % ("PASS" if _failures == 0 else "FAIL (%d)" % _failures))
 	quit(0 if _failures == 0 else 1)
 

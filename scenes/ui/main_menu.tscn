@@ -1,0 +1,153 @@
+[gd_scene load_steps=10 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/main_menu.gd" id="1_script"]
+[ext_resource type="PackedScene" path="res://scenes/ui/audio_controls.tscn" id="2_audio"]
+[ext_resource type="AudioStream" path="res://assets/audio/undead_march.ogg" id="3_music"]
+
+[sub_resource type="SystemFont" id="TitleFont"]
+font_names = PackedStringArray("Noto Serif", "Georgia", "Times New Roman")
+
+[sub_resource type="StyleBoxFlat" id="Play"]
+bg_color = Color(0.72, 0.81, 0.60, 1)
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_left = 5
+corner_radius_bottom_right = 5
+
+[sub_resource type="StyleBoxFlat" id="PlayHover"]
+bg_color = Color(0.84, 0.90, 0.74, 1)
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_left = 5
+corner_radius_bottom_right = 5
+
+[sub_resource type="StyleBoxFlat" id="Focus"]
+bg_color = Color(0, 0, 0, 0)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.93, 0.89, 0.82, 0.8)
+expand_margin_left = 4.0
+expand_margin_top = 4.0
+expand_margin_right = 4.0
+expand_margin_bottom = 4.0
+corner_radius_top_left = 7
+corner_radius_top_right = 7
+corner_radius_bottom_left = 7
+corner_radius_bottom_right = 7
+
+[sub_resource type="StyleBoxEmpty" id="Empty"]
+
+[sub_resource type="Theme" id="MenuTheme"]
+default_font_size = 17
+Label/colors/font_color = Color(0.93, 0.89, 0.82, 1)
+Button/colors/font_color = Color(0.69, 0.71, 0.64, 1)
+Button/colors/font_hover_color = Color(0.93, 0.89, 0.82, 1)
+Button/colors/font_pressed_color = Color(0.93, 0.89, 0.82, 1)
+Button/styles/normal = SubResource("Empty")
+Button/styles/hover = SubResource("Empty")
+Button/styles/pressed = SubResource("Empty")
+Button/styles/focus = SubResource("Focus")
+
+[node name="MainMenu" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = SubResource("MenuTheme")
+script = ExtResource("1_script")
+
+[node name="Background" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+color = Color(0.055, 0.070, 0.059, 1)
+
+[node name="Margin" type="MarginContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+theme_override_constants/margin_left = 32
+theme_override_constants/margin_right = 32
+theme_override_constants/margin_top = 32
+theme_override_constants/margin_bottom = 32
+
+[node name="Center" type="CenterContainer" parent="Margin"]
+layout_mode = 2
+
+[node name="Content" type="HBoxContainer" parent="Margin/Center"]
+custom_minimum_size = Vector2(720, 380)
+layout_mode = 2
+theme_override_constants/separation = 64
+
+[node name="Introduction" type="VBoxContainer" parent="Margin/Center/Content"]
+custom_minimum_size = Vector2(356, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 18
+alignment = 1
+
+[node name="Title" type="Label" parent="Margin/Center/Content/Introduction"]
+layout_mode = 2
+theme_override_fonts/font = SubResource("TitleFont")
+theme_override_font_sizes/font_size = 62
+theme_override_constants/line_spacing = -10
+text = "Survive\nVampiror"
+
+[node name="Description" type="Label" parent="Margin/Center/Content/Introduction"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.64, 0.68, 0.60, 1)
+theme_override_constants/line_spacing = 5
+text = "Lead the horde.\nBring down the last knight."
+
+[node name="Space" type="Control" parent="Margin/Center/Content/Introduction"]
+custom_minimum_size = Vector2(0, 8)
+layout_mode = 2
+mouse_filter = 2
+
+[node name="PlayButton" type="Button" parent="Margin/Center/Content/Introduction"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 54)
+layout_mode = 2
+theme_override_styles/normal = SubResource("Play")
+theme_override_styles/hover = SubResource("PlayHover")
+theme_override_styles/pressed = SubResource("PlayHover")
+theme_override_colors/font_color = Color(0.08, 0.11, 0.08, 1)
+theme_override_colors/font_hover_color = Color(0.08, 0.11, 0.08, 1)
+theme_override_colors/font_pressed_color = Color(0.08, 0.11, 0.08, 1)
+theme_override_colors/font_focus_color = Color(0.08, 0.11, 0.08, 1)
+text = "Play"
+
+[node name="QuitButton" type="Button" parent="Margin/Center/Content/Introduction"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 36)
+layout_mode = 2
+text = "Quit"
+
+[node name="Settings" type="VBoxContainer" parent="Margin/Center/Content"]
+custom_minimum_size = Vector2(280, 0)
+layout_mode = 2
+size_flags_vertical = 4
+theme_override_constants/separation = 24
+
+[node name="Heading" type="Label" parent="Margin/Center/Content/Settings"]
+layout_mode = 2
+theme_override_fonts/font = SubResource("TitleFont")
+theme_override_font_sizes/font_size = 26
+text = "Audio"
+
+[node name="AudioControls" parent="Margin/Center/Content/Settings" instance=ExtResource("2_audio")]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="Music" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("3_music")
+volume_db = -12.0
+autoplay = true
+bus = &"Music"

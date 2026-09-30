@@ -4,8 +4,8 @@
 
 Survive Vampiror is an early Godot 3D prototype in which the player commands a
 horde against one knight in a complete short jam-style encounter. Keep gameplay
-logic complete. The `ui-hud-prototype` branch additionally explores the in-game
-HUD, pause/result screens, character animation feel and simple arena surroundings.
+logic complete. Development continues on `main`, including the in-game HUD,
+pause/result screens, character animation feel and simple arena surroundings.
 
 ## Required Context Before Work
 
@@ -35,14 +35,17 @@ only for the missing scope. Do not invent a next milestone or expand the backlog
 - Current authorized scope: a complete jam-style gameplay loop with knight
   phases/attacks, horde movement and sprint, permanent zombies and rotating
   temporary reinforcements, outcomes, pause and restart. This supersedes the earlier basic-combat-only scope.
-- Presentation work is authorized on `ui-hud-prototype`: a restrained in-game
+- Presentation work is authorized on `main`: a restrained in-game
   HUD, working pause/result controls, weightier character animations and a larger
   arena with simple low-poly environment props. Keep combat tuning and hit timing
   unchanged. Large decorative rocks stay outside playable bounds; small ground
   details do not introduce obstacles. A small set of gameplay sound effects is
   authorized, with sparse playback and conservative generation-credit use.
-  Three standalone music sketches are authorized for comparison; wait for the
-  user's choice before adding music playback to the game.
+  The selected Undead March sketch is authorized as quiet looping battle music.
+  Keep the two other sketches as unused alternatives until requested.
+  A main menu and independent music/effect volume controls are authorized.
+  Reuse the controls on pause and retain levels for the current application
+  session through Godot's native audio buses; no settings singleton is needed.
   No custom shaders, persistence,
   networking, or unrelated systems.
 - Do not introduce dependencies, plugins, global services, event buses, ECS,

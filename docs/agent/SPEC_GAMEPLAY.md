@@ -71,17 +71,22 @@ phase, warning type and recovery window. Both sides briefly flash on damage.
 ## Rotating Temporary Reinforcements
 
 Three sites: west (-14, -8), south (-10, 10), east (14, 8) on the X/Z plane.
-All are inactive before the first command. West opens at battle time 0; activity
-moves to south at 30 s, east at 60 s, west at 90 s, and repeats every 30 s.
-Only one site is active. Each activation starts with 12 temporary recruits;
-unused stock and occupation progress are discarded on switching. An exhausted
-site waits for the fixed schedule, rather than advancing it early.
+All are inactive before the first command. West opens at battle time 0.
+Each activation has 12 temporary recruits and lasts at most 30 seconds.
+A successful summon closes the used site immediately, then waits for Arena's
+exported `site_respawn_delay` (default 5 seconds; zero allows immediate reopening
+elsewhere). After the delay, choose randomly between the other two locations;
+never choose the just-used site. No site is available during the delay.
+An unused site's 30-second deadline selects a random different site immediately.
+Every opening gets a full new window; there is no global modulo schedule.
 
 Recruitment requires a command within radius 2.4 and at least one living zombie
 inside the site for 2 uninterrupted seconds. Either kind can occupy it while
 permanent zombies remain alive. Leaving or reaching capacity resets progress.
-Horde cap is 60. Add only as many zombies as capacity permits and retain the
-rest of the batch for the current window. There is no stock accumulation.
+Horde cap is 60. Add only as many zombies as capacity permits, then discard the
+rest of the batch and consume that activation. For example, 52 living zombies
+receive 8, and the remaining 4 are discarded. Losses/expiry cannot reopen a used
+site. Arriving already at capacity cannot start a summon or consume the site.
 
 Arena ticks lifetime expiration before combat and recruitment. Expired zombies
 leave the active list immediately and cannot bite that tick. Expiration uses
@@ -94,21 +99,34 @@ Restart restores 40 full-health permanent zombies, empty statistics and the
 pre-command state. HUD shows permanent/temporary counts, the next expiration,
 the active site's remaining batch and time to the next switch. Each site has a
 persistent shallow crater. Three gravestones rise in sequence when recruits are
-available and sink when the window closes or stock is exhausted. The world label
-appears only while available and shows the batch or occupation progress. Reaching
-capacity with stock left keeps the graves raised. Visual transitions do not delay
+available and sink when the window closes or stock is exhausted. An available
+crater has a dark ring and mint diamond; occupation fills the ring clockwise.
+The indicator remains visible through the horde. Leaving resets the fill;
+closure/exhaustion hides the indicator immediately. There are no floating names
+or percentages. A full horde leaves an unused site available until its deadline;
+a completed partial summon closes it. Visual transitions do not delay
 activation/deactivation, add collision or affect recruitment. Pause freezes them;
 an in-progress transition may settle after the outcome without changing stock.
-The HUD reports the next switch when the current batch is exhausted.
+The HUD reports the next opening during the post-summon pause. Pause and outcomes
+freeze this countdown; restart clears it and returns to the first-command state.
 
 ## Presentation Boundary
+
+Startup opens a main menu with Play, Quit and separate music/effect volume
+sliders. Play opens the ready arena; the first ground command still starts
+combat. Pause contains the same sliders and a Main menu button; both outcomes
+also offer Main menu. Returning discards the run and clears pause. Zero volume
+mutes its category. Levels survive replay and scene changes in the current
+application session only. The title plays the selected march for volume preview.
 
 The separate UI branch adds a styled in-game HUD and pause/result overlays
 with mouse buttons for the existing sprint, pause, resume and replay actions.
 Permanent count warns at 20% of the initial army or below; this is presentation
 only. The temporary readout appears only while recruits live and shows the
-earliest expiry. Recruitment progress appears only while summoning; the text
-shows time until rotation. Empty panels, persistent instructions and branding
+earliest expiry. Recruitment progress stays on the crater ring. A matching
+diamond and remaining batch appear in the HUD with time until rotation, a short
+occupation hint or a full-horde notice; compass names and the duplicate HUD
+progress bar are omitted. Empty panels, persistent instructions and branding
 are omitted. Modal overlays block floor clicks.
 The arena has authored low-poly rocks outside its playable bounds, low scrub and
 pebbles, and flat ground patches. These are decorative, with no collision or
@@ -121,7 +139,10 @@ outcome stops gameplay voices and plays a distinct short victory/defeat cue.
 Restart creates silent fresh players. Actual horde travel drives shared footsteps;
 successful commands/sprint, bite contact, recruitment and temporary expiry have
 bounded cues. Expiry batches coalesce, and rejected sprint requests stay silent.
-No title menu, music, custom shaders, saves, multiplayer,
+Undead March starts with the first command and loops quietly during battle.
+It pauses/resumes with gameplay and stops at the outcome or restart. The two
+other music sketches remain unused alternatives.
+No custom shaders, saves, multiplayer,
 upgrades or other modes are part of this version. Runtime whole-body attacks,
 bites, movement lean and hit/death responses remain separate from the source
 Blender idle/run Actions. These change visual transforms only, not movement,

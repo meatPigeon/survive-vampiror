@@ -1,12 +1,15 @@
 extends Node3D
 
 @export_range(1.0, 300.0) var site_interval: float = 30.0
+@export_range(0.0, 60.0, 0.5) var site_respawn_delay: float = 5.0
 
 var battle_started: bool = false
 var battle_over: bool = false
 var elapsed: float = 0.0
 var active_site: ReinforcementSite
-var _site_window: int = -1
+var _last_site: ReinforcementSite
+var _next_site_at: float = 0.0
+var _site_random := RandomNumberGenerator.new()
 
 @onready var horde: HordeController = $Horde
 @onready var survivor: Survivor = $Survivor
@@ -17,6 +20,9 @@ var _site_window: int = -1
 
 func _ready() -> void:
 	process_physics_priority = 1
+	_site_random.randomize()
+	for site: ReinforcementSite in sites.get_children():
+		site.summoned.connect(_on_site_summoned.bind(site))
 	survivor.movement_bounds = horde.movement_bounds
 	survivor.health.changed.connect(_update_knight_health)
 	survivor.health.died.connect(_finish_battle.bind(true))
@@ -31,6 +37,7 @@ func _ready() -> void:
 func _begin_battle() -> void:
 	if not battle_over and not battle_started:
 		battle_started = true
+		battle_audio.start_music()
 		_update_site_schedule()
 		_update_status()
 
@@ -46,21 +53,44 @@ func _physics_process(delta: float) -> void:
 		if battle_over:
 			break
 		agent.update_combat(survivor, delta)
-	if not battle_over:
-		for site: ReinforcementSite in sites.get_children():
-			site.update_recruitment(horde, delta)
+	if not battle_over and active_site != null:
+		# A successful summon may switch sites synchronously; tick only this one.
+		active_site.update_recruitment(horde, delta)
 	_update_status()
 
 
 func _update_site_schedule() -> void:
-	var window: int = floori(elapsed / site_interval)
-	if window == _site_window:
+	if not battle_started or battle_over:
 		return
-	_site_window = window
-	var index: int = window % sites.get_child_count()
-	active_site = sites.get_child(index) as ReinforcementSite
+	if elapsed >= _next_site_at:
+		_open_next_site()
+
+
+func _open_next_site() -> void:
+	var candidates: Array[ReinforcementSite] = []
+	for site: ReinforcementSite in sites.get_children():
+		if site != _last_site:
+			candidates.append(site)
+	if candidates.is_empty():
+		return
+	# Preserve the authored opening; later destinations cannot repeat immediately.
+	active_site = candidates[0] if _last_site == null else candidates[_site_random.randi_range(0, candidates.size() - 1)]
+	_last_site = active_site
+	_next_site_at = elapsed + site_interval
 	for site: ReinforcementSite in sites.get_children():
 		site.set_active(site == active_site)
+
+
+func _on_site_summoned(site: ReinforcementSite) -> void:
+	if battle_started and not battle_over and site == active_site:
+		active_site = null
+		_next_site_at = elapsed + site_respawn_delay
+		_update_site_schedule()
+		_update_status()
+
+
+func site_time_left() -> float:
+	return maxf(0.0, _next_site_at - elapsed) if battle_started else 0.0
 
 
 func toggle_pause() -> void:
@@ -72,12 +102,20 @@ func toggle_pause() -> void:
 
 func restart() -> void:
 	battle_audio.stop_all()
+	hud.audio_controls.stop_preview()
 	get_tree().paused = false
 	get_tree().reload_current_scene()
 
 
+func return_to_menu() -> void:
+	battle_audio.stop_all()
+	hud.audio_controls.stop_preview()
+	get_tree().paused = false
+	get_tree().change_scene_to_file("res://scenes/ui/main_menu.tscn")
+
+
 func _update_status() -> void:
-	hud.update_status(horde, survivor, battle_started, elapsed, active_site, site_interval)
+	hud.update_status(horde, survivor, battle_started, elapsed, active_site, site_time_left())
 
 
 func _update_knight_health(current: int, maximum: int) -> void:

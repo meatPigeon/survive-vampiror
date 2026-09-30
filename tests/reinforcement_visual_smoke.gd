@@ -16,7 +16,7 @@ func _run() -> void:
 	var root_transform: Transform3D = west.transform
 	var grave: Node3D = west.visual.gravestones.get_child(0)
 	var buried: Transform3D = grave.transform
-	_check(west.visual.get_node("Crater").is_visible_in_tree() and _all_visible(west, false), "inactive crater remains but tombstones start hidden")
+	_check(west.visual.get_node("Crater").is_visible_in_tree() and _all_visible(west, false) and not west.visual.indicator.visible, "inactive crater remains but tombstones and indicator start hidden")
 	await _capture("inactive")
 	scene.horde.command_move(Vector3.ZERO)
 	await _frames(10)
@@ -28,21 +28,37 @@ func _run() -> void:
 	_check(grave.transform == frozen, "pause freezes emergence")
 	paused = false
 	for frame: int in range(60):
-		west._update_label()
+		west._update_visuals()
 		await physics_frame
 	var risen: Transform3D = grave.transform
 	await _frames(10)
 	_check(grave.transform.is_equal_approx(risen) and risen.origin.y > buried.origin.y + 1.0, "repeated status updates allow emergence to settle")
 	_check(west.transform == root_transform and west.remaining == 12, "visual motion preserves site root and reserves")
 	await _capture("active")
-	west.remaining = 4
+	# Drive the indicator through real occupation, interruption and pause.
+	scene.horde.agents[0].global_position = west.global_position
+	scene.horde.command_move(west.global_position)
+	west.update_recruitment(scene.horde, west.summon_time * 0.25)
+	_check(west.visual.indicator.visible and west.visual.fill.visible, "occupation reveals the radial fill")
+	await _capture("quarter")
+	west.update_recruitment(scene.horde, west.summon_time * 0.25)
+	await _capture("half")
+	var half_mesh: Mesh = west.visual.fill.mesh
+	paused = true
+	await _frames(12)
+	_check(west.visual.fill.mesh == half_mesh and west.progress == west.summon_time * 0.5, "pause freezes the occupation ring")
+	paused = false
+	west.update_recruitment(scene.horde, west.summon_time * 0.45)
+	await _capture("nearly_full")
+	scene.horde.command_move(Vector3.ZERO)
+	west.update_recruitment(scene.horde, 0.1)
+	_check(not west.visual.fill.visible and west.visual.indicator.visible, "leaving clears fill but keeps the available marker")
+	west.set_active(true)
+	await _frames(2)
+	_check(grave.transform.is_equal_approx(risen), "fresh stock does not restart an already raised grave")
 	scene.elapsed = 90.0
 	scene._update_site_schedule()
-	await _frames(2)
-	_check(west.remaining == 12 and grave.transform.is_equal_approx(risen), "skipped full cycle refills stock without restarting an available grave")
-	scene.elapsed = 120.0
-	scene._update_site_schedule()
-	_check(not west.active and not west.label.visible and _all_visible(west, true), "deadline disables recruitment before sinking finishes")
+	_check(not west.active and not west.visual.indicator.visible and _all_visible(west, true), "deadline hides the indicator before sinking finishes")
 	await _frames(14)
 	_check(grave.position.y < risen.origin.y, "closed-window tombstones sink visibly")
 	await _capture("sinking")
@@ -67,7 +83,8 @@ func _run() -> void:
 	scene.horde.agents[0].global_position = west.global_position
 	scene.horde.command_move(west.global_position)
 	west.update_recruitment(scene.horde, west.summon_time)
-	_check(west.active and west.remaining == 0 and scene.horde.recruited == 12, "same-frame opening and exhaustion preserves actual recruitment")
+	_check(not west.active and west.remaining == 0 and scene.horde.recruited == 12, "same-frame opening and consumption closes the used site")
+	_check(not west.visual.indicator.visible, "exhaustion immediately clears the recruitment indicator")
 	await _frames(55)
 	_check(_all_visible(west, false), "immediate exhaustion cannot leave opening graves visible")
 	west.set_active(true)
@@ -86,7 +103,7 @@ func _run() -> void:
 	scene.restart()
 	await _frames(5)
 	west = current_scene.get_node("Reinforcements/West")
-	_check(old_visual.get_ref() == null and _all_visible(west, false) and not west.active, "restart frees pending tweens and restores inactive graves")
+	_check(old_visual.get_ref() == null and _all_visible(west, false) and not west.active and not west.visual.indicator.visible, "restart frees pending tweens and restores inactive graves and indicator")
 	print("Reinforcement visual smoke: %s" % ("PASS" if _failures == 0 else "FAIL (%d)" % _failures))
 	quit(0 if _failures == 0 else 1)
 

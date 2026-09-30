@@ -106,3 +106,4 @@ position = Vector3(14, 0, 8)
 [connection signal="pause_requested" from="HUD" to="." method="toggle_pause"]
 [connection signal="restart_requested" from="HUD" to="." method="restart"]
 [connection signal="sprint_requested" from="HUD" to="Horde" method="command_sprint"]
+[connection signal="menu_requested" from="HUD" to="." method="return_to_menu"]

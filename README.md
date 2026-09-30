@@ -1,16 +1,20 @@
 # Survive Vampiror
 
 A short Godot 4.7 / GDScript game: command a zombie horde and overwhelm one
-knight. A run takes roughly three to four minutes. The gameplay is complete on
-`gpt-full-game-test`. The separate `ui-hud-prototype` branch adds a styled
-in-game HUD, pause/result screens, weightier character animation and a larger
+knight. A run takes roughly three to four minutes. Development continues on
+`main`, with complete gameplay, a styled in-game HUD, pause/result screens,
+weightier character animation and a larger
 60 × 44 clearing with simple low-poly rocks, scrub and ground detail. Attack
 markers remain functional placeholders. Short sound effects accompany attack
 warnings, weapon swings/hits, zombie movement/bites, commands, sprint,
-recruitment/expiry, graves and victory/defeat; no music.
+recruitment/expiry, graves and victory/defeat. The selected Undead March plays
+quietly during battle, pauses with gameplay and stops at the outcome.
 
 Open `project.godot` in Godot and press **F5**, or run `godot --path .`.
-The fight waits until your first ground command.
+The main menu offers Play, Quit and separate music/sound-effect volume sliders.
+After Play, the fight waits until your first ground command. The same sliders
+are available on pause; 0% mutes the category. Levels survive replay and menu
+transitions for the current application session, but are not saved to disk.
 
 Sound sources were generated with ElevenLabs; warning patterns and swing noise
 were synthesized locally. See [audio sources and rebuilding](art/audio/README.md).
@@ -21,7 +25,8 @@ were synthesized locally. See [audio sources and rebuilding](art/audio/README.md
 | Space | Sprint toward the current command for 1.4 seconds; 7-second cooldown |
 | Esc | Pause / resume |
 | R | Restart, including from pause or the result screen |
-| HUD buttons (UI branch) | Sprint, pause, resume and restart / play again |
+| HUD buttons | Sprint, pause, resume and restart / play again |
+| Main menu (pause/results) | End the current run and return to the title screen |
 
 The knight hunts the horde and changes attack patterns at two-thirds and
 one-third health. **Orange sector:** dodge sideways. **Yellow lane:** leave the
@@ -38,11 +43,16 @@ with blue rings.
 They die after 45 seconds from recruitment, or earlier from damage. The horde
 can hold 60 in total. All zombies share movement commands and sprint.
 
-One site is active at a time: west → south → east, switching every 30 seconds
-from the first command. Each activation has a fresh batch; unused stock is lost
-when the site switches. Reaching the cap preserves leftovers only until that
-switch. Gravestones rise when a site opens and sink when its window closes or
-its batch is exhausted; the empty crater stays visible. HUD shows both zombie
+At most one site is available. The west site opens on the first command.
+Each successful summon closes its site, even when only part of the batch fits
+under the cap; excess recruits are discarded. After a configurable pause
+(5 seconds by default), a random different site opens with a fresh batch of 12.
+An unused site moves to a random different location after 30 seconds.
+Gravestones rise when a site opens and sink when it closes; the empty crater
+stays visible. A mint diamond identifies
+the available crater, and its ring fills clockwise while summoning. The HUD uses
+the same diamond for remaining stock, without compass labels or percentages.
+HUD shows both zombie
 counts, next expiry and site timer; results separate combat casualties from
 expired recruits. Pause freezes these timers.
 

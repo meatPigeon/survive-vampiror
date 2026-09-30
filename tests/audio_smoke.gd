@@ -26,16 +26,21 @@ func _run() -> void:
 	_check(not sounds.command.playing, "sprint before the first command is silent")
 	for player: AudioStreamPlayer in sounds.get_children():
 		_check(player.max_polyphony == 1 and not player.autoplay, "each category has one voice and no autoplay")
-		if player.stream != null:
+		if player == sounds.music:
+			_check(player.stream is AudioStreamOggVorbis and (player.stream as AudioStreamOggVorbis).loop, "selected music imports as a looping Ogg stream")
+		elif player.stream != null:
 			_check(player.stream.get_length() > 0.2 and (player.stream as AudioStreamWAV).loop_mode == AudioStreamWAV.LOOP_DISABLED, "audio asset is finite and imported")
 
 	horde.command_move(west.position)
+	_check(sounds.music.playing, "first command starts the selected march")
+	var music_playback: AudioStreamPlayback = sounds.music.get_stream_playback()
 	_check(sounds.grave_rise.playing, "first command opens grave sound")
 	_check(sounds.command.playing and sounds.command.stream == BattleAudio.COMMAND, "accepted ground command gives feedback")
 	var command_playback: AudioStreamPlayback = sounds.command.get_stream_playback()
 	for index: int in range(20):
 		horde.command_move(west.position)
 	_check(sounds.command.get_stream_playback() == command_playback, "command spam cannot restart or stack the cue")
+	_check(sounds.music.get_stream_playback() == music_playback, "repeated commands do not restart music")
 	horde.command_sprint()
 	_check(sounds.command.stream == BattleAudio.SPRINT, "successful sprint has a distinct cue")
 	command_playback = sounds.command.get_stream_playback()
@@ -43,7 +48,7 @@ func _run() -> void:
 	horde.command_move(west.position)
 	_check(sounds.command.get_stream_playback() == command_playback, "cooldown rejection and movement commands do not interrupt sprint cue")
 	var playback: AudioStreamPlayback = sounds.grave_rise.get_stream_playback()
-	west._update_label()
+	west._update_visuals()
 	west.set_active(true)
 	_check(sounds.grave_rise.get_stream_playback() == playback, "repeated availability and fresh stock do not retrigger grave sound")
 	await _wait(1.25)
@@ -54,8 +59,13 @@ func _run() -> void:
 	paused = true
 	await _wait(0.15)
 	_check(sounds.footsteps.stream_paused, "pause freezes footstep playback")
+	_check(sounds.music.stream_paused, "pause freezes music")
 	paused = false
 	await _wait(0.7)
+	_check(not sounds.music.stream_paused and sounds.music.get_stream_playback() == music_playback, "resume preserves the music playback")
+	sounds.music.seek(sounds.music.stream.get_length() - 0.15)
+	await _wait(0.4)
+	_check(sounds.music.playing and sounds.music.get_playback_position() < 1.5, "music wraps across the end without stopping")
 	_check(not sounds.footsteps.playing, "stationary horde does not produce a footsteps loop")
 	scene.elapsed = 30.0
 	scene._update_site_schedule()
@@ -120,7 +130,7 @@ func _run() -> void:
 	horde.agents.back().update_lifetime(100.0)
 	_check(sounds.notice.get_stream_playback() == notice_playback, "simultaneous expiry is one sound")
 
-	var south: ReinforcementSite = scene.get_node("Reinforcements/South")
+	var south: ReinforcementSite = scene.active_site
 	horde.agents[0].position = south.position
 	horde.command_move(south.position)
 	south.update_recruitment(horde, south.summon_time)
@@ -141,6 +151,7 @@ func _run() -> void:
 	command_playback = null
 	bite_playback = null
 	notice_playback = null
+	music_playback = null
 	scene.restart()
 	await _wait(0.1)
 	scene = current_scene
@@ -187,9 +198,11 @@ func _fixture() -> Node3D:
 	return scene
 
 
-func _all_stopped(sounds: BattleAudio, except_result: bool = false) -> bool:
+func _all_stopped(sounds: BattleAudio, except_result: bool = false, except_music: bool = false) -> bool:
 	for player: AudioStreamPlayer in sounds.get_children():
 		if except_result and player == sounds.result:
+			continue
+		if except_music and player == sounds.music:
 			continue
 		if player.playing:
 			return false
@@ -204,7 +217,7 @@ func _wait(seconds: float) -> void:
 func _wait_for_quiet(sounds: BattleAudio) -> void:
 	# Render stalls can make a wall-clock timer outpace simulation cooldowns.
 	var deadline: int = Time.get_ticks_msec() + 5000
-	while not _all_stopped(sounds) or sounds._voice_cooldown > 0.0 or sounds._bite_cooldown > 0.0:
+	while not _all_stopped(sounds, false, true) or sounds._voice_cooldown > 0.0 or sounds._bite_cooldown > 0.0:
 		if Time.get_ticks_msec() >= deadline:
 			_check(false, "one-shot audio and cooldowns settle within five seconds")
 			return

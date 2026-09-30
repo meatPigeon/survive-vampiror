@@ -14,7 +14,6 @@ func _run() -> void:
 	var horde: HordeController = scene.get_node("Horde")
 	var west: ReinforcementSite = scene.get_node("Reinforcements/West")
 	var south: ReinforcementSite = scene.get_node("Reinforcements/South")
-	var east: ReinforcementSite = scene.get_node("Reinforcements/East")
 	_check(horde.permanent_count() == 40 and horde.temporary_count() == 0, "initial horde is entirely permanent")
 	scene._physics_process(90.0)
 	_check(scene.elapsed == 0.0 and scene.active_site == null, "schedule waits for first command")
@@ -27,35 +26,57 @@ func _run() -> void:
 	horde.command_move(south.position)
 	south.update_recruitment(horde, 3.0)
 	_check(horde.recruited == 0, "inactive site cannot recruit even when occupied")
+	permanent.position = Vector3(-8, 0, 3)
+	horde.command_move(permanent.position)
 	scene._physics_process(30.0)
-	_check(scene.active_site == south and not west.active and west.remaining == 0, "unclaimed west stock is discarded at 30 seconds")
-	_check(horde.temporary_count() == 12 and south.remaining == 0, "active site recruits temporary zombies")
+	var current: ReinforcementSite = scene.active_site
+	_check(current != west and not west.active and west.remaining == 0, "an unused site closes after 30 seconds and chooses a different destination")
+	permanent.position = current.position
+	horde.command_move(current.position)
+	current.update_recruitment(horde, current.summon_time)
+	_check(horde.temporary_count() == 12 and current.remaining == 0 and not current.active, "successful recruitment closes its activation")
+	_check(scene.active_site == null and scene.site_time_left() == scene.site_respawn_delay, "successful recruitment starts the configured gap with no active site")
 	_check(permanent.health.current_health == 17 and horde.permanent_count() == 40, "site switch does not heal or replace permanent zombies")
 	var temporary: HordeAgent = horde.agents.back()
 	_check(temporary.lifetime_remaining == 45.0, "new recruits start with full lifetime")
 	# Returning to an exhausted site neither replenishes it nor refreshes recruits.
-	scene._physics_process(5.0)
-	_check(temporary.lifetime_remaining == 40.0 and horde.recruited == 12, "lifetime runs while waiting on the recruitment site")
+	scene._physics_process(scene.site_respawn_delay)
+	_check(temporary.lifetime_remaining == 45.0 - scene.site_respawn_delay and horde.recruited == 12, "lifetime runs while waiting on the recruitment site")
+	_check(scene.active_site != null and scene.active_site != current and scene.site_time_left() == scene.site_interval, "cooldown opens a different site with a full window")
 	temporary.health.take_damage(100)
 	temporary.update_lifetime(100.0)
 	_check(horde.casualties == 1 and horde.expired_count == 0 and not temporary.expired, "combat death cannot later count as expiration")
 	permanent.position = Vector3(-8, 0, 3)
 	horde.command_move(permanent.position)
-	scene._physics_process(25.0)
-	_check(scene.active_site == east and east.remaining == 12 and not south.active, "east opens at 60 seconds")
-	_check(horde.next_expiration() == 15.0, "lifetimes persist across site switches")
-	scene._physics_process(15.0)
+	current = scene.active_site
+	scene._physics_process(30.0)
+	_check(scene.active_site != current and scene.active_site.remaining == 12 and not current.active, "unused replacement rotates after its own 30-second window")
+	_check(horde.next_expiration() == 10.0, "lifetimes persist across site switches")
+	scene._physics_process(10.0)
 	_check(horde.temporary_count() == 0 and horde.expired_count == 11 and not scene.battle_over, "all temporary zombies can expire without defeat")
 	scene._physics_process(15.0)
-	_check(scene.active_site == west and west.remaining == 12 and east.remaining == 0, "west returns with a fresh non-accumulated batch at 90 seconds")
+	_check(scene.active_site.remaining == 12, "each activation starts with a fresh non-accumulated batch")
 	_check(permanent.health.current_health == 17 and horde.permanent_count() == 40, "permanent zombies have no lifetime or regeneration")
-	# Interrupted and partial stock must also be discarded on rotation.
-	west.remaining = 4
-	west.progress = 1.0
+	# Interrupted occupation and unclaimed stock are discarded on timeout.
+	current = scene.active_site
+	current.progress = 1.0
 	scene._physics_process(30.0)
-	_check(west.remaining == 0 and west.progress == 0.0 and south.remaining == 12, "switch clears partial stock and occupation progress")
+	_check(current.remaining == 0 and current.progress == 0.0 and scene.active_site.remaining == 12, "switch clears stock and occupation progress")
+	current = scene.active_site
 	scene._physics_process(90.0)
-	_check(scene.active_site == south and south.remaining == 12, "skipping a full cycle still starts a fresh window")
+	_check(scene.active_site != current and scene.active_site.remaining == 12 and scene.site_time_left() == scene.site_interval, "a large time step opens one fresh window without replaying missed recruitment")
+	var seen: Dictionary = {}
+	scene._site_random.seed = 1234
+	for index: int in range(16):
+		current = scene.active_site
+		scene.elapsed += scene.site_interval
+		scene._update_site_schedule()
+		seen[scene.active_site.name] = true
+		var available: int = 0
+		for site: ReinforcementSite in scene.sites.get_children():
+			available += 1 if site.active else 0
+		_check(scene.active_site != current and available == 1, "random selection never repeats immediately or opens two sites")
+	_check(seen.size() == 3, "seeded random selections reach all three destinations")
 	scene.free()
 
 	scene = _fixture()
@@ -115,6 +136,24 @@ func _run() -> void:
 	await _capture("defeat")
 	scene.free()
 
+	# Configuration controls the post-summon gap, independently of battle time.
+	for delay: float in [0.0, 2.5]:
+		scene = _fixture()
+		scene.site_respawn_delay = delay
+		horde = scene.horde
+		west = scene.get_node("Reinforcements/West")
+		horde.command_move(west.position)
+		horde.agents[0].position = west.position
+		scene.elapsed = 7.25
+		west.update_recruitment(horde, west.summon_time)
+		if delay > 0.0:
+			_check(scene.active_site == null and scene.site_time_left() == delay and scene.hud.site_hint.text == "Next site in 3s", "configured fractional delay is reflected in the HUD")
+			scene._physics_process(delay - 0.01)
+			_check(scene.active_site == null, "a fresh site cannot open before the configured deadline")
+			scene._physics_process(0.02)
+		_check(scene.active_site != null and scene.active_site != west and scene.site_time_left() == scene.site_interval, "zero or elapsed delay opens a different site with a full window")
+		scene.free()
+
 	# Use real physics frames to check pause and victory timer freezing.
 	scene = MAIN.instantiate()
 	root.add_child(scene)
@@ -134,7 +173,7 @@ func _run() -> void:
 	await _capture("pause")
 	scene.toggle_pause()
 	await _frames(5)
-	_check(scene.active_site.name == "South" and temporary.lifetime_remaining < lifetime, "resume continues both timers")
+	_check(scene.active_site.name != "West" and temporary.lifetime_remaining < lifetime, "resume continues both timers")
 	knight.health.take_damage(knight.health.current_health)
 	lifetime = temporary.lifetime_remaining
 	var elapsed: float = scene.elapsed

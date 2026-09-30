@@ -24,6 +24,8 @@ func _battle(strategy: String, reaction_frames: int) -> void:
 	var scene: Node3D = MAIN.instantiate()
 	root.add_child(scene)
 	current_scene = scene
+	# Reproducible random site routes; these do not affect combat or audio RNG.
+	scene._site_random.seed = 11 if reaction_frames == 22 else 29
 	var horde: HordeController = scene.get_node("Horde")
 	var knight: Survivor = scene.get_node("Survivor")
 	var camera: Camera3D = scene.get_node("Camera")
@@ -61,7 +63,7 @@ func _battle(strategy: String, reaction_frames: int) -> void:
 				camp = null
 			if camp == null and horde.temporary_count() < 8 and horde.agents.size() < horde.max_agents:
 				var candidate: ReinforcementSite = scene.active_site
-				var time_left: float = scene.site_interval - fmod(scene.elapsed, scene.site_interval)
+				var time_left: float = scene.site_time_left()
 				# Travel and occupation must fit inside the visible active window.
 				if candidate != null and candidate.remaining > 0 and time_left > center.distance_to(candidate.global_position) / 3.6 + 5.0:
 					camp = candidate

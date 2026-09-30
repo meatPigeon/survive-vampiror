@@ -1,7 +1,7 @@
 # Gameplay sound sources
 
-Standalone music comparison sketches are documented in
-[music_concepts/README.md](music_concepts/README.md); they are not used at runtime.
+Music sketches and the selected Undead March loop are documented in
+[music_concepts/README.md](music_concepts/README.md). Only the march is used at runtime.
 
 Five original sound effects were generated with
 [ElevenLabs Sound Effects](https://elevenlabs.io/docs/api-reference/text-to-sound-effects/convert)
@@ -28,11 +28,17 @@ uses no API, key, network connection or credits. Godot needs only the committed
 WAV files; source MP3s are excluded from import by `.gdignore`.
 
 Playback volumes are authored in `scenes/components/battle_audio.tscn`.
-There are eleven single-voice players. The shared zombie voice has a 0.9-second
+The Music and Effects buses in `default_bus_layout.tres` multiply those authored
+levels. Shared menu/pause controls adjust each independently and mute at zero;
+levels survive scene changes in the current application session. The main menu
+previews the selected march, and the effect slider previews a short command cue.
+There are eleven single-voice effect players and one music player. The shared zombie voice has a 0.9-second
 cooldown; bites have 0.35 seconds. Both wait for their previous clip to finish.
 Footfalls follow mean actual travel with a shared 0.85-unit stride; they finish
 without looping when movement stops. Commands are throttled at 0.12 seconds and
 cannot interrupt sprint feedback. Expiry batches share a cue, with recruitment
 taking precedence. Outcome stops gameplay voices and plays one short result cue;
 restart clears it. These are non-positional
-cues for the fixed arena camera. No music or per-agent ambient loop is included.
+cues for the fixed arena camera. The march starts once on the first command,
+loops at -12 dB player volume, pauses with the tree and stops at outcome/restart.
+There is no per-agent ambient loop.

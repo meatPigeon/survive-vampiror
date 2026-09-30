@@ -27,10 +27,15 @@ rotation_degrees = Vector3(0, 5, 3)
 position = Vector3(1.3, 0.055, -1.2)
 rotation_degrees = Vector3(0, 18, 8)
 
-[node name="Label" type="Label3D" parent="."]
-position = Vector3(0, 0.5, 1.2)
-billboard = 1
-font_size = 48
-pixel_size = 0.016
-outline_size = 8
-no_depth_test = true
+[node name="Indicator" type="Node3D" parent="Visual"]
+position = Vector3(0, 0.07, 0)
+
+[node name="Track" type="MeshInstance3D" parent="Visual/Indicator"]
+cast_shadow = 0
+
+[node name="Fill" type="MeshInstance3D" parent="Visual/Indicator"]
+position = Vector3(0, 0.006, 0)
+cast_shadow = 0
+
+[node name="Marker" type="MeshInstance3D" parent="Visual/Indicator"]
+cast_shadow = 0

@@ -1,5 +1,67 @@
 # Architecture Decisions
 
+## Continue Development On Main
+
+Status: accepted, 2026-09-30; supersedes the separate UI experiment branch workflow
+
+Decision: Consolidate all current gameplay, presentation, menu and audio work
+on `main` and use it for further development. Preserve the existing commits
+and prototype branches as historical checkpoints.
+
+Reason: The user requested that all current work move to `main`.
+
+
+## Consume Each Recruitment Visit; Delay The Next Random Site
+
+Status: accepted, 2026-09-30; supersedes preserved leftover stock and fixed
+west/south/east cycling in the earlier temporary-reinforcement decision
+
+Decision: Any successful summon consumes the site's current activation, even
+when only part of its batch fits. Hide its ring immediately and sink the graves.
+Arena waits an exported `site_respawn_delay` (default 5 seconds), then randomly
+opens one of the other two sites. Keep the first West opening and 30-second
+unused-site lifetime; unused timeout also chooses a different location.
+
+Reason: The user reported repeat recruitment from a still-visible used ring and
+specified disappearance, random next selection and an adjustable pause. A real
+viewport-input reproduction confirmed that 52 zombies became 60 with four stock
+left, then another casualty triggered another summon from that same site.
+
+Consequences: No site is available during the gap. Existing availability drives
+ring visibility, graves and audio. The HUD reads the actual deadline; pause,
+outcomes and restart keep all scheduling within scene-owned battle time.
+
+## Main Menu With Native Audio Bus Controls
+
+Status: accepted, 2026-09-30
+
+Decision: Use a separate title scene and one reusable AudioControls scene on
+the title and pause screens. Two authored Godot audio buses own music/effect
+gain and mute for the application session. Return-to-menu is an explicit HUD
+signal handled by Arena; no active arena is hidden behind the title.
+
+Reason: The user requested a main menu and independent volume adjustment.
+Native audio buses preserve levels across reloads without adding a singleton,
+persistence service or a broader options system. Gameplay rules stay separate.
+
+## Show Recruitment Progress At The Crater
+
+Status: accepted, 2026-09-30
+
+Decision: Replace floating site names/percentages with a shallow annular progress
+mesh. A dark track and pale mint clockwise fill surround the active crater;
+a diamond marks its start and matches the HUD stock readout. Keep rotation time
+in the HUD but remove its duplicate progress bar. Built-in unshaded materials
+draw the indicator over characters so an occupying crowd cannot hide feedback.
+
+Reason: The user requested a circular fill and simpler symbolic identification.
+Only one site is available at a time, so the marker and raised graves identify
+the destination without West/South/East labels or another text layer.
+
+Consequences: ReinforcementVisual consumes normalized occupation progress from
+its site; it owns no timer, recruitment rules or collision. No custom shader,
+dependency or gameplay-tuning change is needed.
+
 ## Compare Music Before Runtime Integration
 
 Status: accepted, 2026-09-30
@@ -11,6 +73,11 @@ Wait for the user's selection before adding background playback.
 Reason: The user requested three alternatives and conservative credit use.
 ElevenLabs rejected the Music API request with `paid_plan_required`; the local
 sketches allow comparison without a subscription change or further API calls.
+
+Follow-up: The user selected concept 1, Undead March. Its lossless render is now
+processed into one looping Ogg, played by the existing scene-owned BattleAudio.
+The first ground command starts it; pause, outcome and restart share the existing
+audio lifecycle. Concepts 2/3 remain unused; no wave/screen music system is added.
 
 ## Add A Small Scene-Owned Gameplay Sound Set
 

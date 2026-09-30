@@ -11,10 +11,18 @@ music generation or retry occurred. Local rendering uses zero API credits.
 | [Graveyard Groove](02_graveyard_groove.mp3) | Syncopated plucked folk groove with flute | 114 BPM | 26.6 s |
 | [Tiny Siege](03_tiny_siege.mp3) | Low string pulse, dulcimer and restrained drums | 102 BPM | 29.5 s |
 
-The sketches contain twelve bars and a short release. They are comparison
-previews with fades, not prepared seamless game loops. Nothing plays in Godot;
-this folder inherits `art/audio/.gdignore`. Await the user's choice before
-arranging a longer track or adding runtime music.
+The sketches contain twelve bars and a short release. The MP3s are comparison
+previews with fades. The user selected **Undead March** for battle; concepts 2
+and 3 remain unused alternatives for possible later screens or waves.
+This source folder inherits `art/audio/.gdignore`.
+
+The runtime asset is `assets/audio/undead_march.ogg`, a 26.181837-second loop
+derived from the committed unfaded `01_undead_march_source.flac` render.
+`python tools/build_music.py` rebuilds it offline with Python and ffmpeg; the
+instrument bank is not needed. Final note/reverb tails wrap onto the start,
+with a 2 ms endpoint correction and constant gain to preserve seam levels.
+Godot imports it with looping enabled. One quiet player starts on the first
+command, freezes on pause and stops on outcome/restart. No new API calls.
 
 ## Sources and rendering
 

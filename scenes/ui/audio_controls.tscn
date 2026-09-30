@@ -1,0 +1,104 @@
+[gd_scene load_steps=8 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/audio_controls.gd" id="1_script"]
+[ext_resource type="AudioStream" path="res://assets/audio/command.wav" id="2_preview"]
+[ext_resource type="Texture2D" path="res://assets/ui/slider_knob.svg" id="3_knob"]
+
+[sub_resource type="StyleBoxFlat" id="Track"]
+bg_color = Color(0.18, 0.20, 0.17, 1)
+content_margin_top = 3.0
+content_margin_bottom = 3.0
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_left = 3
+corner_radius_bottom_right = 3
+
+[sub_resource type="StyleBoxFlat" id="Fill"]
+bg_color = Color(0.72, 0.81, 0.60, 1)
+content_margin_top = 3.0
+content_margin_bottom = 3.0
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_left = 3
+corner_radius_bottom_right = 3
+
+[sub_resource type="StyleBoxFlat" id="Focus"]
+bg_color = Color(0, 0, 0, 0)
+border_width_bottom = 1
+border_color = Color(0.93, 0.89, 0.82, 0.6)
+
+[sub_resource type="Theme" id="AudioTheme"]
+default_font_size = 15
+Label/colors/font_color = Color(0.93, 0.89, 0.82, 1)
+HSlider/styles/slider = SubResource("Track")
+HSlider/styles/grabber_area = SubResource("Fill")
+HSlider/styles/grabber_area_highlight = SubResource("Fill")
+HSlider/styles/focus = SubResource("Focus")
+HSlider/icons/grabber = ExtResource("3_knob")
+HSlider/icons/grabber_highlight = ExtResource("3_knob")
+HSlider/constants/grabber_offset = 0
+
+[node name="AudioControls" type="VBoxContainer"]
+custom_minimum_size = Vector2(260, 0)
+theme = SubResource("AudioTheme")
+theme_override_constants/separation = 14
+script = ExtResource("1_script")
+
+[node name="Music" type="VBoxContainer" parent="."]
+layout_mode = 2
+theme_override_constants/separation = 3
+
+[node name="Heading" type="HBoxContainer" parent="Music"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="Music/Heading"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Music"
+
+[node name="MusicValue" type="Label" parent="Music/Heading"]
+unique_name_in_owner = true
+layout_mode = 2
+custom_minimum_size = Vector2(48, 0)
+horizontal_alignment = 2
+text = "100%"
+
+[node name="MusicSlider" type="HSlider" parent="Music"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 30)
+layout_mode = 2
+value = 100.0
+scrollable = false
+tooltip_text = "Music volume · 0% mutes"
+
+[node name="Effects" type="VBoxContainer" parent="."]
+layout_mode = 2
+theme_override_constants/separation = 3
+
+[node name="Heading" type="HBoxContainer" parent="Effects"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="Effects/Heading"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Sound effects"
+
+[node name="EffectsValue" type="Label" parent="Effects/Heading"]
+unique_name_in_owner = true
+layout_mode = 2
+custom_minimum_size = Vector2(48, 0)
+horizontal_alignment = 2
+text = "100%"
+
+[node name="EffectsSlider" type="HSlider" parent="Effects"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 30)
+layout_mode = 2
+value = 100.0
+scrollable = false
+tooltip_text = "Sound effects volume · 0% mutes"
+
+[node name="Preview" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("2_preview")
+volume_db = -17.0
+bus = &"Effects"

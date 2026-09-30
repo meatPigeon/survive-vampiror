@@ -2,7 +2,9 @@
 
 ## Scene Composition
 
-`project.godot` launches `scenes/main.tscn`:
+`project.godot` launches `scenes/ui/main_menu.tscn`. MainMenu owns Play/Quit,
+the selected music preview and an instance of `ui/audio_controls.tscn`.
+Play replaces it with the arena scene, `scenes/main.tscn`:
 
 ```text
 Main (Node3D / arena.gd)
@@ -22,12 +24,11 @@ Main (Node3D / arena.gd)
 │       └── Health
 ├── Reinforcements
 │   └── West, South, East (components/reinforcement_site.tscn)
-│       ├── Visual (ReinforcementVisual): crater + three animated gravestones
-│       └── Label
+│       └── Visual (ReinforcementVisual): crater, animated gravestones, progress ring/diamond
 ├── GroundCommand (always-process input)
-├── BattleAudio (components/battle_audio.tscn): eleven bounded audio players
+├── BattleAudio (components/battle_audio.tscn): eleven effect players + looping music
 └── HUD (ui/battle_hud.tscn / BattleHUD)
-    └── Frame: slim boss bar, grouped horde counts, contextual controls, modal overlay
+    └── Frame: battle readouts, modal overlay, reusable pause AudioControls
 ```
 
 No autoloads, services, event bus, plugins, navigation framework or dependencies.
@@ -35,6 +36,16 @@ Reusable scenes and typed GDScript follow the sibling's naming and explicit
 signal-up/call-down composition conventions.
 
 ## Ownership And Data Flow
+
+- `scripts/ui/main_menu.gd` starts the arena and quits the application. It stops
+  its music/preview on departure; there is no arena running behind the title.
+- `scripts/ui/audio_controls.gd` is reused in the title and pause screens. It
+  reads/writes the authored Music and Effects buses in `default_bus_layout.tres`,
+  including explicit mute at zero, and offers one short effect preview. Every
+  gameplay effect routes to Effects and both menu/battle music route to Music.
+  Native mixer state survives scene changes and restart for the session. There
+  is no autoload, settings file, custom service or per-frame synchronization.
+  Controls refresh when shown; hiding them stops previews and releases focus.
 
 - `scripts/visuals/arena_camera.gd` fits the orthographic view to the current
   Ground bounds when the viewport resizes. The fixed tilt and a small margin
@@ -90,9 +101,15 @@ signal-up/call-down composition conventions.
 - `scripts/gameplay/reinforcement_site.gd` owns activity, the current batch and
   occupation progress. Arena explicitly activates/deactivates it. Activation
   resets the batch; deactivation discards leftovers/progress. Recruitment calls
-  the horde and subtracts only the actual added count; there is no local timer.
+  the horde, closes the site after any successful addition and emits `summoned`.
+  Excess stock is discarded; no site-local respawn timer is needed.
 - `scripts/visuals/reinforcement_visual.gd` receives availability from its site
-  (`active && remaining > 0`). Reusable crater/tombstone meshes live under
+  (`active && remaining > 0`) and normalized occupation progress. It builds a
+  shallow annular track/fill and diamond marker under Indicator. The clockwise
+  fill updates only when progress changes; availability immediately hides or
+  reveals the indicator. Built-in unshaded materials and explicit render priority
+  keep it visible above the gathered horde without a custom shader. No labels
+  or percentages are drawn in the world. Reusable crater/tombstone meshes live under
   `scenes/components/environment/`. The crater persists; staggered, node-bound
   tweens raise/lower the stones without moving the site or blocking recruitment.
   Repeated state refreshes preserve a transition; reversal cancels its previous
@@ -100,12 +117,18 @@ signal-up/call-down composition conventions.
   no collision, terrain deformation or gameplay authority.
 - `scripts/gameplay/arena.gd` starts on the first command, ticks lifetimes, combat and
   recruitment, handles results and pause/restart, and supplies state to BattleHUD.
-  It owns the exported site interval and derives the current window from run
-  elapsed time, cycling the three scene children. The window number (not just
-  site identity) ensures a fresh batch even when a time step skips a full cycle.
+  It owns exported `site_interval` (unused-window length) and `site_respawn_delay`
+  (post-summon gap), with one deadline in battle elapsed time. `summoned` clears
+  `active_site` during the gap; the last location is retained to exclude immediate
+  repeats. A dedicated RNG picks among other sites. First command opens West.
+  `site_time_left()` supplies the actual countdown to the HUD and test pilot.
+  Only the active site ticks each frame, so a switch cannot tick a second site
+  with the same delta. Pause/outcome freeze elapsed time and both countdowns.
   Count changes synchronously lose the run when permanent count reaches zero.
   Physics priority 1 resolves combat after horde movement at priority 0. It
   stops further damage/recruitment as soon as either terminal condition occurs.
+  `return_to_menu()` stops battle/preview audio, clears tree pause and changes
+  to the main menu. HUD emits `menu_requested` from pause and result screens.
 
 - `scripts/audio/battle_audio.gd` is scene-owned presentation, initialized by
   Arena with explicit knight/horde/site references. Knight emits warning,
@@ -113,11 +136,14 @@ signal-up/call-down composition conventions.
   zombie voices, and ReinforcementVisual emits availability transitions for
   stone sounds. Horde commands/accepted sprint/movement drive feedback and
   shared footsteps; count statistics distinguish recruitment from expiry.
-  Eleven single-voice AudioStreamPlayers bound concurrency; no
+  Eleven single-voice effect players and one music player bound concurrency; no
   per-agent players, autoload, event bus or runtime network access. Pitch
   variation uses its own random generator. Arena stops gameplay voices at
   outcome and requests a single victory/defeat cue; restart removes that too.
   Inherited processing pauses playback and cooldowns with the tree.
+  Arena calls `start_music()` only when the first command starts the battle.
+  The selected Undead March loops quietly; `stop_all()` includes music, so
+  outcomes and restart leave no background playback behind.
 - `scripts/ui/battle_hud.gd` formats the current knight/horde/site state into
   labels and progress bars. A delayed health trail eases presentation while
   authoritative health updates immediately; this pauses with gameplay. The HUD

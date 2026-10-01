@@ -1,0 +1,116 @@
+[gd_scene load_steps=12 format=3]
+
+[ext_resource type="Script" path="res://scripts/visuals/menu_diorama.gd" id="1_script"]
+[ext_resource type="PackedScene" path="res://assets/characters/zombie.glb" id="2_zombie"]
+[ext_resource type="PackedScene" path="res://assets/characters/medieval_knight.glb" id="3_knight"]
+[ext_resource type="PackedScene" path="res://scenes/components/environment/tombstone.tscn" id="4_grave"]
+[ext_resource type="PackedScene" path="res://scenes/components/environment/scrub_cluster.tscn" id="5_scrub"]
+[ext_resource type="PackedScene" path="res://scenes/components/environment/rock_cluster.tscn" id="6_rock"]
+
+[sub_resource type="Environment" id="Environment"]
+background_mode = 1
+background_color = Color(0.055, 0.070, 0.059, 1)
+ambient_light_source = 3
+ambient_light_color = Color(0.7, 0.77, 0.66, 1)
+ambient_light_energy = 0.65
+tonemap_mode = 0
+
+[sub_resource type="StandardMaterial3D" id="Earth"]
+albedo_color = Color(0.18, 0.22, 0.135, 1)
+roughness = 1.0
+
+[sub_resource type="CylinderMesh" id="Island"]
+material = SubResource("Earth")
+top_radius = 5.3
+bottom_radius = 4.7
+height = 0.45
+radial_segments = 12
+
+[sub_resource type="StandardMaterial3D" id="Backdrop"]
+albedo_color = Color(0.065, 0.082, 0.063, 1)
+roughness = 1.0
+
+[sub_resource type="PlaneMesh" id="Floor"]
+material = SubResource("Backdrop")
+size = Vector2(200, 200)
+
+[node name="MenuDiorama" type="Node3D"]
+script = ExtResource("1_script")
+
+[node name="Environment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment")
+
+[node name="KeyLight" type="DirectionalLight3D" parent="."]
+rotation_degrees = Vector3(-48, -32, 0)
+light_color = Color(1, 0.86, 0.63, 1)
+light_energy = 1.25
+shadow_enabled = true
+
+[node name="RimLight" type="DirectionalLight3D" parent="."]
+rotation_degrees = Vector3(-25, 135, 0)
+light_color = Color(0.56, 0.76, 0.76, 1)
+light_energy = 0.7
+
+[node name="Camera" type="Camera3D" parent="."]
+position = Vector3(5, 6, 12)
+projection = 1
+size = 9.8
+current = true
+
+[node name="Floor" type="MeshInstance3D" parent="."]
+position = Vector3(0, -0.5, 0)
+mesh = SubResource("Floor")
+
+[node name="Island" type="MeshInstance3D" parent="."]
+position = Vector3(0, -0.23, 0)
+mesh = SubResource("Island")
+cast_shadow = 0
+
+[node name="Characters" type="Node3D" parent="."]
+
+[node name="Knight" parent="Characters" instance=ExtResource("3_knight")]
+position = Vector3(0.3, 0, -1.8)
+rotation_degrees = Vector3(0, 192, 0)
+scale = Vector3(1.1, 1.1, 1.1)
+
+[node name="Leader" parent="Characters" instance=ExtResource("2_zombie")]
+position = Vector3(0, 0, 1.8)
+rotation_degrees = Vector3(0, 200, 0)
+scale = Vector3(1.05, 1.05, 1.05)
+
+[node name="Left" parent="Characters" instance=ExtResource("2_zombie")]
+position = Vector3(-2.1, 0, 0.7)
+rotation_degrees = Vector3(0, 220, 0)
+scale = Vector3(0.83, 0.83, 0.83)
+
+[node name="Right" parent="Characters" instance=ExtResource("2_zombie")]
+position = Vector3(2.0, 0, 1.1)
+rotation_degrees = Vector3(0, 162, 0)
+scale = Vector3(0.9, 0.9, 0.9)
+
+[node name="Rear" parent="Characters" instance=ExtResource("2_zombie")]
+position = Vector3(-2.0, 0, -1.8)
+rotation_degrees = Vector3(0, 172, 0)
+scale = Vector3(0.75, 0.75, 0.75)
+
+[node name="GraveLeft" parent="." instance=ExtResource("4_grave")]
+position = Vector3(-3.5, 0, -0.5)
+rotation_degrees = Vector3(0, 26, -8)
+
+[node name="GraveRight" parent="." instance=ExtResource("4_grave")]
+position = Vector3(3.1, 0, -1.5)
+rotation_degrees = Vector3(0, -16, 5)
+
+[node name="GraveRear" parent="." instance=ExtResource("4_grave")]
+position = Vector3(-0.5, 0, -3.8)
+rotation_degrees = Vector3(0, 18, 0)
+
+[node name="ScrubFront" parent="." instance=ExtResource("5_scrub")]
+position = Vector3(-1.7, 0, 3.7)
+
+[node name="ScrubRight" parent="." instance=ExtResource("5_scrub")]
+position = Vector3(3.4, 0, 2.1)
+
+[node name="Rocks" parent="." instance=ExtResource("6_rock")]
+position = Vector3(2.5, 0, -3.7)
+scale = Vector3(0.7, 0.7, 0.7)

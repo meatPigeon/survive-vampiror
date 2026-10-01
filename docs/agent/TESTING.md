@@ -4,10 +4,27 @@ Run from the project root with Godot 4.7. No external test addon is needed.
 
 ## Automated Checks
 
+Web release: `godot --headless --path . --export-release Web output/web/index.html`.
+Serve `output/web` over HTTP (not file://) and check a fresh browser context:
+menu/mode choice, WASD, Esc, R, readable arrow/diamond glyphs, audio after a user
+gesture, and no console/resource errors. No isolation headers are required.
+The October 1 ZIP was CRC-checked and matched against the browser-tested files.
+
 ```sh
 godot --headless --path . --editor --quit
+godot --headless --path . --script res://tests/game_modes_smoke.gd --fixed-fps 60
+godot --headless --path . --script res://tests/mounted_rush_smoke.gd --fixed-fps 60
+godot --headless --path . --script res://tests/upgrade_cards_smoke.gd --fixed-fps 60
+godot --headless --path . --script res://tests/sprint_perk_smoke.gd --fixed-fps 60
+godot --headless --path . --script res://tests/zombie_identity_smoke.gd --fixed-fps 60
+godot --headless --path . --script res://tests/motion_air_smoke.gd --fixed-fps 60
+godot --headless --path . --script res://tests/manual_sling_smoke.gd
+godot --headless --path . --script res://tests/round_rewards_smoke.gd
+godot --headless --path . --script res://tests/horde_ability_smoke.gd
+godot --headless --path . --script res://tests/camera_zoom_smoke.gd
 godot --headless --path . --script res://tests/prototype_smoke.gd --fixed-fps 60
 godot --headless --path . --script res://tests/combat_smoke.gd --fixed-fps 60
+godot --headless --path . --script res://tests/knight_waves_smoke.gd --fixed-fps 60
 godot --headless --path . --script res://tests/reinforcement_smoke.gd --fixed-fps 60
 godot --headless --path . --script res://tests/recruitment_flow.gd --fixed-fps 60
 godot --headless --path . --script res://tests/reinforcement_visual_smoke.gd --fixed-fps 60
@@ -18,6 +35,7 @@ godot --headless --path . --script res://tests/targeting_smoke.gd --fixed-fps 60
 godot --headless --path . --script res://tests/combat_balance.gd --fixed-fps 60
 godot --headless --path . --script res://tests/character_assets.gd
 godot --headless --path . --script res://tests/audio_smoke.gd
+godot --headless --path . --script res://tests/perk_audio_smoke.gd
 godot --headless --path . --script res://tests/menu_smoke.gd
 ```
 
@@ -31,16 +49,97 @@ Record those separately from assertion results; do not treat a PASS line as a
 clean log. The real-time audio check and rendered recruitment flow complete
 without those shutdown warnings in the current verification.
 
-- **Prototype smoke:** combat-disabled fixture for initial crowd, real mouse
-  projection, rejected input, movement, redirect, separation, corner clamps,
-  resize, model instances, facing and idle/run transitions. Viewport checks at
-  16:10, 16:9, 4:3 and 21:9 assert full-window rendering, visible arena corners
-  and character heads, accurate clicks, and rejection of the visual surround.
-  Capture mode also saves `/tmp/survive_vampiror_viewport_*.png`.
-  Corner destinations/resize edges use actual floor bounds. The corner allows
-  a 5.5-unit gathering radius because separation packs 40 agents into a quarter
-  of the floor; central targets retain 5.0. Both retain minimum pair separation
-  and per-agent boundary assertions.
+- **Game modes smoke:** all five attacks in both modes against a permanent
+  zombie and a 120-HP temporary zombie, unchanged warnings/misses, exclusive
+  mouse/keyboard menu selection, all three knights, pause/result restart,
+  immediate permanent-wipe cancellation, menu carryover and switching back to
+  Newbie. Render with `-- --capture` for `/tmp/survive_modes_*.png`, including
+  expanded audio at 960 × 600 and the in-game mode readout.
+- **Mounted rush smoke:** wave-three-only selection, stationary warning,
+  acceleration/turn limits, inertial reversal and running past the target,
+  moving marker without mesh rebuilding, coarse/fine-step equivalence,
+  once-per-zombie swept damage, wall and timed recovery, terminal cancellation,
+  pause, death and restart. Actual WASD moves the crowd during the rendered
+  pursuit. Render with `-- --capture` for
+  `/tmp/survive_rush_{warning,pursuit,turn,overshoot}.png`.
+- **Upgrade cards smoke:** both illustrated pairs, correct art/key badges,
+  wrapped descriptions clear of footers, keyboard selection without immediate
+  claiming, exclusive switching, confirmation and skip. Cards and the skip
+  alternative fit 1280 × 800 and 960 × 600. Render with
+  `godot --display-driver x11 --disable-vsync --max-fps 60 --path . --script res://tests/upgrade_cards_smoke.gd --fixed-fps 60 -- --capture`
+  for `/tmp/survive_cards_{pair_0,pair_2,selected_small}.png`.
+  Regenerate the static illustrations with
+  `godot --path . --script res://tools/render_upgrade_art.gd`, then reimport.
+- **Sprint perk smoke:** no default input/HUD/pause hint, actual random reward
+  selection through card clicks, Space ownership independent of Q/E, no duplicate
+  offers/grants, cooldown, paused/intermission rejection, later-wave carryover,
+  skip and restart reset. Render with `-- --capture` for
+  `/tmp/survive_sprint_perk_{locked,card,unlocked}.png`.
+- **Zombie identity smoke:** permanent/recruit material isolation, shared recruit
+  overrides, solid/broken meshes, retained appearance under ability colors and
+  hit flash, permanent reward spawning, attached-cloth pause and expiry cleanup.
+  Render with `-- --capture` for `/tmp/survive_identity_*.png`: mixed 62-agent
+  horde at 1280 x 800 and 960 x 600, back/front pairs, ability markers and bite.
+- **Motion air smoke:** no idle/windup/crossbow arc, finite impact crescents,
+  unchanged roots, pause freeze, charge/mounted travel, zombie sprint versus
+  walking/blocked travel, stop/death and 60-agent cleanup. Render with
+  `godot --display-driver x11 --disable-vsync --max-fps 60 --path . --script res://tests/motion_air_smoke.gd --fixed-fps 60 -- --capture`
+  for `/tmp/survive_air_{sweep,spin,charge,mounted,sprint,crowd,arena}.png`.
+- **Knight waves smoke:** three-wave health/equipment progression, carryover of
+  living horde objects and wounds, frozen intermission timers, pause/restart,
+  no early victory, terminal loss during a break and final victory. Crossbow
+  checks cover ranged selection, warning before launch, locked aim, dodging,
+  lethal piercing through permanent/temporary/increased-HP targets, front-to-back
+  hits independent of list order, safe live-list removal, side/range misses,
+  pause, death cleanup and same-tick cancellation on permanent wipe.
+  Mounted pursuit changes actual motion. Render with
+  `-- --capture` for `/tmp/survive_waves_*.png` arena and equipment close-ups.
+  Other component scenarios explicitly select the final wave when testing
+  terminal behavior rather than exercising all transitions repeatedly.
+  Capture mode also writes `/tmp/survive_piercing_{before,after}.png`.
+- **Camera zoom smoke:** actual wheel events verify direction, smoothing,
+  near/far limits, mobile-horde centering and following actual WASD movement,
+  preserved angle/height, excluded detached mines, and holding focus without
+  mobile agents. Also covers key release, pause during follow, resize retention,
+  overview restoration, outcome zoom guards and restart position/scale reset.
+  Render with `godot --display-driver x11 --disable-vsync --max-fps 60 --path . --script res://tests/camera_zoom_smoke.gd -- --capture`
+  for `/tmp/survive_zoom_{default,near,follow,follow_small,far}.png`.
+  Run in real time for camera easing; manual sling smoke checks projection with
+  the moving/zooming camera.
+- **Manual sling smoke:** actual keyboard/mouse input verifies aim without firing,
+  ground projection, circle visibility, range/arena-edge rejection, off-screen
+  pointer, free cancel, independent movement/other ability, UI click isolation,
+  pause/focus/wave/restart cleanup, stationary-cursor zoom and resized targeting.
+  A seeded 32-shot sample checks landings stay in the indicated disk, vary, and
+  produce both hits and misses; each damage result must match actual impact
+  distance. Legacy ability smoke retains zero-spread hit/dodge/expiry fixtures.
+  Render with `godot --display-driver x11 --disable-vsync --max-fps 60 --path . --script res://tests/manual_sling_smoke.gd -- --capture`;
+  inspect `/tmp/survive_sling_{aim,range,small,flight}.png`.
+- **Horde ability smoke:** actual Q/HUD input, start/pause/cooldown guards,
+  half-horde detachment, range damage and sacrifice counts, early death,
+  sling hit/miss/ammo/expiry, feast cadence/healing/cap/no resurrection,
+  intermission freeze and target rebinding, cleared selection on restart,
+  last-permanent sacrifice defeat, and a full 40-agent fuse through normal
+  Arena ticking. Focused fixtures stop automatic combat to isolate costs and
+  timing. Render with `-- --capture` for `/tmp/survive_ability_*.png`.
+- **Round rewards smoke:** first wave has no ability; exactly two distinct unowned
+  cards appear after intermediate wins. Pointer selection/confirmation and skip,
+  indefinite freeze, pause/resume with the same offer, one-time claims, and
+  exactly +10 healthy permanent members above the grave cap are covered. Check
+  retained wounds/lifetimes, second-card addition, physical Q/E and independent
+  cooldowns, mine/sling ownership, feast marker restoration, final-win exclusion,
+  permanent-wipe guards and complete restart reset. Wave cleared fade/scale and
+  the large countdown freeze on pause; the number follows Arena time, remains
+  hidden before reward resolution and clears on next wave/result/restart.
+  Normal/small layout captures cover the announcement and countdown. Render with
+  `godot --display-driver x11 --disable-vsync --max-fps 60 --path . --script res://tests/round_rewards_smoke.gd -- --capture`;
+  images are `/tmp/survive_rewards_{two_cards,selected_small,countdown,countdown_small,bonus_horde,second_ability,two_abilities_hud}.png`.
+- **Prototype smoke:** real physical WASD press/release events verify start,
+  whole-crowd movement, normalized diagonals, opposing keys, non-English layouts,
+  immediate stopping/idle, sprint, pause/focus clearing and corner bounds.
+  Floor clicks are rejected. Viewport checks cover 16:10, 16:9, 4:3 and 21:9,
+  full-window rendering, visible arena corners/heads and unchanged key direction
+  after resizing. Capture mode saves `/tmp/survive_vampiror_*.png`.
 - **Combat smoke:** health/death contract, bite range/cooldown, sweep arc,
   escaping a warning, charge movement and fixed warning, no repeated charge
   hits or hits beyond the rectangle, spin radius, HP phase thresholds, immediate
@@ -55,7 +154,7 @@ without those shutdown warnings in the current verification.
   combat death versus expiry statistics, defeat with temporary survivors,
   immediate stop within a knight hit loop, pause/resume, victory freeze and reset.
   Render with `-- --capture` for `/tmp/survive_reinforcement_*.png`.
-- **Recruitment flow:** real viewport clicks and normal horde movement drive
+- **Recruitment flow:** real physical WASD events and normal horde movement drive
   successive summons of 12, 8 and 1. Verify cap-limited visits close completely,
   standing at a used site after a casualty cannot refill, cooldown pause/outcome
   freeze, a different next site and restart. Knight attacks alone are disabled
@@ -71,12 +170,21 @@ without those shutdown warnings in the current verification.
   `/tmp/survive_graves_{inactive,rising,active,sinking,closed}.png`.
   Add `--wide` after `--capture` to retain the arena camera/HUD and write
   `/tmp/survive_graves_wide_*.png` instead.
+- **Perk audio smoke:** finite assets/Effects routing, accepted versus rejected
+  activation, one blast for a mine batch, no blast after early mine deaths,
+  manual sling aim/cancel/launch/landing/miss/expiry, both slots, natural feast
+  expiry without repeat, pause, wave break, next-wave continuation, outcome and
+  restart cleanup. Run in real time, without `--fixed-fps`. Use
+  `godot --display-driver x11 --disable-vsync --max-fps 60 --path . --script res://tests/perk_audio_smoke.gd -- --record`
+  for `/tmp/survive_perk_audio_check.wav` and three event frames
+  `/tmp/survive_perk_audio_{mines,sling,feast}.png`. Inspect levels separately;
+  signal assertions and recording are not subjective listening approval.
 - **Audio smoke:** initial silence, loaded non-looping effects, one voice per
   category, distinct attack warnings, confirmed hits versus misses, one contact
   per multi-victim attack, throttled bites/casualties/recruitment, no combat grunt on expiry,
   grave rotation/depletion, actual-travel footsteps, command throttling, accepted
   versus rejected sprint, bite contact and batched expiry. Pause, both outcomes,
-  one-shot result cues and restart cleanup are covered. The selected march starts
+  one-shot result cues and restart cleanup are covered. Graveyard Groove starts
   with the first command, survives repeated commands without resetting, freezes
   on pause, resumes the same playback and wraps across its loop boundary.
   Outcome/restart checks include stopping music. Run without
@@ -84,7 +192,7 @@ without those shutdown warnings in the current verification.
   simulation time. On the Linux test desktop, use
   `godot --display-driver x11 --disable-vsync --max-fps 60 --path . --script res://tests/audio_smoke.gd -- --record`
   to record the Master bus through these scenarios and 12 seconds of actual
-  viewport-click combat to `/tmp/survive_audio_check.wav`; the arena frame is
+  keyboard-driven combat to `/tmp/survive_audio_check.wav`; the arena frame is
   `/tmp/survive_audio_battle.png`. No microphone or API call is used.
 - **UI smoke (UI branch):** real viewport clicks for pause/resume/sprint/replay,
   modal command blocking, pre-start state, cooldown display, frozen gameplay,
@@ -92,7 +200,10 @@ without those shutdown warnings in the current verification.
   victory/defeat controls, reset and small-window layout.
   Render via `godot --path . --script res://tests/ui_smoke.gd --fixed-fps 60 -- --capture`;
   screenshots are `/tmp/survive_ui_{ready,pause,victory,critical,defeat,small}.png`.
-- **Menu smoke:** actual startup scene, Play/Quit and return from pause/result,
+- **Menu smoke:** actual startup scene, animated visual-only diorama, collapsed/
+  expanded audio, Undead March on the title and Graveyard Groove after entry,
+  Raise the horde directly into an unmodified horde,
+  Quit and return from pause/result,
   music/effect bus routing, independent slider gain/mute, preservation through
   restart/scene changes, no ground-click leak, settings usable on pause, keyboard
   sprint after closing settings and control bounds at 1280 × 800 / 960 × 600.
@@ -116,15 +227,18 @@ without those shutdown warnings in the current verification.
   group damage, aiming a sector between groups, and locked direction after the
   crowd moves during windup. `--capture` with a graphical Godot run saves
   `/tmp/survive_targeting_sweep.png` and `charge.png` (same filename prefix).
-- **Combat balance:** actual viewport mouse/keyboard input. Passive and reckless
+- **Combat balance:** actual viewport physical WASD/Space input. Passive and reckless
   chasing must lose; active pilots with 0.37 and 0.50 s reaction delays must win
-  within five minutes with permanent survivors, visit all phases/attacks and
-  use temporary reinforcements. The fixture registers its current scene, and
-  the pilot stops sending commands immediately on outcome so a final ground
-  click cannot activate replay through the result modal. The pilot reacts to visible warning geometry and named
+  within ten minutes with permanent survivors, clear all three waves, visit all
+  HP phases and four attacks, and
+  use temporary reinforcements. The pilot takes a card at each reward screen
+  but does not activate Q/E. It begins without sprint, uses fixed reward seeds
+  and prefers Sprint only when offered; later Space requests require ownership.
+  The fixture registers its current scene, and
+  the pilot releases held keys on outcome. The pilot reacts to visible warning geometry and named
   attack type, visits the active site when fewer than eight temporary zombies remain and
   the visible window allows travel/occupation, and uses sprint when dodging
-  charges/spins. It abandons a site when inactive, exhausted or the horde is full. It never teleports agents or changes HP in full runs.
+  charges/spins and ranged warnings. It abandons a site when inactive, exhausted or the horde is full. It never teleports agents or changes HP in full runs.
 - **Character assets:** unchanged GLB skin binding, idle/run names/durations,
   looping, root stability and foot/head motion.
 
@@ -157,10 +271,13 @@ godot --path . --script res://tests/prototype_smoke.gd --fixed-fps 60 -- --captu
 
 ## Manual Check
 
-Launch `godot --path .` or F5 in the editor.
+Launch `godot --path .` or F5 in the editor. After each of the first two
+knight defeats, confirm the countdown, surviving-horde carryover and new gear.
+Wave two adds the cyan crossbow line; wave three adds the horse. Only the third
+defeat should open Victory. Human feel and difficulty remain a manual check.
 
-1. Confirm the arena waits while you read controls; first click starts the fight.
-2. Command/redirect the whole horde. Space accelerates toward its current target,
+1. Confirm the arena waits while you read controls; first WASD movement starts the fight; floor clicks do nothing.
+2. Hold WASD to direct the whole horde, release to stop. Space accelerates movement,
    and repeated presses do not bypass the cooldown.
 3. Dodge the orange sector sideways, leave the yellow charge lane, and retreat
    outside the purple circle. Return during recovery to bite the knight.
@@ -179,7 +296,7 @@ Launch `godot --path .` or F5 in the editor.
 7. Kill the knight, or lose the last permanent while temporary zombies survive.
    Confirm result, separate killed/expired statistics and stopped combat/timers.
 8. Restart; verify full HP, 40 permanent zombies, zero temporary zombies, phase 1,
-   inactive sites, cleared statistics and ready sprint.
+   inactive sites, cleared statistics and sprint locked again.
 9. Listen for distinct warning pulses, swing/hit/bite sounds, sparse grunts and
    grave motion. Steps follow movement; commands, sprint, recruitment and expiry
    have cues. Confirm pause freezes voices, outcome leaves only a result cue and

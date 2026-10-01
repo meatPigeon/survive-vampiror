@@ -1,25 +1,53 @@
-[gd_scene load_steps=10 format=3]
+[gd_scene load_steps=17 format=3]
 
 [ext_resource type="Script" path="res://scripts/ui/main_menu.gd" id="1_script"]
 [ext_resource type="PackedScene" path="res://scenes/ui/audio_controls.tscn" id="2_audio"]
 [ext_resource type="AudioStream" path="res://assets/audio/undead_march.ogg" id="3_music"]
 
-[sub_resource type="SystemFont" id="TitleFont"]
-font_names = PackedStringArray("Noto Serif", "Georgia", "Times New Roman")
+[ext_resource type="PackedScene" path="res://scenes/components/menu_diorama.tscn" id="4_diorama"]
+
+[ext_resource type="FontVariation" path="res://assets/fonts/title.tres" id="TitleFont"]
+
+[sub_resource type="Gradient" id="Shade"]
+offsets = PackedFloat32Array(0, 0.34, 0.6, 1)
+colors = PackedColorArray(0.055, 0.07, 0.059, 1, 0.055, 0.07, 0.059, 0.98, 0.055, 0.07, 0.059, 0, 0.055, 0.07, 0.059, 0)
+
+[sub_resource type="GradientTexture2D" id="ShadeTexture"]
+gradient = SubResource("Shade")
+width = 512
+height = 32
+fill_from = Vector2(0, 0)
+fill_to = Vector2(1, 0)
+
+[sub_resource type="StyleBoxFlat" id="SettingsPanel"]
+bg_color = Color(0.035, 0.05, 0.04, 0.85)
+content_margin_left = 20.0
+content_margin_right = 20.0
+content_margin_top = 14.0
+content_margin_bottom = 14.0
+border_width_left = 2
+border_color = Color(0.57, 0.61, 0.4, 0.7)
 
 [sub_resource type="StyleBoxFlat" id="Play"]
-bg_color = Color(0.72, 0.81, 0.60, 1)
-corner_radius_top_left = 5
-corner_radius_top_right = 5
-corner_radius_bottom_left = 5
-corner_radius_bottom_right = 5
+bg_color = Color(0.43, 0.14, 0.11, 1)
+border_width_bottom = 4
+border_color = Color(0.23, 0.07, 0.06, 1)
+shadow_color = Color(0, 0, 0, 0.3)
+shadow_size = 6
+shadow_offset = Vector2(0, 4)
+corner_radius_top_left = 2
+corner_radius_top_right = 2
+corner_radius_bottom_left = 2
+corner_radius_bottom_right = 2
 
 [sub_resource type="StyleBoxFlat" id="PlayHover"]
-bg_color = Color(0.84, 0.90, 0.74, 1)
-corner_radius_top_left = 5
-corner_radius_top_right = 5
-corner_radius_bottom_left = 5
-corner_radius_bottom_right = 5
+bg_color = Color(0.57, 0.22, 0.15, 1)
+border_width_bottom = 4
+border_color = Color(0.31, 0.09, 0.07, 1)
+corner_radius_top_left = 2
+corner_radius_top_right = 2
+corner_radius_bottom_left = 2
+corner_radius_bottom_right = 2
 
 [sub_resource type="StyleBoxFlat" id="Focus"]
 bg_color = Color(0, 0, 0, 0)
@@ -38,6 +66,19 @@ corner_radius_bottom_left = 7
 corner_radius_bottom_right = 7
 
 [sub_resource type="StyleBoxEmpty" id="Empty"]
+
+[sub_resource type="StyleBoxFlat" id="ModeIdle"]
+bg_color = Color(0.08, 0.105, 0.085, 0.9)
+border_width_bottom = 2
+border_color = Color(0.26, 0.31, 0.23, 1)
+
+[sub_resource type="StyleBoxFlat" id="ModeSelected"]
+bg_color = Color(0.20, 0.26, 0.15, 1)
+border_width_bottom = 3
+border_color = Color(0.69, 0.74, 0.49, 1)
+
+[sub_resource type="ButtonGroup" id="Modes"]
+resource_local_to_scene = true
 
 [sub_resource type="Theme" id="MenuTheme"]
 default_font_size = 17
@@ -68,83 +109,172 @@ anchor_bottom = 1.0
 mouse_filter = 2
 color = Color(0.055, 0.070, 0.059, 1)
 
-[node name="Margin" type="MarginContainer" parent="."]
+[node name="Diorama" type="SubViewportContainer" parent="."]
 layout_mode = 1
-anchors_preset = 15
+anchor_left = 0.34
 anchor_right = 1.0
 anchor_bottom = 1.0
-theme_override_constants/margin_left = 32
-theme_override_constants/margin_right = 32
+mouse_filter = 2
+stretch = true
+
+[node name="Viewport" type="SubViewport" parent="Diorama"]
+handle_input_locally = false
+size = Vector2i(845, 800)
+render_target_update_mode = 4
+own_world_3d = true
+msaa_3d = 2
+
+[node name="Stage" parent="Diorama/Viewport" instance=ExtResource("4_diorama")]
+
+[node name="Shade" type="TextureRect" parent="."]
+layout_mode = 1
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+texture = SubResource("ShadeTexture")
+expand_mode = 1
+
+[node name="Margin" type="MarginContainer" parent="."]
+layout_mode = 1
+anchor_right = 0.42
+anchor_bottom = 1.0
+theme_override_constants/margin_left = 72
+theme_override_constants/margin_right = 8
 theme_override_constants/margin_top = 32
 theme_override_constants/margin_bottom = 32
+mouse_filter = 2
 
 [node name="Center" type="CenterContainer" parent="Margin"]
 layout_mode = 2
-
-[node name="Content" type="HBoxContainer" parent="Margin/Center"]
-custom_minimum_size = Vector2(720, 380)
-layout_mode = 2
-theme_override_constants/separation = 64
-
-[node name="Introduction" type="VBoxContainer" parent="Margin/Center/Content"]
-custom_minimum_size = Vector2(356, 0)
-layout_mode = 2
-size_flags_horizontal = 3
-theme_override_constants/separation = 18
-alignment = 1
-
-[node name="Title" type="Label" parent="Margin/Center/Content/Introduction"]
-layout_mode = 2
-theme_override_fonts/font = SubResource("TitleFont")
-theme_override_font_sizes/font_size = 62
-theme_override_constants/line_spacing = -10
-text = "Survive\nVampiror"
-
-[node name="Description" type="Label" parent="Margin/Center/Content/Introduction"]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.64, 0.68, 0.60, 1)
-theme_override_constants/line_spacing = 5
-text = "Lead the horde.\nBring down the last knight."
-
-[node name="Space" type="Control" parent="Margin/Center/Content/Introduction"]
-custom_minimum_size = Vector2(0, 8)
-layout_mode = 2
 mouse_filter = 2
 
-[node name="PlayButton" type="Button" parent="Margin/Center/Content/Introduction"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 54)
+[node name="Content" type="VBoxContainer" parent="Margin/Center"]
+custom_minimum_size = Vector2(410, 0)
 layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="Kicker" type="Label" parent="Margin/Center/Content"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 13
+theme_override_colors/font_color = Color(0.69, 0.74, 0.49, 1)
+text = "THE DEAD MARCH AGAIN"
+
+[node name="Title" type="Label" parent="Margin/Center/Content"]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("TitleFont")
+theme_override_font_sizes/font_size = 62
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.5)
+theme_override_constants/shadow_offset_y = 4
+theme_override_constants/line_spacing = -10
+text = "SURVIVE\nVAMPIROR"
+
+[node name="Description" type="Label" parent="Margin/Center/Content"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.69, 0.72, 0.61, 1)
+theme_override_constants/line_spacing = 5
+text = "One knight. Your entire horde.\nBring him down before the last of you falls."
+
+[node name="Mode" type="VBoxContainer" parent="Margin/Center/Content"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="Choices" type="HBoxContainer" parent="Margin/Center/Content/Mode"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="NewbieButton" type="Button" parent="Margin/Center/Content/Mode/Choices"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 44)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_styles/normal = SubResource("ModeIdle")
+theme_override_styles/hover = SubResource("ModeIdle")
+theme_override_styles/pressed = SubResource("ModeSelected")
+theme_override_styles/hover_pressed = SubResource("ModeSelected")
+toggle_mode = true
+button_pressed = true
+button_group = SubResource("Modes")
+text = "Newbie"
+
+[node name="NormalButton" type="Button" parent="Margin/Center/Content/Mode/Choices"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 44)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_styles/normal = SubResource("ModeIdle")
+theme_override_styles/hover = SubResource("ModeIdle")
+theme_override_styles/pressed = SubResource("ModeSelected")
+theme_override_styles/hover_pressed = SubResource("ModeSelected")
+toggle_mode = true
+button_group = SubResource("Modes")
+text = "Normal"
+
+[node name="ModeHint" type="Label" parent="Margin/Center/Content/Mode"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 15
+theme_override_colors/font_color = Color(0.69, 0.72, 0.61, 1)
+text = "Reduced damage. Crossbow bolts still kill."
+
+[node name="PlayButton" type="Button" parent="Margin/Center/Content"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 66)
+layout_mode = 2
+theme_override_fonts/font = ExtResource("TitleFont")
+theme_override_font_sizes/font_size = 28
 theme_override_styles/normal = SubResource("Play")
 theme_override_styles/hover = SubResource("PlayHover")
 theme_override_styles/pressed = SubResource("PlayHover")
-theme_override_colors/font_color = Color(0.08, 0.11, 0.08, 1)
-theme_override_colors/font_hover_color = Color(0.08, 0.11, 0.08, 1)
-theme_override_colors/font_pressed_color = Color(0.08, 0.11, 0.08, 1)
-theme_override_colors/font_focus_color = Color(0.08, 0.11, 0.08, 1)
-text = "Play"
+theme_override_colors/font_color = Color(0.97, 0.91, 0.77, 1)
+theme_override_colors/font_hover_color = Color(1, 0.96, 0.85, 1)
+theme_override_colors/font_pressed_color = Color(1, 0.96, 0.85, 1)
+theme_override_colors/font_focus_color = Color(0.97, 0.91, 0.77, 1)
+text = "Raise the horde  →"
 
-[node name="QuitButton" type="Button" parent="Margin/Center/Content/Introduction"]
+[node name="Actions" type="HBoxContainer" parent="Margin/Center/Content"]
+layout_mode = 2
+theme_override_constants/separation = 24
+
+[node name="SettingsButton" type="Button" parent="Margin/Center/Content/Actions"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 36)
+size_flags_horizontal = 3
+layout_mode = 2
+toggle_mode = true
+text = "Audio"
+
+[node name="QuitButton" type="Button" parent="Margin/Center/Content/Actions"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 36)
+size_flags_horizontal = 3
 layout_mode = 2
 text = "Quit"
 
-[node name="Settings" type="VBoxContainer" parent="Margin/Center/Content"]
-custom_minimum_size = Vector2(280, 0)
+[node name="Settings" type="PanelContainer" parent="Margin/Center/Content"]
+unique_name_in_owner = true
+visible = false
 layout_mode = 2
-size_flags_vertical = 4
-theme_override_constants/separation = 24
-
-[node name="Heading" type="Label" parent="Margin/Center/Content/Settings"]
-layout_mode = 2
-theme_override_fonts/font = SubResource("TitleFont")
-theme_override_font_sizes/font_size = 26
-text = "Audio"
+theme_override_styles/panel = SubResource("SettingsPanel")
 
 [node name="AudioControls" parent="Margin/Center/Content/Settings" instance=ExtResource("2_audio")]
 unique_name_in_owner = true
 layout_mode = 2
+
+[node name="Footer" type="Label" parent="."]
+layout_mode = 1
+anchor_left = 0.5
+anchor_right = 1.0
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 0.0
+offset_right = -48.0
+offset_top = -50.0
+offset_bottom = -28.0
+mouse_filter = 2
+theme_override_font_sizes/font_size = 13
+theme_override_colors/font_color = Color(0.56, 0.61, 0.49, 1)
+text = "COMMAND THE HORDE  ·  BREAK THE HERO"
+horizontal_alignment = 2
 
 [node name="Music" type="AudioStreamPlayer" parent="."]
 stream = ExtResource("3_music")

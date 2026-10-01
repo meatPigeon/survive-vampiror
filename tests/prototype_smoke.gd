@@ -2,7 +2,7 @@ extends SceneTree
 
 var _failures: int = 0
 var _horde: HordeController
-var _camera: Camera3D
+var _pilot := preload("res://tests/support/horde_pilot.gd").new()
 
 
 func _initialize() -> void:
@@ -13,129 +13,107 @@ func _run() -> void:
 	root.size = Vector2i(1280, 800)
 	var scene: Node3D = load("res://scenes/main.tscn").instantiate()
 	root.add_child(scene)
-	# This fixture isolates crowd controls; combat has its own smoke test.
 	scene.set_physics_process(false)
-	_horde = scene.get_node("Horde") as HordeController
-	_camera = scene.get_node("Camera") as Camera3D
-	await _frames(2)
+	_horde = scene.horde
+	var camera: Camera3D = scene.get_node("Camera")
+	await _frames(3)
 	_check(_horde.agents.size() == 40, "40 individual agents spawn")
-	var survivor_visual: Node3D = scene.get_node("Survivor/Visual") as Node3D
-	var survivor_animator: AnimationPlayer = survivor_visual.get_node("AnimationPlayer") as AnimationPlayer
-	_check(survivor_visual.scene_file_path == "res://assets/characters/medieval_knight.glb", "survivor uses knight model")
-	_check(survivor_animator.current_animation == &"idle", "knight plays idle")
 	for agent: HordeAgent in _horde.agents:
-		_check(agent.visual.scene_file_path == "res://assets/characters/zombie.glb", "agent uses zombie model")
-		_check(agent.animation_player.current_animation == &"idle", "zombie starts idle")
-	var survivor_position: Vector3 = scene.get_node("Survivor").global_position
-	var initial_position: Vector3 = _horde.agents[0].global_position
+		_check(agent.visual.scene_file_path == "res://assets/characters/zombie.glb" and agent.animation_player.current_animation == &"idle", "zombies start with their idle model animation")
+	var before: Vector3 = _pilot.center(_horde)
 	await _frames(30)
-	_check(_horde.agents[0].global_position == initial_position, "horde waits for a command")
+	_check(_pilot.center(_horde) == before and not scene.battle_started, "ready horde waits for WASD")
 	await _capture("initial")
-
-	_click(Vector2(2, 2))
-	_click(_camera.unproject_position(Vector3(12, 0, -7)), MOUSE_BUTTON_RIGHT)
-	await _frames(2)
-	_check(not _horde.target_marker.visible, "off-floor and right clicks are ignored")
-
-	var target := Vector3(12, 0, -7)
-	_click(_camera.unproject_position(target))
-	await _frames(2)
-	_check(_horde.command_position.distance_to(target) < 0.01, "screen click projects onto ground")
-	_check(_horde.target_marker.visible, "command marker appears")
+	for button: MouseButton in [MOUSE_BUTTON_LEFT, MOUSE_BUTTON_RIGHT]:
+		var event := InputEventMouseButton.new()
+		event.position = camera.unproject_position(Vector3.ZERO)
+		event.button_index = button
+		event.pressed = true
+		root.push_input(event, true)
+		event.pressed = false
+		root.push_input(event, true)
+	_check(not scene.battle_started and _horde.move_direction == Vector3.ZERO, "floor clicks cannot move or start the horde")
+	_pilot.move(root, Vector2.RIGHT)
 	await _frames(120)
-	_check(_horde.agents[0].global_position.distance_to(target) < initial_position.distance_to(target) - 4.0,
-		"horde flows toward the command")
+	_check(scene.battle_started and _pilot.center(_horde).x > before.x + 4.0, "held D moves the whole horde right and starts battle")
 	for agent: HordeAgent in _horde.agents:
-		_check(agent.animation_player.current_animation == &"run", "moving zombie plays run")
-	var moving_agent: HordeAgent = _horde.agents[0]
-	var previous_position: Vector3 = moving_agent.global_position
-	await _frames(2)
-	var movement_direction: Vector3 = (moving_agent.global_position - previous_position).normalized()
-	_check((-moving_agent.visual.global_basis.z.normalized()).dot(movement_direction) > 0.9,
-		"zombie faces its movement direction")
+		_check(agent.animation_player.current_animation == &"run", "moving zombies run")
 	await _capture("moving")
-
-	# Redirect the moving crowd, then let it gather at the new target.
-	target = Vector3(-12, 0, -8)
-	_click(_camera.unproject_position(target))
-	await _frames(900)
-	_check_gathering(target, "redirect")
-	for agent: HordeAgent in _horde.agents:
-		_check(agent.animation_player.current_animation == &"idle", "gathered zombie returns to idle")
-	await _capture("gathered")
-
-	var corner: Vector2 = _horde.movement_bounds.end - Vector2(0.2, 0.2)
-	target = Vector3(corner.x, 0, corner.y)
-	_click(_camera.unproject_position(target))
-	await _frames(1800)
-	# At a corner, separation packs the crowd into only a quarter of the floor.
-	_check_gathering(target, "corner", 5.5)
-	for agent: HordeAgent in _horde.agents:
-		var safe_bounds: Rect2 = _horde.movement_bounds.grow(-agent.body_radius + 0.001)
-		_check(safe_bounds.has_point(Vector2(agent.global_position.x, agent.global_position.z)), "agent stays on floor")
-	_check(scene.get_node("Survivor").global_position == survivor_position, "survivor stays stationary")
-	_check(survivor_animator.current_animation == &"idle", "knight remains idle while horde moves")
-	await _capture("corner")
-
-	# The same screen-to-ground path must work after resizing the window.
-	root.size = Vector2i(960, 720)
+	_pilot.move(root, Vector2(1, -1))
+	_check(is_equal_approx(_horde.move_direction.length(), 1.0) and _horde.move_direction.z < 0.0, "W+D gives normalized screen-relative diagonal movement")
+	await _frames(60)
+	_pilot.move(root, Vector2.ZERO)
 	await _frames(2)
-	target = Vector3(6, 0, -3)
-	_click(_camera.unproject_position(target))
-	await _frames(1000)
-	_check(_horde.command_position.distance_to(target) < 0.01, "click projection survives resize")
-	_check_gathering(target, "survivor")
-	await _capture("survivor")
-
-	# Fit the whole arena after resize, including character heads near its edges.
+	var positions: Array[Vector3] = []
+	for agent: HordeAgent in _horde.agents:
+		positions.append(agent.global_position)
+	await _frames(30)
+	for index: int in range(_horde.agents.size()):
+		_check(_horde.agents[index].global_position == positions[index] and _horde.agents[index].animation_player.current_animation == &"idle", "releasing WASD stops every zombie and restores idle")
+	await _capture("stopped")
+	# Physical positions work on non-English layouts; opposing keys cancel.
+	var physical := InputEventKey.new()
+	physical.keycode = KEY_Z
+	physical.physical_keycode = KEY_W
+	physical.pressed = true
+	root.push_input(physical, true)
+	_check(_horde.move_direction.is_equal_approx(Vector3.FORWARD), "physical W works independently of the printed letter")
+	_pilot.key(root, KEY_S, true)
+	_check(_horde.move_direction == Vector3.ZERO, "W+S cancel")
+	_pilot.key(root, KEY_W, false)
+	_check(_horde.move_direction.is_equal_approx(Vector3.BACK), "releasing one opposing key preserves the other")
+	_pilot.key(root, KEY_S, false)
+	_pilot.move(root, Vector2.LEFT)
+	_pilot.key(root, KEY_SPACE, true)
+	_pilot.key(root, KEY_SPACE, false)
+	_check(_horde.sprint_remaining == 0.0, "Space stays locked without the sprint perk")
+	_horde.grant_ability(HordeAbility.Upgrade.SPRINT)
+	_pilot.key(root, KEY_SPACE, true)
+	_pilot.key(root, KEY_SPACE, false)
+	_check(_horde.sprint_remaining > 0.0, "Space sprints during WASD movement")
+	await _frames(5)
+	scene.toggle_pause()
+	before = _pilot.center(_horde)
+	await _frames(20)
+	_check(_pilot.center(_horde) == before and _horde.move_direction == Vector3.ZERO, "pause freezes movement and clears held intent")
+	_pilot.move(root, Vector2.ZERO)
+	_pilot.move(root, Vector2.RIGHT)
+	_check(_horde.move_direction == Vector3.ZERO, "WASD is ignored on pause")
+	_pilot.move(root, Vector2.ZERO)
+	scene.toggle_pause()
+	_pilot.move(root, Vector2.RIGHT)
+	await _frames(5)
+	root.focus_exited.emit()
+	_check(_horde.move_direction == Vector3.ZERO, "focus loss clears held keys")
+	_pilot.move(root, Vector2.ZERO)
+	_pilot.move(root, Vector2(1, 1))
+	await _frames(1100)
+	for agent: HordeAgent in _horde.agents:
+		_check(_horde.movement_bounds.grow(-agent.body_radius + 0.001).has_point(Vector2(agent.global_position.x, agent.global_position.z)), "WASD crowd stays inside the arena at a corner")
+	_pilot.move(root, Vector2.ZERO)
+	await _capture("corner")
 	for window_size: Vector2i in [Vector2i(1280, 800), Vector2i(1152, 648), Vector2i(960, 720), Vector2i(1120, 480)]:
 		root.size = window_size
 		await _frames(3)
 		var viewport_rect: Rect2 = root.get_visible_rect()
-		var rendered_rect: Rect2 = root.get_stretch_transform() * viewport_rect
-		_check(rendered_rect.size.is_equal_approx(Vector2(root.size)), "viewport fills resized window without letterboxing")
+		_check((root.get_stretch_transform() * viewport_rect).size.is_equal_approx(Vector2(root.size)), "viewport fills resized window")
 		for x: float in [_horde.movement_bounds.position.x, _horde.movement_bounds.end.x]:
 			for z: float in [_horde.movement_bounds.position.y, _horde.movement_bounds.end.y]:
 				for y: float in [0.0, 2.3]:
-					_check(viewport_rect.has_point(_camera.unproject_position(Vector3(x, y, z))), "playable edges and character heads stay visible after resize")
-		_click(_camera.unproject_position(target))
-		await _frames(2)
-		_check(_horde.command_position.distance_to(target) < 0.01, "ground command remains accurate at each aspect ratio")
-		_click(Vector2(2, 2))
-		await _frames(2)
-		_check(_horde.command_position.distance_to(target) < 0.01, "visual surround does not expand command bounds")
+					_check(viewport_rect.has_point(camera.unproject_position(Vector3(x, y, z))), "arena and heads remain visible")
+		_pilot.move(root, Vector2.LEFT)
+		_check(_horde.move_direction.is_equal_approx(Vector3.LEFT), "WASD direction survives resizing")
+		_pilot.move(root, Vector2.ZERO)
 		await _capture("viewport_%dx%d" % [window_size.x, window_size.y])
+	scene.free()
+	await process_frame
 	print("Prototype smoke: %s" % ("PASS" if _failures == 0 else "FAIL (%d)" % _failures))
 	quit(0 if _failures == 0 else 1)
-
-
-func _click(screen_position: Vector2, button: MouseButton = MOUSE_BUTTON_LEFT) -> void:
-	var event := InputEventMouseButton.new()
-	event.position = screen_position
-	event.button_index = button
-	event.pressed = true
-	root.push_input(event, true)
-	event = event.duplicate() as InputEventMouseButton
-	event.pressed = false
-	root.push_input(event, true)
 
 
 func _frames(count: int) -> void:
 	for frame: int in range(count):
 		await physics_frame
-
-
-func _check_gathering(target: Vector3, label: String, max_radius: float = 5.0) -> void:
-	var largest_distance: float = 0.0
-	var nearest_pair: float = INF
-	for agent: HordeAgent in _horde.agents:
-		largest_distance = maxf(largest_distance, agent.global_position.distance_to(target))
-		for other: HordeAgent in _horde.agents:
-			if agent != other:
-				nearest_pair = minf(nearest_pair, agent.global_position.distance_to(other.global_position))
-	print("%s: furthest from target %.2f, nearest pair %.2f" % [label, largest_distance, nearest_pair])
-	_check(largest_distance < max_radius, label + ": every agent reaches the commanded area")
-	_check(nearest_pair > 0.56, label + ": crowd bodies remain separate")
 
 
 func _check(condition: bool, description: String) -> void:

@@ -1,9 +1,10 @@
-"""Build the selected march loop offline from its committed lossless render.
+"""Build menu/battle music loops offline from their committed lossless renders.
 
 Requires Python's standard library and ffmpeg. No API or instrument bank needed.
 """
 
 from array import array
+import argparse
 import json
 from pathlib import Path
 import subprocess
@@ -11,21 +12,26 @@ import tempfile
 
 
 ROOT = Path(__file__).resolve().parents[1]
-SOURCE = ROOT / "art/audio/music_concepts/01_undead_march_source.flac"
-OUTPUT = ROOT / "assets/audio/undead_march.ogg"
 RATE = 44100
 CHANNELS = 2
-# The MIDI tempo is stored in whole microseconds per beat.
-FRAMES = round(48 * round(60_000_000 / 110) / 1_000_000 * RATE)
+TRACKS = {
+    "march": ("01_undead_march", "undead_march", "Undead March", 110),
+    "groove": ("02_graveyard_groove", "graveyard_groove", "Graveyard Groove", 114),
+}
 
 
-def build():
+def build(track):
+    source_name, output_name, title, bpm = TRACKS[track]
+    source_path = ROOT / f"art/audio/music_concepts/{source_name}_source.flac"
+    output_path = ROOT / f"assets/audio/{output_name}.ogg"
+    # The MIDI tempo is stored in whole microseconds per beat.
+    frames = round(48 * round(60_000_000 / bpm) / 1_000_000 * RATE)
     decoded = subprocess.check_output([
-        "ffmpeg", "-v", "error", "-i", str(SOURCE), "-f", "f32le",
+        "ffmpeg", "-v", "error", "-i", str(source_path), "-f", "f32le",
         "-ac", str(CHANNELS), "-ar", str(RATE), "-",
     ])
     samples = array("f", decoded)
-    length = FRAMES * CHANNELS
+    length = frames * CHANNELS
     loop = samples[:length]
     # Carry the final notes/reverb over the first beat instead of fading to silence.
     for index, sample in enumerate(samples[length:]):
@@ -48,9 +54,11 @@ def build():
         gain = min(-18 - float(levels["input_i"]), -2 - float(levels["input_tp"]))
         subprocess.run(source + ["-y", "-v", "error", "-af", f"volume={gain}dB",
                                  "-ar", str(RATE), "-c:a", "libvorbis", "-q:a", "5",
-                                 "-metadata", "title=Undead March", str(OUTPUT)], check=True)
-    print(f"Undead March: {FRAMES} frames, {FRAMES / RATE:.6f}s, gain {gain:.2f} dB")
+                                 "-metadata", f"title={title}", str(output_path)], check=True)
+    print(f"{title}: {frames} frames, {frames / RATE:.6f}s, gain {gain:.2f} dB")
 
 
 if __name__ == "__main__":
-    build()
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--track", choices=TRACKS, default="march")
+    build(parser.parse_args().track)

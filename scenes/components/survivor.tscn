@@ -1,10 +1,13 @@
-[gd_scene load_steps=6 format=3]
+[gd_scene load_steps=8 format=3]
 
 [ext_resource type="Script" path="res://scripts/gameplay/survivor.gd" id="1_survivor"]
 [ext_resource type="PackedScene" path="res://assets/characters/medieval_knight.glb" id="2_knight"]
 [ext_resource type="Script" path="res://scripts/gameplay/health.gd" id="3_health"]
 [ext_resource type="Script" path="res://scripts/visuals/knight_visual.gd" id="4_visual"]
 [ext_resource type="Script" path="res://scripts/visuals/attack_preview.gd" id="5_preview"]
+
+[ext_resource type="PackedScene" path="res://scenes/components/crossbow_bolt.tscn" id="6_bolt"]
+[ext_resource type="PackedScene" path="res://scenes/components/motion_air.tscn" id="7_air"]
 
 [node name="Survivor" type="Node3D"]
 script = ExtResource("1_survivor")
@@ -13,6 +16,9 @@ script = ExtResource("1_survivor")
 rotation_degrees = Vector3(0, 180, 0)
 scale = Vector3(0.75, 0.75, 0.75)
 script = ExtResource("4_visual")
+
+[node name="MotionAir" parent="Visual" instance=ExtResource("7_air")]
+air_color = Color(1, 0.96, 0.82, 0.8)
 
 [node name="Health" type="Node" parent="."]
 script = ExtResource("3_health")
@@ -24,3 +30,5 @@ position = Vector3(0, 0.05, 0)
 cast_shadow = 0
 top_level = true
 script = ExtResource("5_preview")
+
+[node name="CrossbowBolt" parent="." instance=ExtResource("6_bolt")]

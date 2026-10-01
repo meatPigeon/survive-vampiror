@@ -19,24 +19,59 @@ signal moved(mean_distance: float)
 @export var sprint_multiplier: float = 2.0
 
 var agents: Array[HordeAgent] = []
-var command_position: Vector3
+var move_direction := Vector3.ZERO
 var movement_bounds: Rect2
 var _has_command: bool = false
 var commands_enabled: bool = true
+var sprint_unlocked: bool = false
 var sprint_remaining: float = 0.0
 var sprint_cooldown_remaining: float = 0.0
 var casualties: int = 0
 var recruited: int = 0
 var expired_count: int = 0
 
-@onready var target_marker: MeshInstance3D = $TargetMarker
+@onready var ability: HordeAbility = $Ability
+@onready var abilities: Array[HordeAbility] = [$Ability, $SecondAbility]
+
+
+func roll_rewards() -> Array[int]:
+	var pool: Array[int] = []
+	for upgrade: int in [HordeAbility.Upgrade.DETONATION, HordeAbility.Upgrade.SLING, HordeAbility.Upgrade.FEAST, HordeAbility.Upgrade.SPRINT]:
+		if not has_upgrade(upgrade):
+			pool.append(upgrade)
+	pool.shuffle()
+	return pool.slice(0, 2)
+
+
+func has_upgrade(upgrade: int) -> bool:
+	if upgrade == HordeAbility.Upgrade.SPRINT:
+		return sprint_unlocked
+	for current: HordeAbility in abilities:
+		if upgrade != HordeAbility.Upgrade.NONE and current.upgrade == upgrade:
+			return true
+	return false
+
+
+func grant_ability(upgrade: int) -> bool:
+	if has_upgrade(upgrade):
+		return false
+	# Sprint is a reward that unlocks the existing Space action, not a Q/E slot.
+	if upgrade == HordeAbility.Upgrade.SPRINT:
+		sprint_unlocked = true
+		return true
+	if upgrade < HordeAbility.Upgrade.DETONATION or upgrade >= HordeAbility.Upgrade.NONE:
+		return false
+	for current: HordeAbility in abilities:
+		if current.upgrade == HordeAbility.Upgrade.NONE:
+			current.upgrade = upgrade as HordeAbility.Upgrade
+			return true
+	return false
 
 
 func _ready() -> void:
 	var ground_bounds: AABB = ground.mesh.get_aabb()
 	var corner: Vector3 = ground.to_global(ground_bounds.position)
 	movement_bounds = Rect2(Vector2(corner.x, corner.z), Vector2(ground_bounds.size.x, ground_bounds.size.z))
-	command_position = spawn_center
 	for index: int in range(agent_count):
 		# A loose initial scatter; agents have no assigned formation or destination slot.
 		var angle: float = float(index) * 2.399963
@@ -78,6 +113,22 @@ func permanent_count() -> int:
 	return count
 
 
+func add_permanent_reward(amount: int) -> void:
+	if amount <= 0 or permanent_count() == 0:
+		return
+	var center := Vector3.ZERO
+	for agent: HordeAgent in agents:
+		center += agent.global_position
+	center /= float(agents.size())
+	# Round rewards grant their full amount; only grave recruits use max_agents.
+	for index: int in range(amount):
+		var angle: float = float(index + recruited) * 2.399963
+		var radius: float = spawn_spacing * sqrt(float(index + 1))
+		_spawn_agent(center + Vector3(cos(angle), 0.0, sin(angle)) * radius)
+	recruited += amount
+	count_changed.emit(agents.size())
+
+
 func temporary_count() -> int:
 	return agents.size() - permanent_count()
 
@@ -98,25 +149,22 @@ func update_lifetimes(delta: float) -> void:
 
 
 func command_sprint() -> void:
-	if not commands_enabled or not _has_command or sprint_cooldown_remaining > 0.0:
+	if not sprint_unlocked or get_tree().paused or not commands_enabled or not _has_command or sprint_cooldown_remaining > 0.0:
 		return
 	sprint_remaining = sprint_duration
 	sprint_cooldown_remaining = sprint_cooldown
 	sprint_started.emit()
 
 
-func command_move(position_on_ground: Vector3) -> void:
+func command_direction(direction: Vector3) -> void:
 	if not commands_enabled:
 		return
-	command_position = Vector3(
-		clampf(position_on_ground.x, movement_bounds.position.x, movement_bounds.end.x),
-		ground.global_position.y,
-		clampf(position_on_ground.z, movement_bounds.position.y, movement_bounds.end.y)
-	)
-	_has_command = true
-	target_marker.global_position = command_position + Vector3.UP * 0.04
-	target_marker.show()
-	move_commanded.emit()
+	var previous: Vector3 = move_direction
+	move_direction = Vector3(direction.x, 0.0, direction.z).limit_length()
+	if not move_direction.is_zero_approx():
+		_has_command = true
+		if not move_direction.is_equal_approx(previous):
+			move_commanded.emit()
 
 
 func _physics_process(delta: float) -> void:
@@ -126,24 +174,40 @@ func _physics_process(delta: float) -> void:
 	sprint_cooldown_remaining = maxf(0.0, sprint_cooldown_remaining - delta)
 	var speed_scale: float = sprint_multiplier if sprint_remaining > 0.0 else 1.0
 	var distance: float = 0.0
+	var center := Vector3.ZERO
+	var moving_count: int = 0
 	for agent: HordeAgent in agents:
+		if not agent.ability_locked:
+			center += agent.global_position
+			moving_count += 1
+	center /= maxf(1.0, moving_count)
+	for agent: HordeAgent in agents:
+		if agent.ability_locked:
+			continue
 		var previous: Vector3 = agent.global_position
-		agent.move_toward_command(command_position, agents, movement_bounds, delta, survivor, speed_scale)
+		if move_direction.is_zero_approx():
+			agent.stop()
+		else:
+			agent.move_in_direction(move_direction, agents, movement_bounds, delta, survivor, speed_scale, center)
 		distance += previous.distance_to(agent.global_position)
 	if not agents.is_empty():
 		moved.emit(distance / float(agents.size()))
 
 
 func stop() -> void:
+	for current: HordeAbility in abilities:
+		current.cancel()
 	commands_enabled = false
 	_has_command = false
 	sprint_remaining = 0.0
-	target_marker.hide()
+	move_direction = Vector3.ZERO
 	for agent: HordeAgent in agents:
 		agent.stop()
 
 
 func _on_agent_died(agent: HordeAgent) -> void:
+	for current: HordeAbility in abilities:
+		current.forget_agent(agent)
 	agents.erase(agent)
 	if agent.expired:
 		expired_count += 1

@@ -14,5 +14,6 @@
   "runtime_asset": "assets/audio/undead_march.ogg",
   "verified_integrated_lufs": -18.26,
   "verified_true_peak_dbfs": -2.5,
-  "verified_clipped_samples": 0
+  "verified_clipped_samples": 0,
+  "runtime_context": "Main menu only"
 }

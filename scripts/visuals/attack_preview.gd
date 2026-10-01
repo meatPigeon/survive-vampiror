@@ -14,11 +14,41 @@ func show_arc(origin: Vector3, direction: Vector3, radius: float, angle: float, 
 	_show_vertices(vertices, origin, direction, color)
 
 
+func show_ring(origin: Vector3, radius: float, width: float, color: Color) -> void:
+	var vertices := PackedVector3Array()
+	for index: int in range(48):
+		var start: float = TAU * float(index) / 48.0
+		var end: float = TAU * float(index + 1) / 48.0
+		var a := Vector3(cos(start), 0, sin(start))
+		var b := Vector3(cos(end), 0, sin(end))
+		var inner: float = maxf(0.0, radius - width)
+		vertices.append_array(PackedVector3Array([a * inner, a * radius, b * radius, a * inner, b * radius, b * inner]))
+	_show_vertices(vertices, origin, Vector3.FORWARD, color)
+
+
 func show_lane(origin: Vector3, direction: Vector3, distance: float, width: float, color: Color) -> void:
 	var left := Vector3(-width * 0.5, 0, 0)
 	var right := Vector3(width * 0.5, 0, 0)
 	var end := Vector3(0, 0, -distance)
 	_show_vertices(PackedVector3Array([left, right, left + end, right, right + end, left + end]), origin, direction, color)
+
+
+func show_rush(origin: Vector3, direction: Vector3, width: float) -> void:
+	# Two open chevrons show a changing heading, not a promised straight lane.
+	var vertices := PackedVector3Array()
+	for distance: float in [1.0, 2.5]:
+		var tip := Vector3(0, 0, -distance - 1.0)
+		var inner := Vector3(0, 0, -distance - 0.62)
+		for side: float in [-1.0, 1.0]:
+			var edge := Vector3(side * width * 0.5, 0, -distance)
+			var inset := edge + Vector3(0, 0, 0.38)
+			vertices.append_array(PackedVector3Array([tip, edge, inner, inner, edge, inset]))
+	_show_vertices(vertices, origin, direction, Color(1.0, 0.32, 0.22, 0.72))
+
+
+func follow_heading(origin: Vector3, direction: Vector3) -> void:
+	global_position = origin + Vector3.UP * 0.05
+	global_rotation = Vector3(0, atan2(-direction.x, -direction.z), 0)
 
 
 func _show_vertices(vertices: PackedVector3Array, origin: Vector3, direction: Vector3, color: Color) -> void:
@@ -34,6 +64,5 @@ func _show_vertices(vertices: PackedVector3Array, origin: Vector3, direction: Ve
 	material.cull_mode = BaseMaterial3D.CULL_DISABLED
 	material.albedo_color = color
 	material_override = material
-	global_position = origin + Vector3.UP * 0.05
-	global_rotation = Vector3(0, atan2(-direction.x, -direction.z), 0)
+	follow_heading(origin, direction)
 	show()

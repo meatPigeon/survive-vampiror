@@ -28,10 +28,19 @@ gameplay entity. These source assets contain no attack clip. The arena adds a
 runtime whole-body sweep/charge/spin clips and a hand-attached halberd with a
 crimson pennant in `KnightVisual`. The reusable weapon is authored directly in
 `scenes/components/halberd.tscn`; it follows the existing right-hand bone.
-`ZombieVisual` adds bite lunges, speed lean, turn banking, stride
+From wave two, `KnightVisual` shows a native-mesh crossbow and shooting pose.
+Wave three adds `scenes/components/horse.tscn`, a simple horse with animated legs,
+and seated rider tracks. These runtime additions leave the Blender/GLB sources
+unchanged. `ZombieVisual` adds bite lunges, speed lean, turn banking, stride
 compression and hit/death responses. Health and melee rules belong to gameplay;
 all presentation stays below the gameplay roots. Combat death tumbles; temporary
 expiry collapses. Original source Actions and exported GLBs remain unchanged.
+
+Temporary recruits use cached blue material overrides and a native low-poly
+shoulder mantle (`scenes/components/recruit_mantle.tscn`) attached to Chest.
+Permanent zombies retain the original materials. Kind-specific ring geometry
+and matching HUD symbols supplement the outfit; ability colors and hit flashes
+do not replace this identity. No character re-export is required.
 
 ## Editing The Rig
 

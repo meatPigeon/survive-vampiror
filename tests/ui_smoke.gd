@@ -2,6 +2,7 @@ extends SceneTree
 
 const MAIN: PackedScene = preload("res://scenes/main.tscn")
 var _failures: int = 0
+var _pilot := preload("res://tests/support/horde_pilot.gd").new()
 
 
 func _initialize() -> void:
@@ -21,18 +22,21 @@ func _run() -> void:
 	await _capture("ready")
 	await _click_control(hud.get_node("%PauseButton"))
 	_check(paused and hud.overlay.visible and not scene.battle_started, "pause button works before battle without issuing a ground command")
-	var target: Vector3 = horde.command_position
+	var target: Vector3 = horde.move_direction
 	_click(scene.get_node("Camera").unproject_position(Vector3.ZERO))
 	await _frames(2)
-	_check(horde.command_position == target and not scene.battle_started, "modal backdrop blocks commands")
+	_check(horde.move_direction == target and not scene.battle_started, "modal backdrop blocks commands")
 	await _click_control(hud.resume_button)
 	_check(not paused and not hud.overlay.visible, "resume button works while tree is paused")
-	_click(scene.get_node("Camera").unproject_position(Vector3(-10, 0, 3)))
+	_pilot.move(root, Vector2.LEFT)
 	await _frames(2)
-	_check(scene.battle_started and not hud.sprint_button.disabled, "HUD lets ground commands through and enables sprint")
-	target = horde.command_position
+	_check(scene.battle_started and hud.sprint_button.disabled and not hud.get_node("%Sprint").visible, "starting the fight does not unlock sprint")
+	horde.grant_ability(HordeAbility.Upgrade.SPRINT)
+	await _frames(2)
+	_check(hud.get_node("%Sprint").visible and not hud.sprint_button.disabled, "the sprint perk reveals its HUD control")
+	target = horde.move_direction
 	await _click_control(hud.sprint_button)
-	_check(horde.sprint_remaining > 0.0 and horde.command_position == target, "sprint button boosts movement without changing destination")
+	_check(horde.sprint_remaining > 0.0 and horde.move_direction == target, "sprint button boosts movement without changing direction")
 	_check(hud.sprint_button.disabled and hud.sprint_bar.value < 100.0, "sprint shows its real cooldown")
 	await _click_control(hud.get_node("%PauseButton"))
 	var elapsed: float = scene.elapsed
@@ -44,6 +48,7 @@ func _run() -> void:
 	hud = scene.hud
 	horde = scene.horde
 	_check(not paused and not scene.battle_started and horde.permanent_count() == 40, "restart button resets the run from pause")
+	scene.wave_count = scene.wave_index # This scenario checks the final outcome.
 	scene.survivor.health.take_damage(scene.survivor.health.current_health)
 	await _frames(2)
 	_check(scene.battle_over and hud.overlay.visible and not hud.resume_button.visible, "victory offers replay without resume")
@@ -53,7 +58,7 @@ func _run() -> void:
 	hud = scene.hud
 	horde = scene.horde
 	_check(not scene.battle_over and not hud.overlay.visible, "play-again button resets the result screen")
-	horde.command_move(Vector3.ZERO)
+	horde.command_direction(Vector3.RIGHT)
 	horde.recruit(12, Vector3(-2, 0, 3))
 	for index: int in range(34):
 		horde.agents[0].health.take_damage(100)
@@ -70,13 +75,14 @@ func _run() -> void:
 	scene = current_scene
 	hud = scene.hud
 	# The scene should also lay out without overlapping the top controls on a small window.
+	scene.horde.grant_ability(HordeAbility.Upgrade.SPRINT)
 	root.size = Vector2i(960, 600)
 	await _frames(4)
 	var boss: Control = hud.get_node("Frame/Boss")
 	var pause_button: Control = hud.get_node("%PauseButton")
 	_check(not boss.get_global_rect().intersects(pause_button.get_global_rect()), "boss and pause stay separate at 960 by 600")
 	horde = scene.horde
-	horde.command_move(Vector3.ZERO)
+	horde.command_direction(Vector3.RIGHT)
 	horde.recruit(12, Vector3(-2, 0, 3))
 	await _frames(3)
 	var horde_display: Control = hud.get_node("Frame/Horde")
@@ -92,7 +98,7 @@ func _run() -> void:
 		var angle: float = float(index) * 2.399963
 		var distance: float = 0.5 * sqrt(float(index))
 		horde.agents[index].global_position = site.global_position + Vector3(cos(angle), 0, sin(angle)) * distance
-	horde.command_move(site.global_position)
+	horde.command_direction(Vector3.RIGHT)
 	site.update_recruitment(horde, site.summon_time * 0.5)
 	scene._update_status()
 	_check(hud.site_name.text == "◇  +12" and not hud.site_hint.text.contains("%"), "recruitment HUD uses a marker and stock without compass names or percentages")

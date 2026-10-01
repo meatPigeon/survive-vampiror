@@ -10,8 +10,14 @@
   "target_lufs": -18,
   "target_true_peak_dbfs": -2,
   "api_credits_spent": 0,
-  "runtime_integration": false,
+  "runtime_integration": true,
   "verified_integrated_lufs": -18.3,
   "verified_true_peak_dbfs": -2.23,
-  "verified_clipped_samples": 0
+  "verified_clipped_samples": 0,
+  "runtime_asset": "assets/audio/graveyard_groove.ogg",
+  "runtime_context": "Battle; Undead March remains on the main menu",
+  "runtime_loop_seconds": 25.263174603174605,
+  "runtime_source": "02_graveyard_groove_source.flac; MIDI rendered with the same GeneralUser GS checksum and FluidSynth settings",
+  "runtime_verified_integrated_lufs": -18.36,
+  "runtime_verified_true_peak_dbfs": -2.09
 }

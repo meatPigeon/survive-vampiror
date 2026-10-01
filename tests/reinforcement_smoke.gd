@@ -18,21 +18,21 @@ func _run() -> void:
 	scene._physics_process(90.0)
 	_check(scene.elapsed == 0.0 and scene.active_site == null, "schedule waits for first command")
 	await _capture("ready")
-	horde.command_move(west.position)
+	horde.command_direction(Vector3.RIGHT)
 	_check(scene.active_site == west and west.remaining == 12 and not south.active, "first command opens only west")
 	var permanent: HordeAgent = horde.agents[0]
 	permanent.health.take_damage(13)
 	permanent.position = south.position
-	horde.command_move(south.position)
+	horde.command_direction(Vector3.RIGHT)
 	south.update_recruitment(horde, 3.0)
 	_check(horde.recruited == 0, "inactive site cannot recruit even when occupied")
 	permanent.position = Vector3(-8, 0, 3)
-	horde.command_move(permanent.position)
+	horde.command_direction(Vector3.RIGHT)
 	scene._physics_process(30.0)
 	var current: ReinforcementSite = scene.active_site
 	_check(current != west and not west.active and west.remaining == 0, "an unused site closes after 30 seconds and chooses a different destination")
 	permanent.position = current.position
-	horde.command_move(current.position)
+	horde.command_direction(Vector3.RIGHT)
 	current.update_recruitment(horde, current.summon_time)
 	_check(horde.temporary_count() == 12 and current.remaining == 0 and not current.active, "successful recruitment closes its activation")
 	_check(scene.active_site == null and scene.site_time_left() == scene.site_respawn_delay, "successful recruitment starts the configured gap with no active site")
@@ -47,7 +47,10 @@ func _run() -> void:
 	temporary.update_lifetime(100.0)
 	_check(horde.casualties == 1 and horde.expired_count == 0 and not temporary.expired, "combat death cannot later count as expiration")
 	permanent.position = Vector3(-8, 0, 3)
-	horde.command_move(permanent.position)
+	horde.command_direction(Vector3.RIGHT)
+	# This schedule fixture disables movement: explicitly vacate prior spawn sites.
+	for agent: HordeAgent in horde.agents:
+		agent.position = Vector3(-8, 0, 3)
 	current = scene.active_site
 	scene._physics_process(30.0)
 	_check(scene.active_site != current and scene.active_site.remaining == 12 and not current.active, "unused replacement rotates after its own 30-second window")
@@ -82,7 +85,7 @@ func _run() -> void:
 	scene = _fixture()
 	horde = scene.get_node("Horde")
 	west = scene.get_node("Reinforcements/West")
-	horde.command_move(west.position)
+	horde.command_direction(Vector3.RIGHT)
 	horde.agents[0].position = west.position
 	horde.recruit(12, west.position)
 	for agent: HordeAgent in horde.agents:
@@ -100,7 +103,7 @@ func _run() -> void:
 	scene = _fixture()
 	horde = scene.get_node("Horde")
 	var knight: Survivor = scene.get_node("Survivor")
-	horde.command_move(Vector3.ZERO)
+	horde.command_direction(Vector3.RIGHT)
 	horde.recruit(12, Vector3(-2, 0, 3))
 	scene._update_status()
 	await _capture("mixed")
@@ -142,7 +145,7 @@ func _run() -> void:
 		scene.site_respawn_delay = delay
 		horde = scene.horde
 		west = scene.get_node("Reinforcements/West")
-		horde.command_move(west.position)
+		horde.command_direction(Vector3.RIGHT)
 		horde.agents[0].position = west.position
 		scene.elapsed = 7.25
 		west.update_recruitment(horde, west.summon_time)
@@ -162,7 +165,7 @@ func _run() -> void:
 	knight = scene.get_node("Survivor")
 	horde.set_physics_process(false)
 	knight.stop_combat()
-	horde.command_move(Vector3(-8, 0, 3))
+	horde.command_direction(Vector3.RIGHT)
 	horde.recruit(1, Vector3(-8, 0, 3))
 	temporary = horde.agents.back()
 	scene.elapsed = 29.99
@@ -174,6 +177,7 @@ func _run() -> void:
 	scene.toggle_pause()
 	await _frames(5)
 	_check(scene.active_site.name != "West" and temporary.lifetime_remaining < lifetime, "resume continues both timers")
+	scene.wave_count = scene.wave_index # This scenario checks the final outcome.
 	knight.health.take_damage(knight.health.current_health)
 	lifetime = temporary.lifetime_remaining
 	var elapsed: float = scene.elapsed

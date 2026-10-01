@@ -5,6 +5,8 @@ const WARNINGS: Array[AudioStream] = [
 	preload("res://assets/audio/warning_sweep.wav"),
 	preload("res://assets/audio/warning_charge.wav"),
 	preload("res://assets/audio/warning_spin.wav"),
+	preload("res://assets/audio/warning_charge.wav"),
+	preload("res://assets/audio/warning_charge.wav"),
 ]
 const COMMAND: AudioStream = preload("res://assets/audio/command.wav")
 const SPRINT: AudioStream = preload("res://assets/audio/sprint.wav")
@@ -12,6 +14,16 @@ const RECRUITED: AudioStream = preload("res://assets/audio/recruited.wav")
 const EXPIRED: AudioStream = preload("res://assets/audio/expired.wav")
 const VICTORY: AudioStream = preload("res://assets/audio/victory.wav")
 const DEFEAT: AudioStream = preload("res://assets/audio/defeat.wav")
+const PERK_CASTS: Dictionary[int, AudioStream] = {
+	HordeAbility.Upgrade.DETONATION: preload("res://assets/audio/mine_arm.wav"),
+	HordeAbility.Upgrade.SLING: preload("res://assets/audio/sling_launch.wav"),
+	HordeAbility.Upgrade.FEAST: preload("res://assets/audio/feast_start.wav"),
+}
+const PERK_IMPACTS: Dictionary[int, AudioStream] = {
+	HordeAbility.Upgrade.DETONATION: preload("res://assets/audio/mine_blast.wav"),
+	HordeAbility.Upgrade.SLING: preload("res://assets/audio/sling_land.wav"),
+}
+const FEAST_END: AudioStream = preload("res://assets/audio/feast_end.wav")
 
 @export var voice_interval: float = 0.9
 @export var bite_interval: float = 0.35
@@ -43,25 +55,42 @@ var _random := RandomNumberGenerator.new()
 @onready var notice: AudioStreamPlayer = $Notice
 @onready var result: AudioStreamPlayer = $Result
 @onready var music: AudioStreamPlayer = $Music
+@onready var perk_cast: AudioStreamPlayer = $PerkCast
+@onready var perk_impact: AudioStreamPlayer = $PerkImpact
 
 
 func setup(knight: Survivor, horde: HordeController, sites: Node3D) -> void:
 	_random.randomize()
 	_horde = horde
-	_knight_hp = knight.health.current_health
 	_casualties = horde.casualties
 	_recruited = horde.recruited
 	_expired = horde.expired_count
-	knight.attack_warned.connect(_on_attack_warned)
-	knight.attack_struck.connect(_on_attack_struck)
-	knight.attack_hit.connect(_on_attack_hit)
-	knight.health.changed.connect(_on_knight_health_changed)
+	bind_knight(knight)
 	horde.count_changed.connect(_on_horde_count_changed)
 	horde.move_commanded.connect(_on_move_commanded)
 	horde.sprint_started.connect(_on_sprint_started)
 	horde.moved.connect(_on_horde_moved)
+	for ability: HordeAbility in horde.abilities:
+		ability.activated.connect(_on_perk_activated)
+		ability.impacted.connect(_on_perk_impacted)
+		ability.feast_ended.connect(_on_feast_ended)
 	for site: ReinforcementSite in sites.get_children():
 		site.visual.availability_changed.connect(_on_grave_availability_changed)
+
+
+func bind_knight(knight: Survivor) -> void:
+	_knight_hp = knight.health.current_health
+	knight.attack_warned.connect(_on_attack_warned)
+	knight.attack_struck.connect(_on_attack_struck)
+	knight.attack_hit.connect(_on_attack_hit)
+	knight.health.changed.connect(_on_knight_health_changed)
+
+
+func begin_wave_break() -> void:
+	for player: AudioStreamPlayer in get_children():
+		if player != music:
+			player.stop()
+	_step_travel = 0.0
 
 
 func start_music() -> void:
@@ -110,11 +139,35 @@ func _on_horde_moved(distance: float) -> void:
 		footsteps.play()
 
 
+func _on_perk_activated(kind: HordeAbility.Upgrade) -> void:
+	if not _enabled or not can_process() or not _horde.commands_enabled:
+		return
+	perk_cast.stream = PERK_CASTS[kind]
+	perk_cast.play()
+
+
+func _on_perk_impacted(kind: HordeAbility.Upgrade) -> void:
+	if not _enabled or not can_process() or not _horde.commands_enabled:
+		return
+	# A whole mine batch shares one impact, regardless of victims or blast count.
+	perk_impact.stream = PERK_IMPACTS[kind]
+	perk_impact.play()
+
+
+func _on_feast_ended() -> void:
+	if not _enabled or not can_process() or not _horde.commands_enabled or perk_cast.playing:
+		return
+	# This quiet expiry cue must not cut off a newly activated second ability.
+	perk_cast.stream = FEAST_END
+	perk_cast.play()
+
+
 func _on_attack_warned(kind: Survivor.Attack) -> void:
 	if not _enabled or not can_process():
 		return
 	_hit_heard = false
 	warning.stream = WARNINGS[kind]
+	warning.pitch_scale = 1.5 if kind == Survivor.Attack.CROSSBOW else (0.7 if kind == Survivor.Attack.RUSH else 1.0)
 	warning.play()
 
 
@@ -122,7 +175,7 @@ func _on_attack_struck(kind: Survivor.Attack) -> void:
 	if not _enabled or not can_process():
 		return
 	warning.stop()
-	swish.pitch_scale = 0.75 if kind == Survivor.Attack.SPIN else 1.0
+	swish.pitch_scale = 1.65 if kind == Survivor.Attack.CROSSBOW else (0.75 if kind == Survivor.Attack.SPIN else 1.0)
 	swish.play()
 
 

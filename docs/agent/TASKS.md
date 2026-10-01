@@ -1,10 +1,284 @@
 # Tasks
 
+## Task: Package The Current Web Build For Itch.io
+
+Status: complete; clean release export, browser smoke and archive integrity pass
+Priority: urgent
+
+Deliverable: `output/SurviveVampiror-web-2026-10-01.zip` (13.1 MB), with upload
+instructions in `output/ITCH_UPLOAD.txt`. Bundled fonts fix web fallback/glyphs;
+retain runtime hit-flash material. Single-threaded export needs no special
+hosting headers. Fresh-context Chromium menu/input/pause/restart was checked.
+Publishing and anonymous verification on itch.io are the user's next step.
+
+## Task: Select Newbie Or Normal Before A Run
+
+Status: complete; import, focused headless/rendered, combat, waves, rush and menu checks pass
+Priority: normal
+
+Scope: Newbie keeps existing damage; Normal makes all knight hits lethal.
+Crossbow remains lethal in both. Choose on the title; retain the mode through
+all waves, restart and menu return, without persistent settings or global state.
+
+Acceptance: All five attacks verified against permanent and high-HP temporary
+zombies in both modes. Warnings and misses preserved. Mouse/keyboard selection,
+wave carryover, pause/result restart, immediate wipe cancellation, switching
+back to Newbie and normal/small rendered layouts verified. Human balance and a
+complete Normal victory remain unverified.
+
+## Task: Animate Wave Cleared And Enlarge The Countdown
+
+Status: complete; import, cards, rewards, HUD and rendered transition checks pass
+Priority: normal
+
+Scope: A tweened Wave cleared heading on the existing reward screen and a large
+next-wave countdown. Preserve cards, pause controls and the four-second timer.
+
+Acceptance: Pause freezes animation and timer; resume retains selection. Count
+only after reward resolution; clear on next wave, result and restart. Verify
+readability and card bounds at normal/small window sizes.
+
+## Task: Perk Sounds, Split Music And A Game-Like Title Screen
+
+Status: complete; import, perk/audio, ability/sling and rendered menu checks pass
+Priority: normal
+
+Scope: Six short cues for the three active zombie abilities, preserving Sprint's
+sound and combat tuning. Reuse existing recordings/local synthesis without
+additional API credits. Keep Undead March on the menu; loop Graveyard Groove in
+battle. Improve the title with existing characters/props and collapsible audio.
+
+Acceptance: Accepted actions sound at the actual event; rejected/cancelled
+actions stay silent. Mine batches share one burst. Pause, intermission, outcome,
+restart, both slots and music transitions remain correct. Menu controls work at
+normal/small sizes and retain volume. Inspect renders and recorded mix levels.
+
+## Task: Mounted Stampede With Steering Inertia
+
+Status: complete; focused headless/rendered, combat, waves, targeting, air effects and full-run checks pass
+Priority: normal
+
+Scope: Give only the mounted knight an additional warned pursuit with gradual
+acceleration, limited turning and angular inertia, followed by a longer recovery.
+Preserve the ordinary short charge and previous waves. Make the changing
+heading, gallop and opportunity to counterattack readable.
+
+Acceptance: Wave gating, inertial reversal/overshoot, sustained pursuit,
+coarse/fine-step equivalence, swept single-hit damage, bounds, recovery,
+pause, death, permanent-wipe cancellation and restart. Rendered turns inspected;
+both keyboard pilots win while encountering stampedes without changing other
+combat parameters. Human feel/playtesting remains separate.
+
+
+## Task: Audit Jam Materials And Update Presentation
+
+Status: complete for audit/PDF update; submission package remains incomplete
+Priority: high
+
+Scope: Locate the previous deliverables, compare them with the organizer's
+checklist and current game, update the official seven-slide PDF for **Go K**,
+and correct AI disclosure, including ElevenLabs effects and Codex-authored music.
+
+Result: Updated PDF/disclosure/audit in
+[`output/submission-2026-10-01/`](../../output/submission-2026-10-01/).
+All slides and QR checked; cover logo bands preserved. Public site and existing
+video are old, ZIP absent, repository inaccessible anonymously. Incognito input
+and form submission remain unverified. No deployment, recording replacement,
+GitHub access changes or form submission were performed in this task.
+
+
 ## Active Work
 
 Main menu and audio-volume controls are complete.
 All current work is consolidated on `main`; use it for further development.
-Wave/progression changes are explicitly discussion-only.
+Zombie abilities now accumulate through two-card choices between rounds,
+with a +10 permanent-zombie skip option. This session owns zombie abilities
+and their UI; the knight session owns knight equipment/behavior. This reward
+change is complete. The sling now uses manual mouse aim and visible scatter.
+No further progression feature is queued.
+
+## Task: Illustrate And Refine The Reward Cards
+
+Status: complete; import, headless/rendered cards, reward and Sprint checks pass
+Priority: normal
+
+Scope: Four illustrations using the game's actual models and palette, compact
+portrait cards, clear selection/confirmation and a separate +10 permanent-zombie
+alternative. Preserve reward rules, input bindings and knight behavior.
+
+Acceptance: Inspect both illustration pairs and the small-window selected state;
+verify correct art/bindings, readable descriptions, keyboard/mouse selection,
+confirmation and skip. Static art is reproducible with the offline render tool.
+
+## Task: Move Sprint Into The Reward Pool
+
+Status: complete; import, focused headless/rendered perk, reward, combat, movement, HUD and full-run checks pass
+Priority: normal
+
+Scope: No default sprint. Add Sprint to the two-card random reward pool, unlocking
+the existing Space/HUD control without occupying Q/E. Preserve sprint tuning.
+
+Acceptance: Locked input/HUD before ownership; actual card acquisition, no
+duplicate offers/grants, coexistence with active skills, pause/intermission,
+cooldown, skip and restart. Inspect the card and both HUD states; verify full
+keyboard-driven runs begin without sprint and can still clear all three waves.
+
+## Task: Follow The Horde When Zoomed In
+
+Status: complete; import, headless/rendered camera, movement and manual-sling checks pass
+Priority: normal
+
+Scope: Smoothly follow the mobile horde below default zoom; restore the overview
+when zoomed back out. Preserve tilt, height, WASD direction and mouse aiming.
+Ignore detached mine/projectile agents and hold focus if no mobile members remain.
+
+Acceptance: Actual movement shifts camera focus without snapping; pause freezes
+it, resize retains focus/scale, and restart resets both. Inspect normal/small
+zoomed views and the restored full-arena view; verify sling projection.
+
+## Task: Distinguish Permanent Zombies And Temporary Recruits
+
+Status: complete; import, headless/rendered identity, reinforcement, reward and HUD checks pass
+Priority: normal
+
+Scope: Preserve warm permanent zombies and add a pale-blue/dark-cloth recruit
+palette with a short ragged mantle. Use solid ivory versus broken cyan rings
+and matching HUD symbols. Preserve gameplay, source assets and ability feedback.
+
+Acceptance: Identify kinds in a mixed horde at normal/small window sizes, including
+when abilities recolor rings. Verify material isolation, bonus/recruit spawning,
+hit restoration, pose attachment, pause, expiry and existing ability contracts.
+
+## Task: Manual Zombie Sling Aiming
+
+Status: complete; import, focused headless/rendered aiming, abilities, rewards,
+movement, zoom and combat checks pass
+Priority: normal
+
+Scope: Enter aim with the sling's Q/E key or HUD button, choose the ground point
+with the mouse, show a small scatter disk and fire with LMB. Random landing
+within that disk determines actual hit/miss. RMB/repeated ability key cancels.
+Keep flight/damage/cooldown parameters and knight behavior unchanged.
+
+Acceptance: No automatic knight targeting, visible valid/invalid area, no cost
+before a valid shot, no UI click leak, independent movement/other skill, bounded
+scatter and lifecycle cleanup. Inspect normal/small/zoomed aim and flight.
+
+## Task: Choose Zombie Rewards Between Rounds
+
+Status: complete; import, focused headless/rendered rewards, ability, menu, wave,
+combat, reinforcement and full-run checks pass
+Priority: high
+
+Scope: First wave starts unmodified. After waves 1 and 2, offer two distinct
+random unowned abilities or skip for exactly +10 permanent zombies. A second
+card adds a new skill on E while the first remains on Q. Separate cooldowns;
+no stacking upgrades, pre-battle selection, persistence or knight tuning changes.
+
+Acceptance: Stable offers until a decision, one reward per break, full bonus at
+the grave cap, retained wounds/lifetimes/abilities, independent Q/E and compatible
+mine/sling/feast states. Pause, terminal loss/final victory and restart reset are
+verified. Cards and two ability buttons fit regular and small rendered windows.
+
+## Task: Lethal Piercing Crossbow
+
+Status: complete; import, headless/rendered wave checks, combat and both full-run pilots pass
+Priority: normal
+
+Scope: Bolts kill each intercepted zombie in one hit and continue through
+multiple targets. Preserve warning, width, speed, range, cadence and melee.
+
+Acceptance: Permanent, temporary and increased-HP targets die on impact;
+near-to-far resolution tolerates removal from the horde. Sideways evasion,
+range expiry, pause and terminal cancellation remain correct. Inspect the
+rendered multi-kill and run wave/combat/full-run checks.
+
+## Task: Air Trails On Attacks And Fast Movement
+
+Status: complete; import, focused headless/rendered effects and animation/combat/movement checks pass
+Priority: normal
+
+Scope: Brief tapered crescents on knight sweep/spin impacts and narrow wind
+streaks during charge, mounted pursuit and zombie sprint. Keep damage, timing,
+movement and parallel zombie progression work unchanged.
+
+Acceptance: Effects follow actual movement, remain absent during warnings and
+ordinary zombie walking, freeze on pause and clear on stop/death/intermission.
+Inspect individual attacks and a full sprinting horde at gameplay zoom.
+
+## Task: Implement The Three Zombie Upgrades
+
+Status: complete; acquisition/restart policy superseded by the between-round reward task
+Priority: high
+
+Scope: Half-horde delayed sacrifice explosions, temporary-zombie sling shots,
+and an invented third ability (Blood feast: faster healing bites). Pre-battle
+selection feeds a scene-owned HordeAbility; Q/HUD activates it with cooldowns.
+Keep the fourth card as ordinary horde. User confirmed mines spend permanent
+zombies too. Do not change knight AI, equipment or attack tuning.
+
+Acceptance: Real damage and costs, movement of the remaining half, missed shots,
+temporary expiry in flight, bounded healing, input/start gating, pause, waves,
+outcomes and restart. Preserve permanent-wipe defeat. Inspect rendered cards,
+armed/exploded zombies, flight and feast feedback; run relevant regressions.
+
+## Task: Three Escalating Knight Waves
+
+Status: complete; import, focused/rendered wave checks and full three-wave runs pass
+Priority: high
+
+Scope: Three waves: halberd, additional warned crossbow shot, then a mounted
+knight retaining both weapons. Preserve the same surviving horde, health,
+lifetimes and statistics between waves. A configurable short break precedes
+fresh knight health and equipment; only the last defeat ends the run.
+Use a simple visible horse and faster pursuit/charge. Keep zombie mechanics
+and the parallel upgrade-selection work under their existing owner.
+
+Acceptance: Wave transitions, stronger successive health/equipment, no early
+victory, locked projectile warning/first-target collision, pause/restart,
+carryover and terminal cleanup. Inspect rendered crossbow/mount poses and
+verify complete keyboard-driven runs without changing zombie stats.
+
+## Task: Zombie Upgrade Selection Before Battle
+
+Status: superseded by the between-round reward task; retained as historical scope
+Priority: normal
+
+Scope: Play opens a separate zombie-upgrade screen with four numbered placeholder
+cards. Select exactly one to enable Begin battle; Back/Esc returns to the menu.
+No effects, invented mechanics, persistence or changes to knight/gameplay code.
+
+Acceptance: All four cards are selectable, changing choice clears the previous
+highlight, and entering battle works without leaking input. Verify back/reopen,
+audio continuity, fresh choice after returning from battle and small-window
+layout. Selection belongs to the current menu instance only.
+
+## Task: Replace Mouse Movement With WASD
+
+Status: complete; import, keyboard movement, combat, recruitment, menu, UI and audio checks pass
+Priority: normal
+
+Scope: Physical WASD directly steers the whole horde relative to the camera.
+Release stops it, diagonal speed is normalized, and floor clicks no longer move
+or start the run. Keep crowd cohesion/separation, bounds, Space sprint and the
+recruitment cooldown. Occupying a site starts recruitment without a destination
+command. Clear held input on pause/focus loss and restart.
+
+Acceptance: Keyboard-driven travel and summons, release/opposing-key behavior,
+non-English physical layouts, pause/resume, focus loss, bounds, HUD hints and
+full runs verified. Earlier mouse-command verification below is historical.
+
+## Task: Mouse Wheel Camera Zoom
+
+Status: complete; import and headless/rendered camera zoom smoke pass
+Priority: normal
+
+Scope: Smooth bounded wheel zoom around the arena center using the current
+input component. Preserve default framing and existing working-copy controls.
+
+Acceptance: Wheel up/down changes scale without starting combat. Pause/results
+block zoom; resize retains scale and restart resets it. Verify movement at zoom
+and inspect default, near and far rendered views.
 
 ## Task: Consume Recruitment Sites And Randomize The Next Opening
 

@@ -12,17 +12,25 @@ music generation or retry occurred. Local rendering uses zero API credits.
 | [Tiny Siege](03_tiny_siege.mp3) | Low string pulse, dulcimer and restrained drums | 102 BPM | 29.5 s |
 
 The sketches contain twelve bars and a short release. The MP3s are comparison
-previews with fades. The user selected **Undead March** for battle; concepts 2
-and 3 remain unused alternatives for possible later screens or waves.
+previews with fades. The user now selected **Undead March** for the main menu
+and **Graveyard Groove** for battle. Tiny Siege remains an unused alternative.
 This source folder inherits `art/audio/.gdignore`.
 
-The runtime asset is `assets/audio/undead_march.ogg`, a 26.181837-second loop
+`assets/audio/undead_march.ogg` is a 26.181837-second menu loop
 derived from the committed unfaded `01_undead_march_source.flac` render.
 `python tools/build_music.py` rebuilds it offline with Python and ffmpeg; the
 instrument bank is not needed. Final note/reverb tails wrap onto the start,
 with a 2 ms endpoint correction and constant gain to preserve seam levels.
-Godot imports it with looping enabled. One quiet player starts on the first
-command, freezes on pause and stops on outcome/restart. No new API calls.
+Godot imports it with looping enabled; the menu stops it on departure.
+
+`assets/audio/graveyard_groove.ogg` is a 25.263175-second battle loop from
+`02_graveyard_groove_source.flac`. The MIDI was rendered with the same bank
+checksum and settings as the comparison preview. Rebuild with
+`python tools/build_music.py --track groove`; the source includes the release
+tail, which the same builder wraps onto the start. Verified level is -18.36
+LUFS / -2.09 dBTP. It starts on the first movement command, freezes on pause,
+and stops at outcome/restart. Menu and battle use the same Music volume bus.
+No new API calls or music-generation credits were used.
 
 ## Sources and rendering
 

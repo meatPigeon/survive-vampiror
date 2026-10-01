@@ -1,0 +1,39 @@
+SURVIVE VAMPIROR — загрузка на itch.io
+
+Архив: SurviveVampiror-web-2026-10-01.zip (13,1 МБ).
+Загружать ZIP целиком, не распаковывать. index.html уже лежит в корне.
+
+1. Открой https://itch.io/game/new и войди в аккаунт.
+2. Title: Survive Vampiror. Kind of project: HTML / HTML Game.
+3. Pricing: No payments (бесплатно).
+4. Upload files: выбери ZIP. Отметь This file will be played in the browser.
+5. Embed options: Click to launch in fullscreen. Click to Play включён.
+   SharedArrayBuffer support не нужен — сборка однопоточная.
+   Mobile friendly не включать: управление рассчитано на клавиатуру.
+6. Добавь описание ниже. Если форма спрашивает об ИИ — укажи использование
+   ИИ для кода, моделей/анимаций и звука (ElevenLabs).
+7. Visibility & access: Public. Сохрани страницу (Save / Save & view page).
+8. Открой обычную ссылку страницы в инкогнито: игра должна запускаться
+   без аккаунта. Проверь Newbie/Normal, WASD, Esc, R и звук после клика.
+   Эту публичную ссылку используй как ссылку «играть» в форме сдачи.
+
+Короткое описание для страницы:
+Command a zombie horde against one knight across three escalating waves.
+Survive the halberd, piercing crossbow and mounted stampede. Recruit temporary
+zombies and choose new perks between waves. Keep your permanent horde alive.
+
+Newbie: reduced damage; crossbow bolts are still lethal.
+Normal: every knight hit kills a zombie.
+
+Controls: WASD — move; mouse wheel — zoom; Esc — pause; R — restart.
+Choose perks between waves. Sprint unlocks Space; active abilities use Q / E.
+Zombie sling: aim with the mouse, left-click to fire, right-click to cancel.
+
+Проверка сборки: Godot 4.7.2 release, без потоков/PWA. Локальный Chromium,
+чистый браузерный контекст, без COOP/COEP: меню, Normal, WASD, пауза и рестарт
+проверены; ошибок JS/Godot и загрузки ресурсов нет. На itch.io ещё не загружено.
+ZIP проверен по CRC и побайтово совпадает с проверенными веб-файлами.
+
+Справка:
+https://itch.io/docs/creators/html5
+https://itch.io/docs/creators/access-control

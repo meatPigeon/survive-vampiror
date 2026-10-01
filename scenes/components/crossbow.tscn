@@ -1,0 +1,65 @@
+[gd_scene load_steps=9 format=3]
+
+[sub_resource type="StandardMaterial3D" id="Wood"]
+albedo_color = Color(0.32, 0.15, 0.065, 1)
+
+[sub_resource type="StandardMaterial3D" id="Steel"]
+albedo_color = Color(0.40, 0.48, 0.51, 1)
+metallic = 0.35
+
+[sub_resource type="StandardMaterial3D" id="String"]
+albedo_color = Color(0.82, 0.76, 0.57, 1)
+
+[sub_resource type="BoxMesh" id="Stock"]
+material = SubResource("Wood")
+size = Vector3(0.18, 0.18, 1.2)
+
+[sub_resource type="BoxMesh" id="Limb"]
+material = SubResource("Steel")
+size = Vector3(0.65, 0.10, 0.15)
+
+[sub_resource type="BoxMesh" id="StringMesh"]
+material = SubResource("String")
+size = Vector3(0.7, 0.025, 0.025)
+
+[sub_resource type="BoxMesh" id="Rail"]
+material = SubResource("Steel")
+size = Vector3(0.055, 0.055, 0.8)
+
+[sub_resource type="BoxMesh" id="Grip"]
+material = SubResource("Wood")
+size = Vector3(0.13, 0.28, 0.16)
+
+[node name="Crossbow" type="Node3D"]
+
+[node name="Stock" type="MeshInstance3D" parent="."]
+mesh = SubResource("Stock")
+
+[node name="LeftLimb" type="MeshInstance3D" parent="."]
+position = Vector3(-0.32, 0, -0.35)
+rotation_degrees = Vector3(0, -20, 0)
+mesh = SubResource("Limb")
+
+[node name="RightLimb" type="MeshInstance3D" parent="."]
+position = Vector3(0.32, 0, -0.35)
+rotation_degrees = Vector3(0, 20, 0)
+mesh = SubResource("Limb")
+
+[node name="LeftString" type="MeshInstance3D" parent="."]
+position = Vector3(-0.3, 0.045, -0.04)
+rotation_degrees = Vector3(0, 27, 0)
+mesh = SubResource("StringMesh")
+
+[node name="RightString" type="MeshInstance3D" parent="."]
+position = Vector3(0.3, 0.045, -0.04)
+rotation_degrees = Vector3(0, -27, 0)
+mesh = SubResource("StringMesh")
+
+[node name="Rail" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.13, -0.16)
+mesh = SubResource("Rail")
+
+[node name="Grip" type="MeshInstance3D" parent="."]
+position = Vector3(0, -0.2, 0.2)
+rotation_degrees = Vector3(-20, 0, 0)
+mesh = SubResource("Grip")

@@ -1,6 +1,7 @@
 extends SceneTree
 
 var _failures: int = 0
+var _pilot := preload("res://tests/support/horde_pilot.gd").new()
 
 
 func _initialize() -> void:
@@ -18,9 +19,8 @@ func _run() -> void:
 	scene.survivor.stop_combat()
 	var horde: HordeController = scene.horde
 	var first: ReinforcementSite = scene.get_node("Reinforcements/West")
-	_click(scene, first.global_position)
-	await _wait_for_recruits(horde, 12)
-	_check(horde.recruited == 12 and horde.agents.size() == 52, "first viewport-commanded visit summons a batch of twelve")
+	await _visit(horde, first.global_position, 12)
+	_check(horde.recruited == 12 and horde.agents.size() == 52, "first WASD-driven visit summons a batch of twelve")
 	_check(not first.active and first.remaining == 0 and not first.visual.indicator.visible, "successful visit immediately closes its ring and stock")
 	_check(scene.active_site == null and scene.site_time_left() > 4.9, "successful visit starts the configured cooldown with no active site")
 	await _capture(scene, "first_closed")
@@ -37,8 +37,7 @@ func _run() -> void:
 	await _capture(scene, "next_open")
 	await _frames(180)
 	_check(horde.recruited == 12, "waiting at the used site cannot summon again")
-	_click(scene, second.global_position)
-	await _wait_for_recruits(horde, 20)
+	await _visit(horde, second.global_position, 20)
 	_check(horde.agents.size() == 60 and horde.recruited == 20, "second visit adds only eight at the sixty-zombie cap")
 	_check(not second.active and second.remaining == 0 and not second.visual.indicator.visible, "partial batch also closes the site without four leftover recruits")
 	_check(scene.active_site == null, "partial batch also starts the gap between sites")
@@ -50,11 +49,11 @@ func _run() -> void:
 	await _wait_for_site(scene)
 	var third: ReinforcementSite = scene.active_site
 	_check(third != second and third.remaining == 12, "partial-batch cooldown opens a different fresh site")
-	_click(scene, third.global_position)
-	await _wait_for_recruits(horde, 21)
+	await _visit(horde, third.global_position, 21)
 	_check(horde.agents.size() == 60 and horde.recruited == 21, "the next location supplies the single free slot after travelling there")
 	_check(not third.active and third.remaining == 0, "even a one-zombie summon consumes its activation")
 	await _capture(scene, "one_slot_closed")
+	scene.wave_count = scene.wave_index # This scenario checks the final outcome.
 	scene.survivor.health.take_damage(scene.survivor.health.current_health)
 	cooldown = scene.site_time_left()
 	await _frames(ceili(scene.site_respawn_delay * 60.0) + 5)
@@ -69,12 +68,14 @@ func _run() -> void:
 	quit(0 if _failures == 0 else 1)
 
 
-func _wait_for_recruits(horde: HordeController, target: int) -> void:
+func _visit(horde: HordeController, point: Vector3, target: int) -> void:
 	for frame: int in range(1200):
+		_pilot.steer(root, horde, point)
 		await physics_frame
 		if horde.recruited >= target:
+			_pilot.move(root, Vector2.ZERO)
 			return
-	_check(false, "viewport-commanded horde reaches and completes the next summon")
+	_check(false, "WASD-driven horde reaches and completes the next summon")
 
 
 func _wait_for_site(scene: Node3D) -> void:
@@ -83,17 +84,6 @@ func _wait_for_site(scene: Node3D) -> void:
 		if scene.active_site != null:
 			return
 	_check(false, "a new site opens when the configured delay ends")
-
-
-func _click(scene: Node3D, point: Vector3) -> void:
-	var event := InputEventMouseButton.new()
-	event.position = scene.get_node("Camera").unproject_position(point)
-	event.button_index = MOUSE_BUTTON_LEFT
-	event.pressed = true
-	root.push_input(event, true)
-	event = event.duplicate() as InputEventMouseButton
-	event.pressed = false
-	root.push_input(event, true)
 
 
 func _frames(count: int) -> void:

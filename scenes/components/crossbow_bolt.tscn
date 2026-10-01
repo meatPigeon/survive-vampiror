@@ -1,0 +1,31 @@
+[gd_scene load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://scripts/gameplay/crossbow_bolt.gd" id="1"]
+
+[sub_resource type="StandardMaterial3D" id="ShaftMaterial"]
+albedo_color = Color(0.48, 0.29, 0.13, 1)
+
+[sub_resource type="StandardMaterial3D" id="TipMaterial"]
+shading_mode = 0
+albedo_color = Color(0.72, 0.94, 0.94, 1)
+
+[sub_resource type="BoxMesh" id="Shaft"]
+material = SubResource("ShaftMaterial")
+size = Vector3(0.065, 0.065, 0.9)
+
+[sub_resource type="BoxMesh" id="Tip"]
+material = SubResource("TipMaterial")
+size = Vector3(0.13, 0.09, 0.25)
+
+[node name="CrossbowBolt" type="Node3D"]
+visible = false
+top_level = true
+script = ExtResource("1")
+
+[node name="Shaft" type="MeshInstance3D" parent="."]
+position = Vector3(0, 1.1, 0.25)
+mesh = SubResource("Shaft")
+
+[node name="Tip" type="MeshInstance3D" parent="."]
+position = Vector3(0, 1.1, -0.27)
+mesh = SubResource("Tip")

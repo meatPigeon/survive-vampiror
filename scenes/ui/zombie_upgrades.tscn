@@ -1,0 +1,218 @@
+[gd_scene load_steps=11 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/zombie_upgrades.gd" id="1_script"]
+[ext_resource type="PackedScene" path="res://scenes/components/upgrade_card.tscn" id="2_card"]
+[ext_resource type="Texture2D" path="res://assets/ui/permanent_ring.svg" id="3_ring"]
+
+[ext_resource type="FontVariation" path="res://assets/fonts/title.tres" id="TitleFont"]
+
+[sub_resource type="StyleBoxFlat" id="Confirm"]
+bg_color = Color(0.70, 0.75, 0.51, 1)
+content_margin_left = 22.0
+content_margin_right = 22.0
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_left = 4
+corner_radius_bottom_right = 4
+border_width_bottom = 3
+border_color = Color(0.40, 0.47, 0.29, 1)
+
+[sub_resource type="StyleBoxFlat" id="Hover"]
+bg_color = Color(0.82, 0.85, 0.63, 1)
+content_margin_left = 22.0
+content_margin_right = 22.0
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_left = 4
+corner_radius_bottom_right = 4
+border_width_bottom = 3
+border_color = Color(0.51, 0.58, 0.38, 1)
+
+[sub_resource type="StyleBoxFlat" id="Disabled"]
+bg_color = Color(0.15, 0.185, 0.14, 1)
+content_margin_left = 22.0
+content_margin_right = 22.0
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.26, 0.30, 0.23, 1)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_left = 4
+corner_radius_bottom_right = 4
+
+[sub_resource type="StyleBoxFlat" id="Alternative"]
+bg_color = Color(0.11, 0.14, 0.10, 0.9)
+content_margin_left = 16.0
+content_margin_right = 16.0
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.30, 0.34, 0.24, 1)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_left = 4
+corner_radius_bottom_right = 4
+
+[sub_resource type="StyleBoxFlat" id="Focus"]
+bg_color = Color(0, 0, 0, 0)
+border_width_bottom = 2
+border_color = Color(0.93, 0.89, 0.82, 1)
+expand_margin_bottom = 4.0
+
+[sub_resource type="Theme" id="Theme"]
+default_font_size = 17
+Label/colors/font_color = Color(0.93, 0.89, 0.82, 1)
+Button/colors/font_color = Color(0.09, 0.13, 0.08, 1)
+Button/colors/font_hover_color = Color(0.06, 0.10, 0.05, 1)
+Button/colors/font_pressed_color = Color(0.06, 0.10, 0.05, 1)
+Button/colors/font_disabled_color = Color(0.48, 0.53, 0.44, 1)
+Button/styles/normal = SubResource("Confirm")
+Button/styles/hover = SubResource("Hover")
+Button/styles/pressed = SubResource("Confirm")
+Button/styles/disabled = SubResource("Disabled")
+Button/styles/focus = SubResource("Focus")
+
+[node name="ZombieUpgrades" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = SubResource("Theme")
+script = ExtResource("1_script")
+
+[node name="Background" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+color = Color(0.025, 0.040, 0.030, 1)
+
+[node name="Center" type="CenterContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+
+[node name="Content" type="VBoxContainer" parent="Center"]
+custom_minimum_size = Vector2(752, 0)
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 16
+
+[node name="Header" type="VBoxContainer" parent="Center/Content"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 5
+
+[node name="Wave" type="Label" parent="Center/Content/Header"]
+unique_name_in_owner = true
+layout_mode = 2
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.70, 0.74, 0.51, 1)
+theme_override_font_sizes/font_size = 12
+text = "WAVE CLEARED"
+horizontal_alignment = 1
+
+[node name="Heading" type="Label" parent="Center/Content/Header"]
+unique_name_in_owner = true
+layout_mode = 2
+mouse_filter = 2
+theme_override_fonts/font = ExtResource("TitleFont")
+theme_override_font_sizes/font_size = 48
+text = "Wave cleared"
+horizontal_alignment = 1
+
+[node name="Subtitle" type="Label" parent="Center/Content/Header"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.61, 0.66, 0.57, 1)
+theme_override_font_sizes/font_size = 16
+text = "Choose one upgrade. Keep it for the rest of this run."
+horizontal_alignment = 1
+
+[node name="Cards" type="GridContainer" parent="Center/Content"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 4
+mouse_filter = 2
+theme_override_constants/h_separation = 28
+theme_override_constants/v_separation = 20
+columns = 2
+
+[node name="Card01" parent="Center/Content/Cards" instance=ExtResource("2_card")]
+layout_mode = 2
+
+[node name="Card02" parent="Center/Content/Cards" instance=ExtResource("2_card")]
+layout_mode = 2
+
+[node name="Footer" type="HBoxContainer" parent="Center/Content"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 24
+
+[node name="Selection" type="Label" parent="Center/Content/Footer"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.69, 0.74, 0.61, 1)
+theme_override_font_sizes/font_size = 15
+text = "Select your upgrade"
+
+[node name="StartButton" type="Button" parent="Center/Content/Footer"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(240, 48)
+layout_mode = 2
+mouse_default_cursor_shape = 2
+disabled = true
+text = "Take upgrade   →"
+
+[node name="Divider" type="HBoxContainer" parent="Center/Content"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 16
+
+[node name="Left" type="ColorRect" parent="Center/Content/Divider"]
+custom_minimum_size = Vector2(0, 1)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+mouse_filter = 2
+color = Color(0.20, 0.26, 0.18, 1)
+
+[node name="Or" type="Label" parent="Center/Content/Divider"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.45, 0.51, 0.42, 1)
+theme_override_font_sizes/font_size = 12
+text = "OR GROW YOUR NUMBERS"
+
+[node name="Right" type="ColorRect" parent="Center/Content/Divider"]
+custom_minimum_size = Vector2(0, 1)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+mouse_filter = 2
+color = Color(0.20, 0.26, 0.18, 1)
+
+[node name="SkipButton" type="Button" parent="Center/Content"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 49)
+layout_mode = 2
+mouse_default_cursor_shape = 2
+theme_override_colors/font_color = Color(0.84, 0.82, 0.69, 1)
+theme_override_colors/font_hover_color = Color(0.97, 0.96, 0.87, 1)
+theme_override_colors/font_pressed_color = Color(0.97, 0.96, 0.87, 1)
+theme_override_styles/normal = SubResource("Alternative")
+theme_override_styles/hover = SubResource("Disabled")
+theme_override_styles/pressed = SubResource("Alternative")
+text = "Skip upgrade     ·     +10 permanent zombies"
+icon = ExtResource("3_ring")
+alignment = 1

@@ -32,17 +32,28 @@ only for the missing scope. Do not invent a next milestone or expand the backlog
 ## Hard Rules
 
 - Preserve user changes; do not rewrite unrelated files.
+- The title offers Newbie (current damage) and Normal (all knight hits kill a
+  zombie instantly). Crossbow bolts remain lethal in both. Keep the choice
+  scene-owned across waves/restart and when returning to the menu.
 - Current authorized scope: a complete jam-style gameplay loop with knight
-  phases/attacks, horde movement and sprint, permanent zombies and rotating
+  phases/attacks, three escalating knight waves, horde movement and sprint, permanent zombies and rotating
   temporary reinforcements, outcomes, pause and restart. This supersedes the earlier basic-combat-only scope.
+- Zombie abilities are acquired between rounds: two unowned cards or skip for
+  +10 permanent zombies. Later choices add an ability; restart clears the run.
+  Keep ability/reward rules scene-owned and separate from knight behavior.
 - Presentation work is authorized on `main`: a restrained in-game
   HUD, working pause/result controls, weightier character animations and a larger
   arena with simple low-poly environment props. Keep combat tuning and hit timing
-  unchanged. Large decorative rocks stay outside playable bounds; small ground
+  unchanged for presentation-only work. The authorized knight progression adds a
+  crossbow on wave two and a faster mounted knight on wave three; wave health
+  and transition timing are tunable. The mounted knight also has a warned,
+  sustained pursuit with limited steering and turn inertia. Preserve the
+  surviving horde between waves.
+  Large decorative rocks stay outside playable bounds; small ground
   details do not introduce obstacles. A small set of gameplay sound effects is
   authorized, with sparse playback and conservative generation-credit use.
-  The selected Undead March sketch is authorized as quiet looping battle music.
-  Keep the two other sketches as unused alternatives until requested.
+  Undead March stays on the main menu; Graveyard Groove loops quietly in battle.
+  Keep Tiny Siege as an unused alternative until requested.
   A main menu and independent music/effect volume controls are authorized.
   Reuse the controls on pause and retain levels for the current application
   session through Godot's native audio buses; no settings singleton is needed.

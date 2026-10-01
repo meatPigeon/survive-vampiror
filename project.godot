@@ -17,6 +17,10 @@ window/size/viewport_height=800
 window/stretch/mode="canvas_items"
 window/stretch/aspect="expand"
 
+[gui]
+
+theme/custom_font="res://assets/fonts/body.tres"
+
 [rendering]
 
 renderer/rendering_method="gl_compatibility"

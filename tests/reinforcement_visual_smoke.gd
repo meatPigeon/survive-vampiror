@@ -18,7 +18,7 @@ func _run() -> void:
 	var buried: Transform3D = grave.transform
 	_check(west.visual.get_node("Crater").is_visible_in_tree() and _all_visible(west, false) and not west.visual.indicator.visible, "inactive crater remains but tombstones and indicator start hidden")
 	await _capture("inactive")
-	scene.horde.command_move(Vector3.ZERO)
+	scene.horde.command_direction(Vector3.RIGHT)
 	await _frames(10)
 	_check(_all_visible(west, true) and grave.position.y > buried.origin.y, "opening raises tombstones from the ground")
 	await _capture("rising")
@@ -37,7 +37,7 @@ func _run() -> void:
 	await _capture("active")
 	# Drive the indicator through real occupation, interruption and pause.
 	scene.horde.agents[0].global_position = west.global_position
-	scene.horde.command_move(west.global_position)
+	scene.horde.command_direction(Vector3.RIGHT)
 	west.update_recruitment(scene.horde, west.summon_time * 0.25)
 	_check(west.visual.indicator.visible and west.visual.fill.visible, "occupation reveals the radial fill")
 	await _capture("quarter")
@@ -50,7 +50,7 @@ func _run() -> void:
 	paused = false
 	west.update_recruitment(scene.horde, west.summon_time * 0.45)
 	await _capture("nearly_full")
-	scene.horde.command_move(Vector3.ZERO)
+	scene.horde.agents[0].global_position = west.global_position + Vector3.RIGHT * 5.0
 	west.update_recruitment(scene.horde, 0.1)
 	_check(not west.visual.fill.visible and west.visual.indicator.visible, "leaving clears fill but keeps the available marker")
 	west.set_active(true)
@@ -81,7 +81,7 @@ func _run() -> void:
 	scene = _fixture()
 	west = scene.get_node("Reinforcements/West")
 	scene.horde.agents[0].global_position = west.global_position
-	scene.horde.command_move(west.global_position)
+	scene.horde.command_direction(Vector3.RIGHT)
 	west.update_recruitment(scene.horde, west.summon_time)
 	_check(not west.active and west.remaining == 0 and scene.horde.recruited == 12, "same-frame opening and consumption closes the used site")
 	_check(not west.visual.indicator.visible, "exhaustion immediately clears the recruitment indicator")
@@ -95,6 +95,7 @@ func _run() -> void:
 	west.set_active(false)
 	await _frames(8)
 	west.set_active(true)
+	scene.wave_count = scene.wave_index # This scenario checks the final outcome.
 	scene.survivor.health.take_damage(scene.survivor.health.current_health)
 	await _frames(55)
 	_check(scene.battle_over and west.remaining == 12 and _all_visible(west, true), "outcome lets visual motion settle without changing stock")

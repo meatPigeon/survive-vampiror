@@ -5,6 +5,9 @@ signal pause_requested()
 signal restart_requested()
 signal sprint_requested()
 signal menu_requested()
+signal ability_requested(slot: int)
+signal reward_chosen(index: int)
+signal reward_skipped()
 
 const BONE := Color("eee5d2")
 const MUTED := Color("aaa99d")
@@ -14,6 +17,9 @@ const RED := Color("e89b88")
 const GOLD := Color("e3c49b")
 
 var _health_trail_delay: float = 0.0
+var _controls_hint: String = "WASD to move"
+var _countdown_seconds: int = -1
+var _countdown_tween: Tween
 
 @onready var knight_health: ProgressBar = %KnightHealth
 @onready var health_trail: ProgressBar = %HealthTrail
@@ -37,14 +43,22 @@ var _health_trail_delay: float = 0.0
 @onready var restart_button: Button = %RestartButton
 @onready var audio_controls: AudioControls = %AudioControls
 @onready var overlay_card: PanelContainer = $Frame/Overlay/Card
+@onready var upgrades: ZombieUpgrades = %ZombieUpgrades
+@onready var wave_countdown: VBoxContainer = %WaveCountdown
+@onready var countdown_number: Label = %CountdownNumber
 
 
 func _ready() -> void:
+	countdown_number.resized.connect(func() -> void: countdown_number.pivot_offset = countdown_number.size * 0.5)
 	%PauseButton.pressed.connect(func() -> void: pause_requested.emit())
 	resume_button.pressed.connect(func() -> void: pause_requested.emit())
 	restart_button.pressed.connect(func() -> void: restart_requested.emit())
 	sprint_button.pressed.connect(func() -> void: sprint_requested.emit())
 	%MenuButton.pressed.connect(func() -> void: menu_requested.emit())
+	%AbilityButton.pressed.connect(func() -> void: ability_requested.emit(0))
+	%SecondAbilityButton.pressed.connect(func() -> void: ability_requested.emit(1))
+	upgrades.chosen.connect(func(index: int) -> void: reward_chosen.emit(index))
+	upgrades.skipped.connect(func() -> void: reward_skipped.emit())
 
 
 func _process(delta: float) -> void:
@@ -69,10 +83,12 @@ func set_knight_health(current: int, maximum: int) -> void:
 
 func update_status(
 	horde: HordeController, knight: Survivor, started: bool, elapsed: float,
-	site: ReinforcementSite, site_time_left: float
+	site: ReinforcementSite, site_time_left: float,
+	wave_index: int = 1, wave_count: int = 1, between_waves: bool = false, wave_time_left: float = 0.0,
+	awaiting_reward: bool = false
 ) -> void:
 	clock_label.text = "%02d:%02d" % [int(elapsed) / 60, int(elapsed) % 60]
-	phase.text = "Phase %s" % ["I", "II", "III"][knight.phase - 1]
+	phase.text = "%s · Wave %d / %d · Phase %s" % ["Normal" if knight.lethal_attacks else "Newbie", wave_index, wave_count, ["I", "II", "III"][knight.phase - 1]]
 	var permanent: int = horde.permanent_count()
 	permanent_count.text = str(permanent)
 	var critical: bool = permanent <= maxi(1, horde.agent_count / 5)
@@ -100,8 +116,14 @@ func update_status(
 	else:
 		site_name.text = "◇  —"
 		site_hint.text = "Next site in %ds" % ceili(site_time_left)
-	var sprint_ready: bool = started and horde.commands_enabled and horde.sprint_cooldown_remaining <= 0.0
-	%Sprint.visible = started and knight.state != Survivor.State.STOPPED
+	var sprint_ready: bool = horde.sprint_unlocked and started and horde.commands_enabled and horde.sprint_cooldown_remaining <= 0.0
+	%Sprint.visible = horde.sprint_unlocked and started and knight.state != Survivor.State.STOPPED
+	_controls_hint = "WASD to move"
+	if horde.sprint_unlocked:
+		_controls_hint += " · Space to sprint"
+	for slot: int in range(horde.abilities.size()):
+		if horde.abilities[slot].upgrade != HordeAbility.Upgrade.NONE:
+			_controls_hint += " · %s ability" % ("Q" if slot == 0 else "E")
 	sprint_button.disabled = not sprint_ready
 	sprint_bar.visible = horde.sprint_cooldown_remaining > 0.0
 	sprint_bar.value = (1.0 - horde.sprint_cooldown_remaining / horde.sprint_cooldown) * 100.0
@@ -109,25 +131,70 @@ func update_status(
 	if horde.sprint_remaining > 0.0:
 		sprint_button.text = "Sprinting"
 	threat.visible = not started or knight.state in [Survivor.State.WINDUP, Survivor.State.STRIKE, Survivor.State.RECOVERY]
-	threat.text = "Click the ground to lead your horde"
+	threat.text = "WASD to lead your horde"
 	threat.modulate = BONE
 	if started:
 		if knight.state == Survivor.State.RECOVERY:
 			threat.text = "Exposed — attack!"
 			threat.modulate = GREEN
 		else:
-			threat.text = ["Sweep — move sideways", "Charge — clear the lane", "Spin — get out of the circle"][knight.attack_kind]
+			threat.text = ["Sweep — move sideways", "Charge — clear the lane", "Spin — get out of the circle", "Crossbow — leave the blue line", "Stampede — bait the turn"][knight.attack_kind]
 			threat.modulate = GOLD
+	if between_waves:
+		threat.hide()
+	_update_countdown(wave_index + 1, wave_time_left, between_waves and not awaiting_reward)
+
+
+func _update_countdown(next_wave: int, time_left: float, active: bool) -> void:
+	if not active:
+		_clear_countdown()
+		return
+	wave_countdown.visible = not get_tree().paused and not overlay.visible
+	%CountdownTitle.text = "Wave %d begins in" % next_wave
+	%CountdownEnemy.text = "Crossbow" if next_wave == 2 else "Mounted knight"
+	var seconds: int = ceili(time_left)
+	if seconds == _countdown_seconds:
+		return
+	_countdown_seconds = seconds
+	countdown_number.text = str(seconds)
+	countdown_number.pivot_offset = countdown_number.size * 0.5
+	if _countdown_tween != null:
+		_countdown_tween.kill()
+	countdown_number.scale = Vector2.ONE * 1.2
+	_countdown_tween = create_tween().set_pause_mode(Tween.TWEEN_PAUSE_STOP)
+	_countdown_tween.tween_property(countdown_number, "scale", Vector2.ONE, 0.28).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+
+
+func _clear_countdown() -> void:
+	wave_countdown.hide()
+	_countdown_seconds = -1
+	if _countdown_tween != null:
+		_countdown_tween.kill()
+		_countdown_tween = null
+
+
+func update_abilities(abilities: Array[HordeAbility], active: bool) -> void:
+	var buttons: Array[Button] = [%AbilityButton, %SecondAbilityButton]
+	for slot: int in range(abilities.size()):
+		var ability: HordeAbility = abilities[slot]
+		var key: String = "Q" if slot == 0 else "E"
+		buttons[slot].visible = ability.upgrade != HordeAbility.Upgrade.NONE
+		buttons[slot].disabled = not active or not ability.can_activate()
+		buttons[slot].text = ability.status_text(key)
+		buttons[slot].tooltip_text = HordeAbility.DESCRIPTIONS[ability.upgrade].replace("Q ", key + " ")
+	%AbilityButton.offset_left = -292.0 if %SecondAbilityButton.visible else -140.0
+	%AbilityButton.offset_right = -8.0 if %SecondAbilityButton.visible else 140.0
 
 
 func set_paused(paused: bool) -> void:
 	overlay.visible = paused
+	wave_countdown.visible = _countdown_seconds >= 0 and not paused
 	if not paused:
 		return
 	result_label.text = "Paused"
 	result_label.modulate = BONE
 	result_caption.text = "The horde can wait."
-	result_stats.text = "Click to move · Space to sprint\nKeep at least one permanent zombie alive."
+	result_stats.text = _controls_hint + "\nKeep at least one permanent zombie alive."
 	audio_controls.show()
 	_set_card_height(520.0)
 	resume_button.show()
@@ -135,6 +202,7 @@ func set_paused(paused: bool) -> void:
 
 
 func show_result(won: bool, elapsed: float, horde: HordeController) -> void:
+	_clear_countdown()
 	audio_controls.hide()
 	_set_card_height(390.0)
 	result_label.text = "Victory" if won else "Defeat"

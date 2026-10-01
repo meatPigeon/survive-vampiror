@@ -2,7 +2,14 @@ class_name ZombieVisual
 extends Node3D
 
 const HIT_FLASH: Material = preload("res://art/hit_flash.tres")
+const RECRUIT_MANTLE: PackedScene = preload("res://scenes/components/recruit_mantle.tscn")
+const RECRUIT_COLORS: Dictionary[String, Color] = {
+	"Olive skin": Color("8fcbd5"), "Warm cream": Color("315c73"),
+	"Terracotta": Color("294355"), "Chocolate": Color("233742"),
+	"Mint": Color("bbe8ea")
+}
 static var _bite_animation: Animation
+static var _recruit_materials: Dictionary[String, Material] = {}
 
 var _moving: bool = false
 var _dead: bool = false
@@ -13,15 +20,18 @@ var _bank_target: float = 0.0
 var _hit_remaining: float = 0.0
 var _run_playback: float = 1.0
 var _phase_offset: float = 0.0
+var recruit_mantle: Node3D
 
 @onready var animation_player: AnimationPlayer = $AnimationPlayer
 @onready var rig: Node3D = $CharacterRig
 @onready var skeleton: Skeleton3D = $CharacterRig/Skeleton3D
 @onready var body: MeshInstance3D = $CharacterRig/Skeleton3D/Zombie
+@onready var motion_air: MotionAir = $MotionAir
 
 
 func _ready() -> void:
 	_phase_offset = float(get_parent().get_index()) * 0.37
+	motion_air.phase_offset = _phase_offset
 	if _bite_animation == null:
 		_bite_animation = _build_bite()
 	var library := AnimationLibrary.new()
@@ -31,11 +41,35 @@ func _ready() -> void:
 	_play_locomotion()
 
 
-func move(actual_velocity: Vector3, delta: float, move_speed: float, turn_speed: float, threshold: float, playback: float) -> void:
+func set_temporary(temporary: bool) -> void:
+	for surface: int in range(body.mesh.get_surface_count()):
+		var source: StandardMaterial3D = body.mesh.surface_get_material(surface)
+		if not temporary or not RECRUIT_COLORS.has(source.resource_name):
+			body.set_surface_override_material(surface, null)
+			continue
+		if not _recruit_materials.has(source.resource_name):
+			var material: StandardMaterial3D = source.duplicate()
+			material.albedo_color = RECRUIT_COLORS[source.resource_name]
+			_recruit_materials[source.resource_name] = material
+		body.set_surface_override_material(surface, _recruit_materials[source.resource_name])
+	if temporary and recruit_mantle == null:
+		var shoulder := BoneAttachment3D.new()
+		shoulder.name = "RecruitShoulders"
+		shoulder.bone_name = "Chest"
+		skeleton.add_child(shoulder)
+		recruit_mantle = RECRUIT_MANTLE.instantiate()
+		shoulder.add_child(recruit_mantle)
+		recruit_mantle.quaternion = skeleton.get_bone_global_rest(skeleton.find_bone("Chest")).basis.get_rotation_quaternion().inverse()
+	if recruit_mantle != null:
+		recruit_mantle.visible = temporary
+
+
+func move(actual_velocity: Vector3, delta: float, move_speed: float, turn_speed: float, threshold: float, playback: float, sprinting: bool = false) -> void:
 	if _dead:
 		return
 	var speed: float = actual_velocity.length()
 	_moving = speed > threshold * (0.5 if _moving else 1.0)
+	motion_air.stream(sprinting and _moving and speed > move_speed * 0.5)
 	_speed_target = clampf(speed / move_speed, 0.0, 2.0) if _moving else 0.0
 	_run_playback = playback * clampf(speed / move_speed, 0.5, 2.0)
 	_bank_target = 0.0
@@ -65,6 +99,7 @@ func hit() -> void:
 func stop() -> void:
 	if _dead:
 		return
+	motion_air.clear()
 	_moving = false
 	_speed_target = 0.0
 	_bank_target = 0.0
@@ -92,6 +127,7 @@ func _process(delta: float) -> void:
 
 func die(expired: bool) -> Tween:
 	_dead = true
+	motion_air.clear()
 	animation_player.pause()
 	body.material_overlay = null
 	var death: Tween = create_tween()

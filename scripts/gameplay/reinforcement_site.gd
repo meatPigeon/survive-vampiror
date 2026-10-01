@@ -27,11 +27,12 @@ func update_recruitment(horde: HordeController, delta: float) -> void:
 	if not active or remaining <= 0 or not horde.commands_enabled:
 		return
 	var occupied: bool = false
-	if horde.command_position.distance_to(global_position) <= radius:
-		for agent: HordeAgent in horde.agents:
-			if agent.global_position.distance_to(global_position) <= radius:
-				occupied = true
-				break
+	for agent: HordeAgent in horde.agents:
+		if agent.ability_locked:
+			continue
+		if agent.global_position.distance_to(global_position) <= radius:
+			occupied = true
+			break
 	if not occupied or horde.agents.size() >= horde.max_agents:
 		progress = 0.0
 	else:

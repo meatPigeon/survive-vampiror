@@ -2,7 +2,7 @@
 
 [ext_resource type="PackedScene" path="res://scenes/components/horde.tscn" id="1_horde"]
 [ext_resource type="PackedScene" path="res://scenes/components/survivor.tscn" id="2_survivor"]
-[ext_resource type="Script" path="res://scripts/input/ground_command.gd" id="3_input"]
+[ext_resource type="Script" path="res://scripts/input/horde_input.gd" id="3_input"]
 [ext_resource type="Script" path="res://scripts/gameplay/arena.gd" id="4_arena"]
 
 [ext_resource type="PackedScene" path="res://scenes/components/reinforcement_site.tscn" id="5_site"]
@@ -58,7 +58,7 @@ light_energy = 1.2
 shadow_enabled = true
 directional_shadow_max_distance = 80.0
 
-[node name="Camera" type="Camera3D" parent="." node_paths=PackedStringArray("ground")]
+[node name="Camera" type="Camera3D" parent="." node_paths=PackedStringArray("ground", "horde")]
 position = Vector3(0, 32, 24)
 rotation_degrees = Vector3(-53.1301, 0, 0)
 projection = 1
@@ -68,6 +68,7 @@ far = 100.0
 script = ExtResource("7_camera")
 ground = NodePath("../Ground")
 framing_margin = 2.5
+horde = NodePath("../Horde")
 
 [node name="Survivor" parent="." instance=ExtResource("2_survivor")]
 position = Vector3(6, 0, -3)
@@ -76,11 +77,10 @@ position = Vector3(6, 0, -3)
 ground = NodePath("../Ground")
 survivor = NodePath("../Survivor")
 
-[node name="GroundCommand" type="Node" parent="." node_paths=PackedStringArray("camera", "ground")]
+[node name="HordeInput" type="Node" parent="." node_paths=PackedStringArray("camera")]
 process_mode = 3
 script = ExtResource("3_input")
 camera = NodePath("../Camera")
-ground = NodePath("../Ground")
 
 [node name="Reinforcements" type="Node3D" parent="."]
 
@@ -97,13 +97,21 @@ position = Vector3(14, 0, 8)
 
 [node name="BattleAudio" parent="." instance=ExtResource("9_audio")]
 
-[connection signal="move_requested" from="GroundCommand" to="Horde" method="command_move"]
+[connection signal="move_requested" from="HordeInput" to="Horde" method="command_direction"]
 
-[connection signal="sprint_requested" from="GroundCommand" to="Horde" method="command_sprint"]
-[connection signal="pause_requested" from="GroundCommand" to="." method="toggle_pause"]
-[connection signal="restart_requested" from="GroundCommand" to="." method="restart"]
+[connection signal="sprint_requested" from="HordeInput" to="Horde" method="command_sprint"]
+[connection signal="pause_requested" from="HordeInput" to="." method="toggle_pause"]
+[connection signal="restart_requested" from="HordeInput" to="." method="restart"]
+[connection signal="zoom_requested" from="HordeInput" to="." method="zoom_camera"]
+[connection signal="ability_requested" from="HordeInput" to="." method="command_ability"]
+[connection signal="aim_requested" from="HordeInput" to="." method="aim_sling"]
+[connection signal="fire_requested" from="HordeInput" to="." method="fire_sling"]
+[connection signal="aim_cancel_requested" from="HordeInput" to="." method="cancel_sling_aim"]
 
 [connection signal="pause_requested" from="HUD" to="." method="toggle_pause"]
 [connection signal="restart_requested" from="HUD" to="." method="restart"]
 [connection signal="sprint_requested" from="HUD" to="Horde" method="command_sprint"]
 [connection signal="menu_requested" from="HUD" to="." method="return_to_menu"]
+[connection signal="ability_requested" from="HUD" to="." method="command_ability"]
+[connection signal="reward_chosen" from="HUD" to="." method="choose_reward"]
+[connection signal="reward_skipped" from="HUD" to="." method="skip_reward"]

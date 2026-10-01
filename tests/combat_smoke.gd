@@ -110,7 +110,7 @@ func _run() -> void:
 	scene = _fixture()
 	horde = scene.get_node("Horde")
 	var site: ReinforcementSite = scene.get_node("Reinforcements/West")
-	horde.command_move(site.global_position)
+	horde.command_direction(Vector3.RIGHT)
 	site.update_recruitment(horde, 3.0)
 	_check(site.remaining == 12 and site.progress == 0, "a command alone cannot recruit without a zombie reaching the site")
 	horde.agents[0].global_position = site.global_position
@@ -130,7 +130,7 @@ func _run() -> void:
 	scene._update_site_schedule()
 	site = scene.active_site
 	_check(site != used_site and not used_site.active, "cooldown opens a different random site")
-	horde.command_move(site.global_position)
+	horde.command_direction(Vector3.RIGHT)
 	horde.agents[0].global_position = site.global_position
 	site.update_recruitment(horde, 2.1)
 	_check(horde.agents.size() == 60 and site.remaining == 0 and not site.active, "partial recruitment consumes the site and discards excess stock")
@@ -143,11 +143,12 @@ func _run() -> void:
 	_check(horde.recruited == 20 and horde.casualties == 3, "discarded stock never counts as recruited or killed")
 	front = horde.agents[0]
 	front.global_position = Vector3.ZERO
-	front.move_toward_command(Vector3(10, 0, 0), [], horde.movement_bounds, 0.1, null, 1.0)
+	front.move_in_direction(Vector3.RIGHT, [], horde.movement_bounds, 0.1, null, 1.0)
 	var walking_distance: float = front.global_position.length()
 	front.global_position = Vector3.ZERO
-	front.move_toward_command(Vector3(10, 0, 0), [], horde.movement_bounds, 0.1, null, horde.sprint_multiplier)
+	front.move_in_direction(Vector3.RIGHT, [], horde.movement_bounds, 0.1, null, horde.sprint_multiplier)
 	_check(front.global_position.length() > walking_distance * 1.8, "sprint changes actual movement speed")
+	horde.grant_ability(HordeAbility.Upgrade.SPRINT)
 	horde.command_sprint()
 	horde._physics_process(horde.sprint_cooldown + 0.1)
 	horde.command_sprint()
@@ -165,9 +166,12 @@ func _run() -> void:
 	_check(not scene.battle_started and knight.position == origin, "game waits for first command")
 	_key(KEY_SPACE)
 	_check(horde.sprint_remaining == 0, "sprint cannot start before a movement command")
-	horde.command_move(Vector3(-12, 0, 10))
+	horde.command_direction(Vector3.RIGHT)
 	_key(KEY_SPACE)
-	_check(scene.battle_started and horde.sprint_remaining > 0, "first command starts run and space activates sprint")
+	_check(scene.battle_started and horde.sprint_remaining == 0, "first command starts the run but sprint remains locked")
+	horde.grant_ability(HordeAbility.Upgrade.SPRINT)
+	_key(KEY_SPACE)
+	_check(horde.sprint_remaining > 0, "Space activates the acquired sprint perk")
 	await _frames(10)
 	var cooldown: float = horde.sprint_cooldown_remaining
 	_key(KEY_SPACE)
@@ -183,6 +187,7 @@ func _run() -> void:
 	_check(not paused, "escape resumes")
 	await _frames(90)
 	_check(horde.sprint_remaining == 0 and horde.sprint_cooldown_remaining > 0, "sprint expires before it can be reused")
+	scene.wave_count = scene.wave_index # This scenario checks the final outcome.
 	knight.health.take_damage(10000)
 	_check(scene.battle_over and scene.hud.result_label.text.begins_with("Victory"), "knight death ends the run in victory")
 	var count: int = horde.agents.size()
@@ -194,7 +199,7 @@ func _run() -> void:
 	horde = scene.get_node("Horde")
 	knight = scene.get_node("Survivor")
 	_check(not scene.battle_started and not scene.battle_over and knight.phase == 1, "restart resets the run and phases")
-	_check(horde.agents.size() == 40 and horde.recruited == 0 and horde.sprint_cooldown_remaining == 0, "restart resets horde, statistics and sprint")
+	_check(horde.agents.size() == 40 and horde.recruited == 0 and horde.sprint_cooldown_remaining == 0 and not horde.sprint_unlocked, "restart resets horde, statistics and sprint ownership")
 	_check(scene.active_site == null and scene.get_node("Reinforcements/West").remaining == 0, "restart resets sites to the waiting state")
 	for agent: HordeAgent in horde.agents.duplicate():
 		agent.health.take_damage(100)

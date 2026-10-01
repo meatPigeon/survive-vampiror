@@ -1,5 +1,271 @@
 # Architecture Decisions
 
+## Export A Single-Threaded Web Release With Bundled Fonts
+
+Status: accepted, 2026-10-01
+
+Decision: Use Godot's matching 4.7.2 single-threaded Web release template with
+PWA disabled, packaging index.html and its generated companions at ZIP root.
+Ship Noto Sans/Serif with DejaVu glyph fallbacks and license notices rather than
+relying on native system-font lookup. Hide Quit only on web.
+
+Reason: The user needs an immediately uploadable itch.io build. Single-threaded
+Web avoids host isolation/header requirements. Browser verification exposed
+missing system fonts/symbols, and excluding all of art would omit the runtime
+hit-flash material, so only authoring subdirectories are excluded.
+
+## Keep Difficulty In The Current Scene
+
+Status: accepted, 2026-10-01
+
+Decision: Offer Newbie and Normal on the title, with Newbie preserving the
+previous balance as the startup default. Normal resolves every knight hit as
+the target's remaining HP; the crossbow remains lethal in both modes. Pass a
+single mode flag into freshly instantiated menu/arena scenes using Godot's
+native scene replacement, and apply it whenever Arena prepares a knight.
+
+Reason: The user requested two starting modes distinguished by knight
+lethality. Keeping this rule at knight damage resolution preserves Health,
+zombie abilities, warnings and hit shapes. Explicit scene handoff retains the
+selection through replay and menu return without an autoload or saved settings.
+
+## Animate Wave Text Without Delaying Rewards
+
+Status: accepted, 2026-10-01
+
+Decision: Use the reward screen's heading for a fade/scale "Wave cleared"
+announcement. Display the real intermission timer in a separate large HUD
+readout after the choice, pulsing only when the integer second changes. Pause
+both native tweens explicitly because their parent HUD processes during pause.
+
+Reason: The user requested animated wave-clear text and a larger waiting label.
+This preserves immediate card interaction and existing round timing, without
+adding a transition state, duplicate timer or blocking cinematic.
+
+## Give Perks Bounded Audio And Separate Menu/Battle Music
+
+Status: accepted, 2026-10-01; supersedes March as battle music
+
+Decision: Reuse existing recordings with offline synthesis for six sub-second
+perk cues. HordeAbility emits accepted activation, batched impact and natural
+feast expiry signals; BattleAudio binds both slots to one cast/one impact voice.
+Keep Sprint's existing cue. Undead March stays on the menu; Graveyard Groove
+loops in battle from a committed lossless render, using the existing Music bus.
+
+Reason: The user requested perk sounds, limited credit use and this explicit
+music split. Current scene ownership and audio buses already supply pause,
+cleanup, independent volume and bounded playback. No new service is needed.
+
+## Put Existing Characters On The Title Screen
+
+Status: accepted, 2026-10-01
+
+Decision: Frame the title and main action beside a small graveyard diorama built
+from imported character visuals and existing props. Run only their idle clips
+inside a noninteractive SubViewport. Reveal the reused volume controls with
+Audio instead of keeping a settings column on the initial screen.
+
+Reason: The user wants the menu to feel more like the game. Reusing its models,
+materials and typography establishes that identity without new art dependencies,
+custom shaders or an active combat world behind the menu.
+
+## Add An Inertial Mounted Pursuit Attack
+
+Status: accepted, 2026-10-01
+
+Decision: Add Stampede alongside the existing mounted attacks. A stationary
+warning precedes 4.2 seconds of forward travel, with linear acceleration,
+bounded turn rate and angular acceleration toward the live horde center. The
+horse does not stop at its target. A boundary contact ends the attack and
+exposes the knight for the same 2.8-second recovery as a normal timeout.
+Damage is 20 once per zombie per attack. Keep selection, steering, swept hits,
+timers and cancellation inside Survivor; reuse native preview/animation/audio.
+
+Reason: The user requested a long pursuit like the described Minotaur attack,
+where momentum permits sharp evasive turns. A tracking lock-on or repeated
+contact damage would undermine that counterplay. Moving chevrons show heading
+without suggesting the straight lane guaranteed by the separate short charge.
+
+
+## Use Shipped Models For Static Reward Illustrations
+
+Status: accepted, 2026-10-01
+
+Decision: Render mines, sling, feast and sprint artwork offline from the actual
+zombie models and simple native meshes. Load the four PNGs in reusable Button
+cards; keep selection in ZombieUpgrades and reward rules in Arena. Retain the
+existing serif/bone/dark-green UI, with individual accents and explicit selection.
+
+Reason: The user wants proper illustrated cards that match the game. Reusing
+its characters preserves their proportions and materials without an external
+asset pipeline, generation credits or four live 3D viewports in the interface.
+
+## Make Sprint A Between-Wave Perk
+
+Status: accepted, 2026-10-01; supersedes default sprint access
+
+Decision: Add Sprint to the same random unowned reward pool as mines, sling and
+feast. It consumes that wave's choice and unlocks the existing Space/HUD action,
+without consuming Q/E. Keep 2x speed, 1.4-second duration and seven-second cooldown.
+Hide its control and reject requests before acquisition. Ownership survives
+later waves, disappears from future offers and resets with a new run.
+
+Reason: The user explicitly moved sprint out of the default kit and into perks.
+Retaining its familiar movement shortcut avoids a duplicate active-skill button
+or moving a previously learned Q/E skill. Existing horde-owned timers and scene
+restart already provide the required lifecycle; no perk framework is needed.
+
+## Follow The Mobile Horde At Close Zoom
+
+Status: accepted, 2026-10-01; supersedes arena-centered zoom at close distances
+
+Decision: Below zoom factor 1.0, ease the existing camera's X/Z position toward
+the mean mobile-agent position. At the default scale or farther out, ease back
+to the authored overview. Preserve rotation/height and native pause. Exclude
+ability-locked agents, matching the crowd controlled by movement; hold position
+when none remain. Use an explicit HordeController export, with no camera rig or
+new controller layer.
+
+Reason: The user wants zoomed camera tracking. This keeps the commanded crowd
+in view while retaining the existing wide arena view and mouse-ground projection.
+
+## Distinguish Zombie Kinds Through Appearance And Ring Shape
+
+Status: accepted, 2026-10-01; supersedes color-only kind markers
+
+Decision: Keep permanent zombies' warm original palette with a solid ivory ring.
+Give temporary recruits pale-blue skin, dark-blue clothing, a ragged shoulder
+mantle and a four-part cyan ring. Match both shapes in the HUD count legends.
+Ability feedback may recolor/scale rings but never changes their geometry or outfit.
+
+Reason: Foot-ring color alone disappears under a crowd and is overridden by
+abilities. The user requested clearer identification. Body palette, a distinct
+garment and ring shape remain useful together at gameplay distance, without
+floating nameplates, shader effects or gameplay differences.
+
+## Aim The Zombie Sling Manually With Visible Scatter
+
+Status: accepted, 2026-10-01; supersedes automatic shots at the knight
+
+Decision: Its Q/E key or HUD button enters mouse aim; LMB fires, RMB or the same
+key cancels. A cyan radius-2.5 ground disk shows possible landing positions;
+invalid range/bounds turns it red. Sample one uniform random point inside it
+at firing and retain the existing flight, impact damage/radius and cooldown.
+Select the nearest available temporary zombie whose range covers the whole disk.
+
+Reason: The user wants manual mouse targeting with a small area of possible
+hits. Actual randomized landing supports leading the knight without a separate
+probability calculation, targeting framework or change to knight behavior.
+
+## Acquire Additional Zombie Abilities Between Rounds
+
+Status: accepted, 2026-10-01; supersedes pre-battle selection and retained abilities on restart
+
+Decision: Start with ordinary zombies. After each of the first two knight defeats,
+offer two different random unowned abilities, or skip for exactly +10 permanent
+zombies. Later choices add a second skill; they do not enhance or replace the
+first. Reuse two HordeAbility nodes with separate Q/E input and cooldowns.
+Restart restores the original horde and empty slots.
+
+Reason: The user chose between-round progression, two cards or a permanent-horde
+bonus, and explicitly requested another ability at the later choice. Arena owns
+one-time claims and waits indefinitely, then starts its existing countdown.
+No ability framework, save state or knight changes are needed.
+
+Consequences: A bonus bypasses the grave recruitment cap so its full amount is
+honored. It cannot resurrect an ended run. Surviving wounds/lifetimes remain.
+Mine selection excludes a flying recruit; feast preserves committed markers.
+
+## Make Crossbow Bolts Lethal And Piercing
+
+Status: accepted, 2026-10-01; supersedes the original first-target 20-damage bolt
+
+Decision: Each bolt removes the current HP of every intercepted living zombie
+and continues along its locked line until its existing range ends. Resolve
+swept hits in travel order from a separate list, stopping immediately if a
+death ends the run. Preserve warning, width, speed, range and firing cadence.
+
+Reason: The user explicitly requested one-shot kills and multiple casualties
+per bolt. Current-HP damage keeps this rule true for upgraded zombies while
+using the existing health/death contract and preserving sideways evasion.
+
+## Draw Air Motion Within Existing Character Visuals
+
+Status: accepted, 2026-10-01
+
+Decision: Reuse a small MotionAir scene under each character Visual. Built-in
+transparent, unshaded ribbons draw a moving crescent at knight melee impact
+and two staggered side streaks for fast travel. Visuals enable them at existing
+attack/movement transitions; actual world displacement gates the speed effect.
+
+Reason: The user requested a sense of cutting through air during knight attacks
+and acceleration and zombie sprinting. Brief pale strokes preserve the stronger
+colored ground warnings without adding shaders, particle textures, spawned
+effect nodes or combat authority. Pause and cleanup inherit scene ownership.
+
+## Three Scene-Owned Zombie Abilities
+
+Status: accepted mechanics, 2026-09-30; acquisition/restart superseded by the between-round decision
+
+Decision: Implement delayed half-horde explosions, one-temporary-zombie sling
+shots and Blood feast (faster bites with self-healing). The user confirmed the
+explosion cost includes permanent zombies and delegated the third mechanic.
+Keep one selected ability on Horde/Ability, activated by Q or HUD. The fourth
+card is the unmodified baseline. Pass the enum into Arena before scene entry;
+retain it across waves/restart, without a service or save system.
+
+Reason: These give different uses for positioning and expendable recruits.
+Blood feast rewards a close attack window and lives entirely in zombie bite
+logic, keeping the parallel knight work independent. Existing permanent-wipe
+defeat, expiry, health and explicit scene composition remain authoritative.
+
+## Escalate The Knight Across Three Waves
+
+Status: accepted, 2026-09-30; supersedes discussion-only waves and one-knight victory
+
+Decision: Implement three waves: halberd, added crossbow, then mounted with both
+weapons. The user confirmed surviving horde carryover and warned ranged shots
+alongside melee. Arena replaces only the defeated knight after a configurable
+four-second break, preserving the horde and freezing combat/lifetime/site/sprint
+timers. A new knight appears away from the surviving group. Victory requires
+all three; permanent wipe remains an immediate loss.
+
+Reason: Successive equipment changes give each wave a different threat. A cyan
+locked lane precedes a finite, non-homing bolt that hits the first zombie along
+its swept segment. The mount increases pursuit and charge speed; a simple native
+mesh horse and riding pose make the upgrade visible without a new asset pipeline.
+Initial health is tuned for the existing unupgraded horde and remains exported.
+Zombie modifications and their selection screen belong to the parallel session.
+
+
+## Preview Zombie Modifications Before Battle
+
+Status: superseded by between-round acquisition on 2026-10-01; historical UI scope
+
+Decision: Main-menu Play opens a scene-owned screen with four numbered cards,
+one local UI selection and Begin battle. Reuse a simple native Button scene
+and ButtonGroup; keep menu music running. No modifier data model, stat changes,
+gameplay hooks or persistence until the user specifies actual zombie mechanics.
+
+Reason: The user requested selectable placeholders and chose placement before
+battle. Knight work belongs to a separate session.
+
+## Direct The Horde With Physical WASD
+
+Status: accepted, 2026-09-30; supersedes left-click movement and target markers
+
+Decision: Hold physical WASD for normalized camera-relative movement of the
+whole horde; release to stop. Keep loose crowd cohesion/separation and arena
+bounds. First nonzero movement starts the battle; Space remains sprint.
+Recruitment depends on actual occupation, including standing still with keys
+released. Pause and focus loss clear held movement. Input remains scene-owned.
+
+Reason: The user requested WASD horde control and removal of mouse movement.
+A shared direction alone stretched the crowd and failed the full-run check;
+cohesion keeps the commanded group together without formation slots or tuning
+knight damage, attack timing, zombie stats or recruitment parameters.
+
+
 ## Continue Development On Main
 
 Status: accepted, 2026-09-30; supersedes the separate UI experiment branch workflow

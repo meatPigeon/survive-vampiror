@@ -31,21 +31,24 @@ func _run() -> void:
 		elif player.stream != null:
 			_check(player.stream.get_length() > 0.2 and (player.stream as AudioStreamWAV).loop_mode == AudioStreamWAV.LOOP_DISABLED, "audio asset is finite and imported")
 
-	horde.command_move(west.position)
-	_check(sounds.music.playing, "first command starts the selected march")
+	horde.command_direction(Vector3.RIGHT)
+	_check(sounds.music.playing and sounds.music.stream.resource_path == "res://assets/audio/graveyard_groove.ogg", "first command starts Graveyard Groove")
 	var music_playback: AudioStreamPlayback = sounds.music.get_stream_playback()
 	_check(sounds.grave_rise.playing, "first command opens grave sound")
-	_check(sounds.command.playing and sounds.command.stream == BattleAudio.COMMAND, "accepted ground command gives feedback")
+	_check(sounds.command.playing and sounds.command.stream == BattleAudio.COMMAND, "accepted movement direction gives feedback")
 	var command_playback: AudioStreamPlayback = sounds.command.get_stream_playback()
 	for index: int in range(20):
-		horde.command_move(west.position)
+		horde.command_direction(Vector3.RIGHT)
 	_check(sounds.command.get_stream_playback() == command_playback, "command spam cannot restart or stack the cue")
 	_check(sounds.music.get_stream_playback() == music_playback, "repeated commands do not restart music")
+	horde.command_sprint()
+	_check(sounds.command.get_stream_playback() == command_playback, "sprint without its perk stays silent")
+	horde.grant_ability(HordeAbility.Upgrade.SPRINT)
 	horde.command_sprint()
 	_check(sounds.command.stream == BattleAudio.SPRINT, "successful sprint has a distinct cue")
 	command_playback = sounds.command.get_stream_playback()
 	horde.command_sprint()
-	horde.command_move(west.position)
+	horde.command_direction(Vector3.RIGHT)
 	_check(sounds.command.get_stream_playback() == command_playback, "cooldown rejection and movement commands do not interrupt sprint cue")
 	var playback: AudioStreamPlayback = sounds.grave_rise.get_stream_playback()
 	west._update_visuals()
@@ -132,11 +135,12 @@ func _run() -> void:
 
 	var south: ReinforcementSite = scene.active_site
 	horde.agents[0].position = south.position
-	horde.command_move(south.position)
+	horde.command_direction(Vector3.RIGHT)
 	south.update_recruitment(horde, south.summon_time)
 	_check(south.remaining == 0 and sounds.grave_sink.playing, "exhausting actual recruitment stock plays closing sound")
 	await _wait(1.3)
 	knight._begin_attack(Survivor.Attack.SPIN, agent.position)
+	scene.wave_count = scene.wave_index # This scenario checks the final outcome.
 	knight.health.take_damage(knight.health.current_health)
 	_check(scene.battle_over and _all_stopped(sounds, true), "victory immediately stops gameplay sounds")
 	_check(sounds.result.playing and sounds.result.stream == BattleAudio.VICTORY, "victory plays its own ending cue")
@@ -157,16 +161,12 @@ func _run() -> void:
 	scene = current_scene
 	_check(old_audio.get_ref() == null and _all_stopped(scene.battle_audio), "restart frees old voices and begins silent")
 
-	# Real scene ticks and a floor click exercise the wiring in a running fight.
+	# Real scene ticks and WASD exercise the wiring in a running fight.
 	if _record:
-		var click := InputEventMouseButton.new()
-		click.button_index = MOUSE_BUTTON_LEFT
-		click.position = scene.get_node("Camera").unproject_position(scene.survivor.position)
-		click.pressed = true
-		root.push_input(click, true)
-		click = click.duplicate() as InputEventMouseButton
-		click.pressed = false
-		root.push_input(click, true)
+		var event := InputEventKey.new()
+		event.physical_keycode = KEY_D
+		event.pressed = true
+		root.push_input(event, true)
 		_check(scene.battle_started, "recorded fight starts from actual viewport input")
 		await _wait(12.0)
 		await RenderingServer.frame_post_draw
